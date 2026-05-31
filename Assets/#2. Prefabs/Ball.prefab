@@ -169,5 +169,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0080eba0b094aa645b130986d4618b29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Ball
-  _launchForce: 5
-  _lifetime: 2
+  _launchForce: 10
+  _lifetime: 5
+  _pushOutDistance: 0.1
