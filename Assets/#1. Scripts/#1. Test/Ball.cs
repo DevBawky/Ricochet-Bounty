@@ -50,7 +50,7 @@ public class Ball : MonoBehaviour
 
         _collisionCount++;
 
-        if (_collisionCount > _maxCollisionCount)
+        if (_collisionCount >= _maxCollisionCount)
         {
             Destroy(gameObject);
             return;
