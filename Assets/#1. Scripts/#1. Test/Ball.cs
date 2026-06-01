@@ -48,9 +48,11 @@ public class Ball : MonoBehaviour
             return;
         }
 
+        ChangeRandomColor();
+
         _collisionCount++;
 
-        if (_collisionCount > _maxCollisionCount)
+        if (_collisionCount >= _maxCollisionCount)
         {
             Destroy(gameObject);
             return;
@@ -87,7 +89,7 @@ public class Ball : MonoBehaviour
             Vector2 normal = collision.GetContact(i).normal;
             float dot = Vector2.Dot(moveDirection, normal);
 
-            if (dot < bestDot)
+            if (dot <= bestDot)
             {
                 bestDot = dot;
                 bestNormal = normal;
