@@ -3,13 +3,12 @@ using UnityEngine;
 public class Ball : MonoBehaviour
 {
     [SerializeField] float _launchForce = 10f;
+    [SerializeField] float _lifetime = 1f;
     [SerializeField] float _pushOutDistance = 0.01f;
-    [SerializeField] int _maxCollisionCount = 5;
 
     Rigidbody2D _rigidbody;
     SpriteRenderer _spriteRenderer;
     Vector2 _lastVelocity;
-    int _collisionCount;
 
     void Awake()
     {
@@ -23,6 +22,7 @@ public class Ball : MonoBehaviour
     {
         ChangeRandomColor();
         LaunchRandomDirection();
+        Destroy(gameObject, _lifetime);
     }
 
     void FixedUpdate()
@@ -45,14 +45,6 @@ public class Ball : MonoBehaviour
     {
         if (!collision.gameObject.CompareTag("Wall"))
         {
-            return;
-        }
-
-        _collisionCount++;
-
-        if (_collisionCount > _maxCollisionCount)
-        {
-            Destroy(gameObject);
             return;
         }
 
