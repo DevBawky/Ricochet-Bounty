@@ -2,26 +2,32 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
+    [Header("Launch")]
     [SerializeField] float _launchForce = 10f;
-    [SerializeField] float _pushOutDistance = 0.01f;
+
+    [Header("Speed")]
+    [SerializeField] float _minMoveSpeed = 6f;
+    [SerializeField] float _maxMoveSpeed = 24f;
 
     Rigidbody2D _rigidbody;
-    SpriteRenderer _spriteRenderer;
     BallDataManager _ballDataManager;
     BallRuntimeStatus _runtimeStatus;
     BallEffectController _effectController;
     Vector2 _lastVelocity;
+    Vector2 _lastMoveDirection = Vector2.right;
+    float _lastWallHitSystemTime = -999f;
     int _collisionCount;
 
     void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
-        _spriteRenderer = GetComponent<SpriteRenderer>();
         _ballDataManager = GetComponent<BallDataManager>();
         _runtimeStatus = GetComponent<BallRuntimeStatus>();
         _effectController = GetComponent<BallEffectController>();
 
         _rigidbody.freezeRotation = true;
+        _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        _rigidbody.interpolation = RigidbodyInterpolation2D.Interpolate;
     }
 
     void Start()
@@ -33,18 +39,19 @@ public class Ball : MonoBehaviour
     void FixedUpdate()
     {
         _lastVelocity = _rigidbody.linearVelocity;
+        RememberMoveDirection(_lastVelocity);
+        KeepSpeedInRange();
     }
 
     void LaunchRandomDirection()
     {
-        Vector2 direction = Random.insideUnitCircle.normalized;
-        _rigidbody.AddForce(direction * _launchForce, ForceMode2D.Impulse);
+        Vector2 direction = GetRandomDirection();
+        _lastMoveDirection = direction;
+        _rigidbody.linearVelocity = direction * _launchForce;
     }
 
     void ApplyBallDataLaunchSpeed()
     {
-        // BallDataSO에 기본 발사 속도가 설정되어 있으면 그 값을 사용합니다.
-        // BallDataSO가 비어 있으면 Inspector의 _launchForce 값을 그대로 사용합니다.
         if (_ballDataManager == null || _ballDataManager.BallData == null)
         {
             return;
@@ -56,6 +63,7 @@ public class Ball : MonoBehaviour
         }
 
         _launchForce = _ballDataManager.BallData.LaunchSpeed;
+        _minMoveSpeed = Mathf.Min(_minMoveSpeed, _launchForce);
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -67,32 +75,53 @@ public class Ball : MonoBehaviour
 
         _collisionCount++;
         ApplyWallHitSystems();
+        BounceFromWall(collision);
+    }
 
-
-        if (_lastVelocity == Vector2.zero)
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (!collision.gameObject.CompareTag("Wall"))
         {
             return;
         }
 
-        Vector2 bestNormal = FindBestWallNormal(collision);
-        float movingIntoWallAmount = Vector2.Dot(_lastVelocity, bestNormal);
+        // 벽에 붙어 있을 때는 위치를 직접 밀지 않습니다.
+        // Rigidbody2D.position을 수동으로 바꾸면 TilemapCollider 반대편으로 넘어가는 원인이 될 수 있습니다.
+        Vector2 normal = FindBestWallNormal(collision);
+        Vector2 velocity = GetSafeVelocity();
 
-        if (movingIntoWallAmount >= 0f)
+        if (Vector2.Dot(velocity, normal) < -0.01f)
         {
+            SetVelocity(Vector2.Reflect(velocity, normal));
             return;
         }
 
-        Vector2 reflectedVelocity = Vector2.Reflect(_lastVelocity, bestNormal);
-        _rigidbody.linearVelocity = reflectedVelocity;
+        KeepSpeedInRange();
+    }
 
-        Vector2 pushedPosition = _rigidbody.position + bestNormal * _pushOutDistance;
-        _rigidbody.position = pushedPosition;
+    void BounceFromWall(Collision2D collision)
+    {
+        Vector2 velocity = GetSafeVelocity();
+        Vector2 normal = FindBestWallNormal(collision);
+
+        if (Vector2.Dot(velocity, normal) >= 0f)
+        {
+            KeepSpeedInRange();
+            return;
+        }
+
+        SetVelocity(Vector2.Reflect(velocity, normal));
     }
 
     void ApplyWallHitSystems()
     {
-        // 벽 충돌 시 내구도 감소와 벽 충돌 효과를 실행합니다.
-        // 실제 벽 충돌 감지는 기존 OnCollisionEnter2D를 그대로 사용합니다.
+        if (Mathf.Approximately(_lastWallHitSystemTime, Time.fixedTime))
+        {
+            return;
+        }
+
+        _lastWallHitSystemTime = Time.fixedTime;
+
         if (_runtimeStatus != null)
         {
             _runtimeStatus.ApplyWallHitDurabilityDamage();
@@ -104,9 +133,53 @@ public class Ball : MonoBehaviour
         }
     }
 
+    void KeepSpeedInRange()
+    {
+        Vector2 velocity = _rigidbody.linearVelocity;
+        float speed = velocity.magnitude;
+
+        if (speed > _maxMoveSpeed)
+        {
+            SetVelocity(velocity.normalized * _maxMoveSpeed);
+            return;
+        }
+
+        if (speed >= _minMoveSpeed)
+        {
+            return;
+        }
+
+        Vector2 direction = IsSafeDirection(velocity) ? velocity.normalized : _lastMoveDirection;
+        SetVelocity(direction * _minMoveSpeed);
+    }
+
+    void SetVelocity(Vector2 velocity)
+    {
+        Vector2 direction = IsSafeDirection(velocity) ? velocity.normalized : _lastMoveDirection;
+        float speed = Mathf.Clamp(velocity.magnitude, _minMoveSpeed, _maxMoveSpeed);
+
+        _rigidbody.linearVelocity = direction * speed;
+        _lastMoveDirection = direction;
+    }
+
+    Vector2 GetSafeVelocity()
+    {
+        if (IsSafeDirection(_lastVelocity))
+        {
+            return _lastVelocity;
+        }
+
+        if (IsSafeDirection(_rigidbody.linearVelocity))
+        {
+            return _rigidbody.linearVelocity;
+        }
+
+        return _lastMoveDirection * _minMoveSpeed;
+    }
+
     Vector2 FindBestWallNormal(Collision2D collision)
     {
-        Vector2 moveDirection = _lastVelocity.normalized;
+        Vector2 moveDirection = GetSafeVelocity().normalized;
         Vector2 bestNormal = collision.GetContact(0).normal;
         float bestDot = Vector2.Dot(moveDirection, bestNormal);
 
@@ -123,5 +196,36 @@ public class Ball : MonoBehaviour
         }
 
         return bestNormal;
+    }
+
+    void RememberMoveDirection(Vector2 velocity)
+    {
+        if (!IsSafeDirection(velocity))
+        {
+            return;
+        }
+
+        _lastMoveDirection = velocity.normalized;
+    }
+
+    Vector2 GetRandomDirection()
+    {
+        Vector2 direction = Random.insideUnitCircle;
+        if (IsSafeDirection(direction))
+        {
+            return direction.normalized;
+        }
+
+        return Vector2.right;
+    }
+
+    bool IsSafeDirection(Vector2 direction)
+    {
+        if (float.IsNaN(direction.x) || float.IsNaN(direction.y))
+        {
+            return false;
+        }
+
+        return direction.sqrMagnitude > 0.0001f;
     }
 }

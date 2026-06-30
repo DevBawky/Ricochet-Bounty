@@ -20,16 +20,14 @@ MonoBehaviour:
   objectHitDurabilityDamage: 1
   spawnEffects: []
   objectHitEffects:
-  - trigger: 1
-    effectType: 0
+  - effectType: 0
     triggerChance: 0.5
     cooldown: 0
     maxTriggerCount: 0
     minValue: 5
     maxValue: 5
   wallHitEffects:
-  - trigger: 3
-    effectType: 3
+  - effectType: 3
     triggerChance: 0.1
     cooldown: 0
     maxTriggerCount: 0

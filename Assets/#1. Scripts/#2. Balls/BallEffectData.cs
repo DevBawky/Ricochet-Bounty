@@ -1,14 +1,12 @@
 using UnityEngine;
 
 // BallEffectData는 BallDataSO 안에서 Inspector로 편집하는 효과 설정값입니다.
-// 이 클래스는 설정만 담고, 쿨다운이나 발동 횟수 같은 런타임 상태는 BallEffectRuntimeState가 관리합니다.
+// 효과가 언제 발동되는지는 SpawnEffects, WallHitEffects 같은 리스트 위치가 이미 정해줍니다.
+// 그래서 각 Element 안에는 효과 종류, 확률, 쿨다운, 횟수, 수치만 보관합니다.
 [System.Serializable]
 public class BallEffectData
 {
-    [Header("Trigger")]
-    [Tooltip("이 효과가 어느 상황에서 발동될지 정합니다.")]
-    public BallEffectTrigger trigger;
-
+    [Header("Effect")]
     [Tooltip("발동되었을 때 실제로 실행할 효과 종류입니다.")]
     public BallEffectType effectType;
 
@@ -24,9 +22,9 @@ public class BallEffectData
     public int maxTriggerCount;
 
     [Header("Value")]
-    [Tooltip("효과 수치의 최소값입니다.")]
+    [Tooltip("효과 수치의 최소값입니다. SplitBall에서는 최소 분열 개수로 사용합니다.")]
     public float minValue = 1f;
 
-    [Tooltip("효과 수치의 최대값입니다.")]
+    [Tooltip("효과 수치의 최대값입니다. SplitBall에서는 최대 분열 개수로 사용합니다.")]
     public float maxValue = 1f;
 }

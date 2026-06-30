@@ -21,11 +21,10 @@ MonoBehaviour:
   spawnEffects: []
   objectHitEffects: []
   wallHitEffects:
-  - trigger: 2
-    effectType: 1
-    triggerChance: 0.1
+  - effectType: 1
+    triggerChance: 0.5
     cooldown: 0
-    maxTriggerCount: 1
-    minValue: 2
-    maxValue: 2
+    maxTriggerCount: 5
+    minValue: 1
+    maxValue: 1
   destroyEffects: []

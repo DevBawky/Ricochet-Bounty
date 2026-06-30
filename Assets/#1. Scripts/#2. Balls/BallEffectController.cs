@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // BallEffectController는 BallDataManager가 들고 있는 BallDataSO의 효과 목록을 읽고 실행합니다.
-// BallDataSO는 BallDataManager 한 곳에서만 관리하고, 이 컴포넌트는 실행에 필요한 런타임 상태만 가집니다.
+// 공 데이터는 BallDataManager 한 곳에서만 관리하고, 이 컴포넌트는 효과 실행 상태만 관리합니다.
 [RequireComponent(typeof(BallDataManager))]
 public class BallEffectController : MonoBehaviour
 {
@@ -14,6 +14,7 @@ public class BallEffectController : MonoBehaviour
 
     [Header("Runtime State")]
     [SerializeField] List<BallEffectRuntimeState> runtimeStates = new List<BallEffectRuntimeState>();
+    [SerializeField] bool canSplit = true;
 
     static bool isCreatingSplitBall;
 
@@ -47,8 +48,8 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
-        // SplitBall이 복제 공을 만드는 순간에는 새 공의 OnSpawn 효과를 건너뜁니다.
-        // OnSpawn에 SplitBall을 넣었을 때 무한 복제가 생기는 것을 막기 위한 안전장치입니다.
+        // 분열로 복제 공을 만드는 순간에는 새 공의 OnSpawn 효과를 건너뜁니다.
+        // OnSpawn에 SplitBall을 넣었을 때 생성 즉시 연쇄 분열되는 것을 막습니다.
         if (isCreatingSplitBall)
         {
             return;
@@ -96,6 +97,13 @@ public class BallEffectController : MonoBehaviour
 
         BuildRuntimeStates();
         isInitialized = true;
+    }
+
+    public void DisableSplit()
+    {
+        // 분열로 태어난 공은 다시 SplitBall 효과를 실행하지 못하게 합니다.
+        // 점수 증가, 내구도 회복, 파괴 같은 다른 효과는 그대로 동작합니다.
+        canSplit = false;
     }
 
     public void TriggerSpawnEffects()
@@ -189,6 +197,12 @@ public class BallEffectController : MonoBehaviour
 
     void ExecuteSplitBall(BallEffectData effectData)
     {
+        if (!canSplit)
+        {
+            Debug.Log($"[BallEffectController] {name}은 분열로 생성된 공이라 다시 분열할 수 없습니다.", this);
+            return;
+        }
+
         int splitCount = GetSplitCount(effectData);
         if (splitCount <= 0)
         {
@@ -209,6 +223,7 @@ public class BallEffectController : MonoBehaviour
 
             GameObject splitBall = Instantiate(gameObject, spawnPosition, Quaternion.identity);
             splitBall.name = $"{gameObject.name} Split";
+            ApplyOriginalIdentity(splitBall);
 
             Rigidbody2D splitRigidbody = splitBall.GetComponent<Rigidbody2D>();
             if (splitRigidbody != null)
@@ -225,6 +240,7 @@ public class BallEffectController : MonoBehaviour
             BallEffectController splitEffectController = splitBall.GetComponent<BallEffectController>();
             if (splitEffectController != null)
             {
+                splitEffectController.DisableSplit();
                 splitEffectController.Initialize();
             }
         }
@@ -234,12 +250,41 @@ public class BallEffectController : MonoBehaviour
         Debug.Log($"[BallEffectController] {name} 공이 {splitCount}개로 분열했습니다.", this);
     }
 
+    void ApplyOriginalIdentity(GameObject splitBall)
+    {
+        // Instantiate(gameObject)는 기본적으로 원본 공의 컴포넌트, 태그, 레이어를 복제합니다.
+        // 그래도 분열 공이 항상 실제 공과 같은 판정을 받도록 루트와 자식 오브젝트의 태그/레이어를 한 번 더 맞춥니다.
+        splitBall.tag = gameObject.tag;
+        splitBall.layer = gameObject.layer;
+
+        Transform originalRoot = transform;
+        Transform splitRoot = splitBall.transform;
+        int childCount = Mathf.Min(originalRoot.childCount, splitRoot.childCount);
+
+        for (int i = 0; i < childCount; i++)
+        {
+            CopyTransformIdentity(originalRoot.GetChild(i), splitRoot.GetChild(i));
+        }
+    }
+
+    void CopyTransformIdentity(Transform original, Transform copied)
+    {
+        copied.gameObject.tag = original.gameObject.tag;
+        copied.gameObject.layer = original.gameObject.layer;
+
+        int childCount = Mathf.Min(original.childCount, copied.childCount);
+        for (int i = 0; i < childCount; i++)
+        {
+            CopyTransformIdentity(original.GetChild(i), copied.GetChild(i));
+        }
+    }
+
     int GetSplitCount(BallEffectData effectData)
     {
         int minCount = Mathf.Max(1, Mathf.RoundToInt(effectData.minValue));
         int maxCount = Mathf.Max(minCount, Mathf.RoundToInt(effectData.maxValue));
 
-        // 너무 큰 값이 들어오면 실수로 씬에 공을 과도하게 만드는 일이 생기므로 기본 구조에서는 제한합니다.
+        // 실수로 너무 큰 값이 들어와 씬에 공이 과도하게 생기지 않도록 기본 제한을 둡니다.
         maxCount = Mathf.Min(maxCount, 20);
 
         return Random.Range(minCount, maxCount + 1);
@@ -352,8 +397,7 @@ public class BallEffectController : MonoBehaviour
                 continue;
             }
 
-            // BallDataSO에는 상황별 리스트가 따로 있으므로, 실제 발동 상황은 리스트 위치를 기준으로 기억합니다.
-            // BallEffectData 안의 trigger 값은 Inspector에서 의도를 읽기 쉽게 남겨둔 설정값입니다.
+            // 상황은 SpawnEffects, ObjectHitEffects 같은 리스트 위치가 정합니다.
             runtimeStates.Add(new BallEffectRuntimeState(effects[i], trigger));
         }
     }

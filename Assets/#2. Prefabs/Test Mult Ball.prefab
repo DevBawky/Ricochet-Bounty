@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 7864512390478123456}
   - component: {fileID: 8871000000000000001}
   - component: {fileID: 8871000000000000002}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Test Mult Ball
   m_TagString: Ball
   m_Icon: {fileID: 0}
@@ -33,8 +33,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -2.86, y: 0.09, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -120,7 +120,7 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
@@ -173,8 +173,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Ball
   _launchForce: 10
-  _pushOutDistance: 0.1
-  _maxCollisionCount: 5
+  _minMoveSpeed: 6
+  _maxMoveSpeed: 24
 --- !u!114 &7864512390478123456
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -217,3 +217,4 @@ MonoBehaviour:
   damageManager: {fileID: 0}
   triggerSpawnEffectsOnEnable: 1
   runtimeStates: []
+  canSplit: 1
