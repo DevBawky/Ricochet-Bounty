@@ -1,18 +1,34 @@
 using UnityEngine;
+using UnityEngine.Events;
 
-// DamageManager는 전투 중 누적되는 Chips와 Multiplier 값을 관리합니다.
-// 이번 단계에서는 충돌 처리, 공 파괴, 적 체력 감소, UI 표시를 구현하지 않습니다.
-// 오직 BallDataSO를 받아 Chips 또는 Multiplier를 누적하고, 최종 점수를 계산하는 기본 구조만 담당합니다.
+// Manages the accumulated Chips and Multiplier values.
+// This class does not know about UI. It only changes values and sends an event when they change.
 public class DamageManager : MonoBehaviour
 {
     [Header("Initial Values")]
-    [SerializeField] int initialChips = 0; // 전투 또는 라운드가 시작될 때 적용할 Chips 초기값입니다.
-    [SerializeField] float initialMultiplier = 1f; // Multiplier 초기값입니다. 곱셈 기준값이므로 1에서 시작합니다.
+    [SerializeField] int initialChips = 0;
+    [SerializeField] float initialMultiplier = 1f;
+
+    [Header("Events")]
+    [SerializeField] UnityEvent onDamageValueChanged = new UnityEvent();
 
     int currentChips;
     float currentMultiplier;
 
-    // 외부 스크립트가 현재 누적 값을 읽을 수 있도록 읽기 전용 프로퍼티를 제공합니다.
+    // Other scripts can subscribe to this event and refresh their own UI or logic.
+    public UnityEvent OnDamageValueChanged
+    {
+        get
+        {
+            if (onDamageValueChanged == null)
+            {
+                onDamageValueChanged = new UnityEvent();
+            }
+
+            return onDamageValueChanged;
+        }
+    }
+
     public int CurrentChips
     {
         get
@@ -31,12 +47,10 @@ public class DamageManager : MonoBehaviour
 
     void Awake()
     {
-        // 게임이 시작될 때 Inspector에 설정한 초기값이 current 값에 적용되도록 초기화합니다.
         ResetScore();
     }
 
-    // Chips 값을 더합니다.
-    // amount가 0 이하라면 점수가 줄어들거나 의미 없는 계산이 될 수 있으므로 처리하지 않습니다.
+    // Adds Chips. Zero or negative values are ignored because this manager only accumulates damage values.
     public void AddChips(int amount)
     {
         if (amount <= 0)
@@ -46,12 +60,12 @@ public class DamageManager : MonoBehaviour
         }
 
         currentChips += amount;
+        OnDamageValueChanged.Invoke();
 
         Debug.Log($"[DamageManager] Chips Added: +{amount} / Current Chips: {currentChips}", this);
     }
 
-    // Multiplier 값을 더합니다.
-    // 이 프로젝트의 기본 구조는 Multiplier를 누적한 뒤 마지막에 Chips와 곱하는 방식입니다.
+    // Adds Multiplier. The final score is calculated later by Chips * Multiplier.
     public void AddMultiplier(float amount)
     {
         if (amount <= 0f)
@@ -61,12 +75,12 @@ public class DamageManager : MonoBehaviour
         }
 
         currentMultiplier += amount;
+        OnDamageValueChanged.Invoke();
 
         Debug.Log($"[DamageManager] Multiplier Added: +{amount} / Current Multiplier: {currentMultiplier}", this);
     }
 
-    // BallDataSO를 받아 타입에 맞는 값을 누적합니다.
-    // 다음 단계에서 공이 오브젝트와 충돌했을 때 충돌 시스템이 이 메서드를 호출하도록 연결할 예정입니다.
+    // Applies a BallDataSO value based on whether the ball gives Chips or Multiplier.
     public void ApplyBallData(BallDataSO data)
     {
         if (data == null)
@@ -77,7 +91,6 @@ public class DamageManager : MonoBehaviour
 
         if (data.ValueType == DamageValueType.Chips)
         {
-            // Chips는 정수 점수로 사용하기 위해 Mathf.RoundToInt로 변환합니다.
             int chipsAmount = Mathf.RoundToInt(data.Score);
             AddChips(chipsAmount);
             return;
@@ -90,8 +103,7 @@ public class DamageManager : MonoBehaviour
         }
     }
 
-    // 모든 공의 처리가 끝난 뒤 호출해서 최종 점수를 계산할 예정입니다.
-    // 발라트로식 구조처럼 누적된 Chips와 Multiplier를 곱한 값을 최종 점수로 사용합니다.
+    // Calculates the final score after all balls have disappeared.
     public int CalculateFinalScore()
     {
         float finalScoreFloat = currentChips * currentMultiplier;
@@ -102,12 +114,12 @@ public class DamageManager : MonoBehaviour
         return finalScore;
     }
 
-    // 현재 누적 값을 Inspector에서 설정한 초기값으로 되돌립니다.
-    // 새 라운드나 새 계산을 시작할 때 사용할 수 있습니다.
+    // Restores the score values to their Inspector defaults.
     public void ResetScore()
     {
         currentChips = initialChips;
         currentMultiplier = initialMultiplier;
+        OnDamageValueChanged.Invoke();
 
         Debug.Log($"[DamageManager] Score Reset. Chips: {currentChips}, Multiplier: {currentMultiplier}", this);
     }

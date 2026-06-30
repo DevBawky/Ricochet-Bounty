@@ -1,13 +1,111 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-// BallDataSO는 공이 참조하는 데이터 에셋입니다.
-// 공 오브젝트에 직접 붙는 MonoBehaviour가 아니라, Project 창에서 생성하는 ScriptableObject입니다.
-// ScriptableObject를 사용하면 여러 공이 같은 데이터를 공유할 수 있어서
-// 같은 성능의 공을 여러 개 만들 때 값을 한 곳에서 관리하기 쉽습니다.
+// BallDataSO는 공의 "기본 설정값"을 담는 ScriptableObject입니다.
+// 여러 공 오브젝트가 같은 BallDataSO를 함께 참조할 수 있으므로,
+// 현재 내구도, 쿨다운, 발동 횟수처럼 플레이 중에 변하는 값은 여기에 저장하지 않습니다.
+// 그런 런타임 상태는 BallRuntimeStatus와 BallEffectRuntimeState가 각 공 오브젝트마다 따로 관리합니다.
 [CreateAssetMenu(fileName = "New Ball Data", menuName = "Ball Data")]
 public class BallDataSO : ScriptableObject
 {
     [Header("Damage Value")]
-    public DamageValueType ValueType; // 이 공이 Chips를 올릴지, Multiplier를 올릴지 정합니다.
-    public float Score = 1f; // 공이 오브젝트에 닿았을 때 DamageManager에 더할 값입니다.
+    [Tooltip("이 공이 점수 오브젝트에 닿았을 때 Chips를 올릴지, Multiplier를 올릴지 정합니다.")]
+    public DamageValueType ValueType;
+
+    [Tooltip("DamageManager에 전달할 기본 점수 값입니다.")]
+    public float Score = 1f;
+
+    [Header("Ball Movement")]
+    [SerializeField, Tooltip("공이 발사되거나 이동을 시작할 때 사용할 기본 속도입니다.")]
+    float launchSpeed = 10f;
+
+    [Header("Durability")]
+    [SerializeField, Tooltip("공이 가질 수 있는 최대 내구도입니다. 현재 내구도는 공 오브젝트의 BallRuntimeStatus가 관리합니다.")]
+    int maxDurability = 5;
+
+    [SerializeField, Tooltip("공이 벽에 부딪힐 때 감소할 내구도입니다.")]
+    int wallHitDurabilityDamage = 1;
+
+    [SerializeField, Tooltip("공이 범퍼나 점수 오브젝트 같은 상호작용 오브젝트에 부딪힐 때 감소할 내구도입니다.")]
+    int objectHitDurabilityDamage = 1;
+
+    [Header("Effects - Spawn")]
+    [SerializeField, Tooltip("공이 생성되었을 때 발동할 효과 목록입니다.")]
+    List<BallEffectData> spawnEffects = new List<BallEffectData>();
+
+    [Header("Effects - Object Hit")]
+    [SerializeField, Tooltip("공이 범퍼나 점수 오브젝트에 닿았을 때 발동할 효과 목록입니다.")]
+    List<BallEffectData> objectHitEffects = new List<BallEffectData>();
+
+    [Header("Effects - Wall Hit")]
+    [SerializeField, Tooltip("공이 벽에 닿았을 때 발동할 효과 목록입니다.")]
+    List<BallEffectData> wallHitEffects = new List<BallEffectData>();
+
+    [Header("Effects - Destroy")]
+    [SerializeField, Tooltip("공이 파괴되기 직전에 발동할 효과 목록입니다.")]
+    List<BallEffectData> destroyEffects = new List<BallEffectData>();
+
+    public float LaunchSpeed
+    {
+        get
+        {
+            return launchSpeed;
+        }
+    }
+
+    public int MaxDurability
+    {
+        get
+        {
+            return maxDurability;
+        }
+    }
+
+    public int WallHitDurabilityDamage
+    {
+        get
+        {
+            return wallHitDurabilityDamage;
+        }
+    }
+
+    public int ObjectHitDurabilityDamage
+    {
+        get
+        {
+            return objectHitDurabilityDamage;
+        }
+    }
+
+    public List<BallEffectData> SpawnEffects
+    {
+        get
+        {
+            return spawnEffects;
+        }
+    }
+
+    public List<BallEffectData> ObjectHitEffects
+    {
+        get
+        {
+            return objectHitEffects;
+        }
+    }
+
+    public List<BallEffectData> WallHitEffects
+    {
+        get
+        {
+            return wallHitEffects;
+        }
+    }
+
+    public List<BallEffectData> DestroyEffects
+    {
+        get
+        {
+            return destroyEffects;
+        }
+    }
 }

@@ -14,3 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   ValueType: 0
   Score: 10
+  launchSpeed: 10
+  maxDurability: 10
+  wallHitDurabilityDamage: 2
+  objectHitDurabilityDamage: 1
+  spawnEffects: []
+  objectHitEffects: []
+  wallHitEffects:
+  - trigger: 2
+    effectType: 1
+    triggerChance: 0.1
+    cooldown: 0
+    maxTriggerCount: 1
+    minValue: 2
+    maxValue: 2
+  destroyEffects: []
