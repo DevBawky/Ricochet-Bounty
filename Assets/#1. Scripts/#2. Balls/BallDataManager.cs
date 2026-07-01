@@ -15,6 +15,21 @@ public class BallDataManager : MonoBehaviour
         }
     }
 
+    public void SetBallData(BallDataSO newBallData)
+    {
+        // 덱에서 뽑은 BallDataSO를 생성된 공에 주입합니다.
+        // 요청서의 BallDataHolder.SetBallData와 같은 역할을 기존 구조에 확장한 메서드입니다.
+        ballData = newBallData;
+
+        if (ballData == null)
+        {
+            Debug.LogWarning($"[BallDataManager] {name}에 null BallDataSO가 설정되었습니다.", this);
+            return;
+        }
+
+        Debug.Log($"[BallDataManager] {name}에 BallDataSO가 설정되었습니다: {ballData.name}", this);
+    }
+
     public bool ValidateData()
     {
         if (ballData != null)

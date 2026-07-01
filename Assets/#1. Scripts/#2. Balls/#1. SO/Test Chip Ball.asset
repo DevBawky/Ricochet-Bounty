@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   ValueType: 0
   Score: 10
+  ballColor: {r: 1, g: 0.4292453, b: 0.4292453, a: 1}
+  ballSprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
   launchSpeed: 10
   maxDurability: 10
   wallHitDurabilityDamage: 2

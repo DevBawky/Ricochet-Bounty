@@ -15,6 +15,13 @@ public class BallDataSO : ScriptableObject
     [Tooltip("DamageManager에 전달할 기본 점수 값입니다.")]
     public float Score = 1f;
 
+    [Header("Ball Visual")]
+    [SerializeField, Tooltip("탄환에 적용할 색상입니다. 생성 시 SpriteRenderer.color에 적용됩니다.")]
+    Color ballColor = Color.white;
+
+    [SerializeField, Tooltip("탄환에 적용할 스프라이트입니다. 비워두면 BallSpawner의 기본 Ball Prefab 스프라이트를 그대로 사용합니다.")]
+    Sprite ballSprite;
+
     [Header("Ball Movement")]
     [SerializeField, Tooltip("공이 발사되거나 이동을 시작할 때 사용할 기본 속도입니다.")]
     float launchSpeed = 10f;
@@ -50,6 +57,22 @@ public class BallDataSO : ScriptableObject
         get
         {
             return launchSpeed;
+        }
+    }
+
+    public Color BallColor
+    {
+        get
+        {
+            return ballColor;
+        }
+    }
+
+    public Sprite BallSprite
+    {
+        get
+        {
+            return ballSprite;
         }
     }
 

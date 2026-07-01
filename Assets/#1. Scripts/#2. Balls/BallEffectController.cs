@@ -17,6 +17,7 @@ public class BallEffectController : MonoBehaviour
     [SerializeField] bool canSplit = true;
 
     static bool isCreatingSplitBall;
+    public static bool SuppressSpawnEffectsOnEnable;
 
     BallDataManager ballDataManager;
     BallRuntimeStatus runtimeStatus;
@@ -43,6 +44,11 @@ public class BallEffectController : MonoBehaviour
 
     void OnEnable()
     {
+        if (SuppressSpawnEffectsOnEnable)
+        {
+            return;
+        }
+
         if (!triggerSpawnEffectsOnEnable)
         {
             return;

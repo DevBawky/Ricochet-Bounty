@@ -17,6 +17,7 @@ public class Ball : MonoBehaviour
     Vector2 _lastMoveDirection = Vector2.right;
     float _lastWallHitSystemTime = -999f;
     int _collisionCount;
+    bool _hasExternalLaunch;
 
     void Awake()
     {
@@ -33,7 +34,29 @@ public class Ball : MonoBehaviour
     void Start()
     {
         ApplyBallDataLaunchSpeed();
-        LaunchRandomDirection();
+
+        // BallSpawner가 이미 속도를 지정한 공은 여기서 다시 랜덤 발사하지 않습니다.
+        if (!_hasExternalLaunch)
+        {
+            LaunchRandomDirection();
+        }
+    }
+
+    public void Launch(Vector2 direction, float speed)
+    {
+        if (!IsSafeDirection(direction))
+        {
+            Debug.LogWarning($"[Ball] {name}의 발사 방향이 유효하지 않아 오른쪽 방향으로 보정합니다.", this);
+            direction = Vector2.right;
+        }
+
+        _launchForce = Mathf.Max(0f, speed);
+        _minMoveSpeed = Mathf.Min(_minMoveSpeed, _launchForce);
+        _lastMoveDirection = direction.normalized;
+        _rigidbody.linearVelocity = _lastMoveDirection * _launchForce;
+        _hasExternalLaunch = true;
+
+        Debug.Log($"[Ball] {name} 발사 완료. direction: {_lastMoveDirection}, speed: {_launchForce}", this);
     }
 
     void FixedUpdate()
