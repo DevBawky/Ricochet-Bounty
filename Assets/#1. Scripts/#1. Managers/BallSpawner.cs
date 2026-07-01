@@ -7,6 +7,7 @@ public class BallSpawner : MonoBehaviour
     [Header("References")]
     [SerializeField] GameObject ballPrefab;
     [SerializeField] PlayerBallDeck deck;
+    [SerializeField] StateManager stateManager;
 
     [Header("Fire Settings")]
     [SerializeField] int drawCount = 3;
@@ -23,6 +24,11 @@ public class BallSpawner : MonoBehaviour
         {
             deck = GetComponent<PlayerBallDeck>();
         }
+
+        if (stateManager == null)
+        {
+            stateManager = FindFirstObjectByType<StateManager>();
+        }
     }
 
     void Start()
@@ -33,17 +39,28 @@ public class BallSpawner : MonoBehaviour
             return;
         }
 
-        deck.DrawBalls(drawCount);
-        Debug.Log($"[BallSpawner] 전투 시작 손패 뽑기 완료. drawCount: {drawCount}", this);
+        DrawNextCylinder();
+        Debug.Log($"[BallSpawner] 전투 시작 탄환 뽑기 완료. drawCount: {drawCount}", this);
     }
 
     void Update()
     {
-        // 마우스 왼쪽 버튼을 누르면 현재 손패의 탄환을 순서대로 발사합니다.
+        // 마우스 왼쪽 버튼을 누르면 현재 실린더의 탄환을 순서대로 발사합니다.
         if (Input.GetMouseButtonDown(0))
         {
             TryStartFireHand();
         }
+    }
+
+    public void DrawNextCylinder()
+    {
+        if (deck == null)
+        {
+            Debug.LogWarning("[BallSpawner] PlayerBallDeck 참조가 없어 다음 탄환을 뽑을 수 없습니다.", this);
+            return;
+        }
+
+        deck.DrawBalls(drawCount);
     }
 
     void TryStartFireHand()
@@ -66,28 +83,37 @@ public class BallSpawner : MonoBehaviour
     {
         _isFiring = true;
 
-        // 발사 중 손패 리스트가 바뀌지 않도록 스냅샷을 떠서 사용합니다.
-        List<BallDataSO> handSnapshot = new List<BallDataSO>(deck.CurrentHand);
+        // 발사 중 currentCylinder가 바뀌지 않도록 스냅샷을 만들어 순차 발사합니다.
+        List<BallDataSO> cylinderSnapshot = new List<BallDataSO>(deck.CurrentCylinder);
         Vector2 firePosition = GetMouseWorldPosition();
 
-        Debug.Log($"[BallSpawner] 손패 발사 시작. count: {handSnapshot.Count}, firePoint: {firePosition}", this);
+        Debug.Log($"[BallSpawner] currentCylinder 발사 시작. count: {cylinderSnapshot.Count}, firePoint: {firePosition}", this);
 
-        for (int i = 0; i < handSnapshot.Count; i++)
+        for (int i = 0; i < cylinderSnapshot.Count; i++)
         {
-            BallDataSO ballData = handSnapshot[i];
+            BallDataSO ballData = cylinderSnapshot[i];
             SpawnAndLaunchBall(ballData, firePosition);
 
-            if (i < handSnapshot.Count - 1 && fireInterval > 0f)
+            if (i < cylinderSnapshot.Count - 1 && fireInterval > 0f)
             {
                 yield return new WaitForSeconds(fireInterval);
             }
         }
 
+        // 모든 탄환이 실제로 생성/발사된 뒤에만 currentCylinder를 discardPile로 이동합니다.
         deck.DiscardCurrentHand();
-        deck.DrawBalls(drawCount);
 
         _isFiring = false;
-        Debug.Log("[BallSpawner] 손패 발사 종료. 새 손패를 뽑았습니다.", this);
+        Debug.Log("[BallSpawner] currentCylinder의 모든 탄환 발사 완료. StateManager에게 턴 종료 감지를 요청합니다.", this);
+
+        if (stateManager != null)
+        {
+            stateManager.OnBallFireSequenceFinished();
+        }
+        else
+        {
+            Debug.LogWarning("[BallSpawner] StateManager 참조가 없어 발사 완료를 알릴 수 없습니다.", this);
+        }
     }
 
     void SpawnAndLaunchBall(BallDataSO ballData, Vector2 firePosition)
@@ -108,6 +134,7 @@ public class BallSpawner : MonoBehaviour
         {
             BallEffectController.SuppressSpawnEffectsOnEnable = false;
         }
+
         spawnedBall.name = $"{ballData.name} Ball";
 
         BallDataManager dataManager = spawnedBall.GetComponent<BallDataManager>();
@@ -169,7 +196,7 @@ public class BallSpawner : MonoBehaviour
 
     void ApplyBallVisual(GameObject spawnedBall, BallDataSO ballData)
     {
-        // SpriteRenderer가 공 루트가 아니라 자식에 붙어 있을 수도 있으므로 자식까지 검색합니다.
+        // SpriteRenderer가 루트가 아닌 자식에 붙어 있을 수도 있으므로 자식까지 검색합니다.
         SpriteRenderer spriteRenderer = spawnedBall.GetComponentInChildren<SpriteRenderer>();
         if (spriteRenderer == null)
         {
@@ -186,7 +213,6 @@ public class BallSpawner : MonoBehaviour
             return;
         }
 
-        // BallSprite가 비어 있으면 Instantiate된 기본 Ball Prefab의 스프라이트를 그대로 둡니다.
         Debug.Log($"[BallSpawner] 탄환 색상만 적용: color {ballData.BallColor}. 스프라이트는 기본 프리팹 값을 사용합니다.", spawnedBall);
     }
 
@@ -204,9 +230,9 @@ public class BallSpawner : MonoBehaviour
             return false;
         }
 
-        if (deck.CurrentHand == null || deck.CurrentHand.Count == 0)
+        if (deck.CurrentCylinder == null || deck.CurrentCylinder.Count == 0)
         {
-            Debug.LogWarning("[BallSpawner] currentHand가 비어 있어 발사할 탄환이 없습니다.", this);
+            Debug.LogWarning("[BallSpawner] currentCylinder가 비어 있어 발사할 탄환이 없습니다.", this);
             return false;
         }
 
@@ -226,7 +252,7 @@ public class BallSpawner : MonoBehaviour
 
     Vector2 GetMouseWorldPosition()
     {
-        // firePoint는 별도 Transform을 두지 않고, 클릭한 마우스 위치를 월드 좌표로 변환해서 사용합니다.
+        // firePoint를 별도 Transform으로 두지 않고, 클릭한 마우스 위치를 월드 좌표로 변환해서 사용합니다.
         Vector3 mouseScreenPosition = Input.mousePosition;
         mouseScreenPosition.z = Mathf.Abs(_mainCamera.transform.position.z);
         return _mainCamera.ScreenToWorldPoint(mouseScreenPosition);
@@ -234,7 +260,7 @@ public class BallSpawner : MonoBehaviour
 
     Vector2 GetRandomLaunchDirection()
     {
-        // 탄환 발사 방향은 랜덤입니다. 0에 가까운 값이 나오면 안전한 기본 방향을 사용합니다.
+        // 탄환 발사 방향은 임시 랜덤입니다. 0에 가까운 값이면 안전한 기본 방향을 사용합니다.
         Vector2 direction = Random.insideUnitCircle;
         if (direction.sqrMagnitude <= 0.0001f)
         {

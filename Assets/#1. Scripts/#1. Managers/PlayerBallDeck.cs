@@ -19,6 +19,40 @@ public class PlayerBallDeck : MonoBehaviour
         }
     }
 
+    // 이번 단계의 용어는 currentCylinder입니다.
+    // 기존 코드와 인스펙터 필드(currentHand)는 유지하고, 같은 리스트를 currentCylinder처럼 사용할 수 있게 별칭을 제공합니다.
+    public IReadOnlyList<BallDataSO> CurrentCylinder
+    {
+        get
+        {
+            return currentHand;
+        }
+    }
+
+    public int DrawPileCount
+    {
+        get
+        {
+            return drawPile.Count;
+        }
+    }
+
+    public int DiscardPileCount
+    {
+        get
+        {
+            return discardPile.Count;
+        }
+    }
+
+    public int CurrentCylinderCount
+    {
+        get
+        {
+            return currentHand.Count;
+        }
+    }
+
     void Awake()
     {
         ResetDeck();
@@ -26,8 +60,8 @@ public class PlayerBallDeck : MonoBehaviour
 
     public void ResetDeck()
     {
-        // 전투 시작 시 사용할 덱을 런타임 드로우 더미로 복사합니다.
-        // ScriptableObject 자체는 공유하고, 리스트 순서만 런타임에서 변경합니다.
+        // 전투 시작 시 startingDeck을 drawPile로 복사합니다.
+        // ScriptableObject 자체는 공유하고, 런타임 리스트의 순서와 위치만 변경합니다.
         drawPile.Clear();
         discardPile.Clear();
         currentHand.Clear();
@@ -44,7 +78,7 @@ public class PlayerBallDeck : MonoBehaviour
         }
 
         Shuffle(drawPile);
-        Debug.Log($"[PlayerBallDeck] 덱 초기화 완료. drawPile: {drawPile.Count}", this);
+        Debug.Log($"[PlayerBallDeck] 덱 초기화 완료. drawPile: {drawPile.Count}, discardPile: {discardPile.Count}, currentCylinder: {currentHand.Count}", this);
     }
 
     public void DrawBalls(int count)
@@ -55,7 +89,14 @@ public class PlayerBallDeck : MonoBehaviour
             return;
         }
 
-        currentHand.Clear();
+        if (currentHand.Count > 0)
+        {
+            Debug.LogWarning($"[PlayerBallDeck] currentCylinder에 탄환이 남아 있어 새로 뽑지 않습니다. currentCylinder: {currentHand.Count}", this);
+            LogPileState("Draw skipped");
+            return;
+        }
+
+        Debug.Log($"[PlayerBallDeck] 탄환 뽑기 시작. 요청 수: {count}", this);
 
         for (int i = 0; i < count; i++)
         {
@@ -69,15 +110,24 @@ public class PlayerBallDeck : MonoBehaviour
             drawPile.RemoveAt(0);
             currentHand.Add(drawnBall);
 
-            Debug.Log($"[PlayerBallDeck] 탄환 뽑기: {drawnBall.name}", this);
+            string drawnName = drawnBall != null ? drawnBall.name : "NULL";
+            Debug.Log($"[PlayerBallDeck] 이번에 뽑힌 탄환: {drawnName}", this);
+            LogPileState("Draw one");
         }
 
-        Debug.Log($"[PlayerBallDeck] 현재 손패: {currentHand.Count}, drawPile: {drawPile.Count}, discardPile: {discardPile.Count}", this);
+        LogPileState("Draw complete");
     }
 
     public void DiscardCurrentHand()
     {
-        // 발사가 끝난 손패를 버림 더미로 옮기고 손패를 비웁니다.
+        // 발사가 끝난 currentCylinder를 discardPile로 옮기고 currentCylinder를 비웁니다.
+        if (currentHand.Count <= 0)
+        {
+            Debug.Log("[PlayerBallDeck] discardPile로 옮길 currentCylinder 탄환이 없습니다.", this);
+            LogPileState("Discard skipped");
+            return;
+        }
+
         for (int i = 0; i < currentHand.Count; i++)
         {
             if (currentHand[i] == null)
@@ -86,11 +136,11 @@ public class PlayerBallDeck : MonoBehaviour
             }
 
             discardPile.Add(currentHand[i]);
-            Debug.Log($"[PlayerBallDeck] discardPile로 이동: {currentHand[i].name}", this);
+            Debug.Log($"[PlayerBallDeck] 발사 후 discardPile 이동: {currentHand[i].name}", this);
         }
 
         currentHand.Clear();
-        Debug.Log($"[PlayerBallDeck] 손패 정리 완료. discardPile: {discardPile.Count}", this);
+        LogPileState("Discard complete");
     }
 
     bool EnsureDrawablePile()
@@ -102,15 +152,17 @@ public class PlayerBallDeck : MonoBehaviour
 
         if (discardPile.Count <= 0)
         {
+            Debug.Log("[PlayerBallDeck] drawPile이 비었지만 discardPile도 비어 있어 재사용할 탄환이 없습니다.", this);
             return false;
         }
 
-        // drawPile이 부족하면 discardPile을 섞어서 재사용합니다.
+        // drawPile이 부족하면 discardPile을 섞어서 다시 drawPile로 사용합니다.
+        Debug.Log($"[PlayerBallDeck] drawPile 부족. discardPile을 섞어서 재사용합니다. 재사용 전 discardPile: {discardPile.Count}", this);
         drawPile.AddRange(discardPile);
         discardPile.Clear();
         Shuffle(drawPile);
 
-        Debug.Log($"[PlayerBallDeck] discardPile을 섞어 drawPile로 재사용합니다. drawPile: {drawPile.Count}", this);
+        LogPileState("Reshuffle discard into draw");
         return drawPile.Count > 0;
     }
 
@@ -123,5 +175,10 @@ public class PlayerBallDeck : MonoBehaviour
             targetPile[i] = targetPile[randomIndex];
             targetPile[randomIndex] = temp;
         }
+    }
+
+    void LogPileState(string context)
+    {
+        Debug.Log($"[PlayerBallDeck] {context} | drawPile: {drawPile.Count}, discardPile: {discardPile.Count}, currentCylinder: {currentHand.Count}", this);
     }
 }

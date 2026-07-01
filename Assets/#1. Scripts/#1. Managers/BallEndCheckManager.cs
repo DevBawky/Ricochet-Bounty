@@ -10,6 +10,7 @@ public class BallEndCheckManager : MonoBehaviour
     [SerializeField] DamageUI damageUI;
 
     [Header("Ball Check")]
+    [SerializeField] bool startCheckingOnStart;
     [SerializeField] string ballTag = "Ball";
     [SerializeField] float checkInterval = 0.5f;
 
@@ -17,6 +18,12 @@ public class BallEndCheckManager : MonoBehaviour
 
     void Start()
     {
+        if (!startCheckingOnStart)
+        {
+            Debug.Log("[BallEndCheckManager] StateManager 흐름을 사용하기 위해 자동 Ball 0개 감지를 시작하지 않습니다.", this);
+            return;
+        }
+
         FindReferences();
         StartChecking();
     }

@@ -9,6 +9,9 @@ public class Ball : MonoBehaviour
     [SerializeField] float _minMoveSpeed = 6f;
     [SerializeField] float _maxMoveSpeed = 24f;
 
+    [Header("No Collision Destroy")]
+    [SerializeField] float _noCollisionDestroyDelay = 5f;
+
     Rigidbody2D _rigidbody;
     BallDataManager _ballDataManager;
     BallRuntimeStatus _runtimeStatus;
@@ -16,8 +19,10 @@ public class Ball : MonoBehaviour
     Vector2 _lastVelocity;
     Vector2 _lastMoveDirection = Vector2.right;
     float _lastWallHitSystemTime = -999f;
+    float _lastCollisionTime;
     int _collisionCount;
     bool _hasExternalLaunch;
+    bool _isDestroyingByNoCollision;
 
     void Awake()
     {
@@ -33,6 +38,9 @@ public class Ball : MonoBehaviour
 
     void Start()
     {
+        // 생성 직후에는 아직 충돌이 없을 수 있으므로, 발사 시점을 기준으로 무충돌 타이머를 시작합니다.
+        _lastCollisionTime = Time.time;
+
         ApplyBallDataLaunchSpeed();
 
         // BallSpawner가 이미 속도를 지정한 공은 여기서 다시 랜덤 발사하지 않습니다.
@@ -57,6 +65,11 @@ public class Ball : MonoBehaviour
         _hasExternalLaunch = true;
 
         Debug.Log($"[Ball] {name} 발사 완료. direction: {_lastMoveDirection}, speed: {_launchForce}", this);
+    }
+
+    void Update()
+    {
+        CheckNoCollisionDestroyTimeout();
     }
 
     void FixedUpdate()
@@ -91,6 +104,9 @@ public class Ball : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        // 어떤 Collider2D와 충돌하든 "충돌이 감지됨"으로 보고 무충돌 파괴 타이머를 갱신합니다.
+        RefreshCollisionTimer();
+
         if (!collision.gameObject.CompareTag("Wall"))
         {
             return;
@@ -103,6 +119,9 @@ public class Ball : MonoBehaviour
 
     void OnCollisionStay2D(Collision2D collision)
     {
+        // 벽이나 오브젝트에 계속 닿아 있는 상태도 충돌 감지 상태로 처리합니다.
+        RefreshCollisionTimer();
+
         if (!collision.gameObject.CompareTag("Wall"))
         {
             return;
@@ -120,6 +139,51 @@ public class Ball : MonoBehaviour
         }
 
         KeepSpeedInRange();
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        // Trigger 방식 점수 오브젝트도 충돌 감지로 인정해서 공이 불필요하게 사라지지 않게 합니다.
+        RefreshCollisionTimer();
+    }
+
+    void OnTriggerStay2D(Collider2D other)
+    {
+        RefreshCollisionTimer();
+    }
+
+    void RefreshCollisionTimer()
+    {
+        _lastCollisionTime = Time.time;
+    }
+
+    void CheckNoCollisionDestroyTimeout()
+    {
+        if (_isDestroyingByNoCollision)
+        {
+            return;
+        }
+
+        if (_noCollisionDestroyDelay <= 0f)
+        {
+            return;
+        }
+
+        if (Time.time - _lastCollisionTime < _noCollisionDestroyDelay)
+        {
+            return;
+        }
+
+        _isDestroyingByNoCollision = true;
+        Debug.Log($"[Ball] {name}이 {_noCollisionDestroyDelay}초 동안 충돌하지 않아 파괴됩니다.", this);
+
+        if (_runtimeStatus != null)
+        {
+            _runtimeStatus.DestroyBall();
+            return;
+        }
+
+        Destroy(gameObject);
     }
 
     void BounceFromWall(Collision2D collision)
