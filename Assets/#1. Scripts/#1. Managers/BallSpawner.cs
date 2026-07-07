@@ -13,39 +13,25 @@ public class BallSpawner : MonoBehaviour
     [SerializeField] int drawCount = 3;
     [SerializeField] float fireInterval = 0.25f;
 
-    Camera _mainCamera;
-    bool _isFiring;
+    Camera mainCamera;
+    bool isFiring;
 
     void Awake()
     {
-        _mainCamera = Camera.main;
-
-        if (deck == null)
-        {
-            deck = GetComponent<PlayerBallDeck>();
-        }
-
-        if (stateManager == null)
-        {
-            stateManager = FindFirstObjectByType<StateManager>();
-        }
+        mainCamera = Camera.main;
+        FindMissingReferences();
     }
 
     void Start()
     {
-        if (deck == null)
-        {
-            Debug.LogWarning("[BallSpawner] PlayerBallDeck 참조가 없습니다. 덱에서 탄환을 뽑을 수 없습니다.", this);
-            return;
-        }
-
-        DrawNextCylinder();
-        Debug.Log($"[BallSpawner] 전투 시작 탄환 뽑기 완료. drawCount: {drawCount}", this);
+        // BallSpawner는 전투 상태를 직접 시작하지 않습니다.
+        // 전투 시작, 턴 시작, currentCylinder 뽑기는 StateManager가 담당합니다.
+        Debug.Log("[BallSpawner] 준비 완료. 발사 입력만 처리하고 전투 흐름은 StateManager에 알립니다.", this);
     }
 
     void Update()
     {
-        // 마우스 왼쪽 버튼을 누르면 현재 실린더의 탄환을 순서대로 발사합니다.
+        // 마우스 왼쪽 버튼을 누르면 StateManager가 허락한 상태에서만 currentCylinder를 발사합니다.
         if (Input.GetMouseButtonDown(0))
         {
             TryStartFireHand();
@@ -54,20 +40,37 @@ public class BallSpawner : MonoBehaviour
 
     public void DrawNextCylinder()
     {
+        FindMissingReferences();
+
         if (deck == null)
         {
-            Debug.LogWarning("[BallSpawner] PlayerBallDeck 참조가 없어 다음 탄환을 뽑을 수 없습니다.", this);
+            Debug.LogWarning("[BallSpawner] PlayerBallDeck 참조가 없어 다음 currentCylinder를 뽑을 수 없습니다.", this);
             return;
         }
 
         deck.DrawBalls(drawCount);
+        Debug.Log($"[BallSpawner] StateManager 요청으로 currentCylinder를 뽑았습니다. drawCount: {drawCount}", this);
     }
 
     void TryStartFireHand()
     {
-        if (_isFiring)
+        if (isFiring)
         {
             Debug.Log("[BallSpawner] 이미 발사 중이므로 입력을 무시합니다.", this);
+            return;
+        }
+
+        FindMissingReferences();
+
+        if (stateManager == null)
+        {
+            Debug.LogWarning("[BallSpawner] StateManager 참조가 없어 발사 가능 상태를 확인할 수 없습니다.", this);
+            return;
+        }
+
+        if (!stateManager.CanPlayerFire())
+        {
+            Debug.Log($"[BallSpawner] 현재 전투 상태에서는 발사할 수 없습니다. State: {stateManager.CurrentState}", this);
             return;
         }
 
@@ -81,7 +84,8 @@ public class BallSpawner : MonoBehaviour
 
     IEnumerator FireCurrentHandRoutine()
     {
-        _isFiring = true;
+        isFiring = true;
+        stateManager.OnPlayerFireStarted();
 
         // 발사 중 currentCylinder가 바뀌지 않도록 스냅샷을 만들어 순차 발사합니다.
         List<BallDataSO> cylinderSnapshot = new List<BallDataSO>(deck.CurrentCylinder);
@@ -103,17 +107,10 @@ public class BallSpawner : MonoBehaviour
         // 모든 탄환이 실제로 생성/발사된 뒤에만 currentCylinder를 discardPile로 이동합니다.
         deck.DiscardCurrentHand();
 
-        _isFiring = false;
-        Debug.Log("[BallSpawner] currentCylinder의 모든 탄환 발사 완료. StateManager에게 턴 종료 감지를 요청합니다.", this);
+        isFiring = false;
+        Debug.Log("[BallSpawner] currentCylinder의 모든 탄환 발사 완료. StateManager에게 알립니다.", this);
 
-        if (stateManager != null)
-        {
-            stateManager.OnBallFireSequenceFinished();
-        }
-        else
-        {
-            Debug.LogWarning("[BallSpawner] StateManager 참조가 없어 발사 완료를 알릴 수 없습니다.", this);
-        }
+        stateManager.OnBallFireSequenceFinished();
     }
 
     void SpawnAndLaunchBall(BallDataSO ballData, Vector2 firePosition)
@@ -144,7 +141,7 @@ public class BallSpawner : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[BallSpawner] ballPrefab에 BallDataManager가 없습니다. BallDataSO를 주입할 수 없습니다.", spawnedBall);
+            Debug.LogWarning("[BallSpawner] ballPrefab에 BallDataManager가 없어 BallDataSO를 주입할 수 없습니다.", spawnedBall);
         }
 
         ApplyBallVisual(spawnedBall, ballData);
@@ -213,7 +210,7 @@ public class BallSpawner : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[BallSpawner] 탄환 색상만 적용: color {ballData.BallColor}. 스프라이트는 기본 프리팹 값을 사용합니다.", spawnedBall);
+        Debug.Log($"[BallSpawner] 탄환 색상만 적용: color {ballData.BallColor}. 스프라이트는 프리팹 기본값을 사용합니다.", spawnedBall);
     }
 
     bool ValidateFireReady()
@@ -236,12 +233,12 @@ public class BallSpawner : MonoBehaviour
             return false;
         }
 
-        if (_mainCamera == null)
+        if (mainCamera == null)
         {
-            _mainCamera = Camera.main;
+            mainCamera = Camera.main;
         }
 
-        if (_mainCamera == null)
+        if (mainCamera == null)
         {
             Debug.LogWarning("[BallSpawner] Camera.main을 찾을 수 없어 마우스 위치를 월드 좌표로 변환할 수 없습니다.", this);
             return false;
@@ -252,15 +249,15 @@ public class BallSpawner : MonoBehaviour
 
     Vector2 GetMouseWorldPosition()
     {
-        // firePoint를 별도 Transform으로 두지 않고, 클릭한 마우스 위치를 월드 좌표로 변환해서 사용합니다.
+        // firePoint를 별도 Transform으로 두지 않고 클릭한 마우스 위치를 월드 좌표로 변환해 사용합니다.
         Vector3 mouseScreenPosition = Input.mousePosition;
-        mouseScreenPosition.z = Mathf.Abs(_mainCamera.transform.position.z);
-        return _mainCamera.ScreenToWorldPoint(mouseScreenPosition);
+        mouseScreenPosition.z = Mathf.Abs(mainCamera.transform.position.z);
+        return mainCamera.ScreenToWorldPoint(mouseScreenPosition);
     }
 
     Vector2 GetRandomLaunchDirection()
     {
-        // 탄환 발사 방향은 임시 랜덤입니다. 0에 가까운 값이면 안전한 기본 방향을 사용합니다.
+        // 탄환 발사 방향은 임시 랜덤입니다. 0에 가까우면 안전한 기본 방향을 사용합니다.
         Vector2 direction = Random.insideUnitCircle;
         if (direction.sqrMagnitude <= 0.0001f)
         {
@@ -268,5 +265,18 @@ public class BallSpawner : MonoBehaviour
         }
 
         return direction.normalized;
+    }
+
+    void FindMissingReferences()
+    {
+        if (deck == null)
+        {
+            deck = GetComponent<PlayerBallDeck>();
+        }
+
+        if (stateManager == null)
+        {
+            stateManager = FindFirstObjectByType<StateManager>();
+        }
     }
 }

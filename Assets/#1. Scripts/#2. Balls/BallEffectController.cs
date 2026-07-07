@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// BallEffectController는 BallDataManager가 들고 있는 BallDataSO의 효과 목록을 읽고 실행합니다.
-// 공 데이터는 BallDataManager 한 곳에서만 관리하고, 이 컴포넌트는 효과 실행 상태만 관리합니다.
+// BallDataSO에 정의된 효과 목록을 읽고, 각 공 오브젝트에서 런타임 효과를 실행합니다.
+// 점수, 내구도, 분열 같은 런타임 상태는 공마다 따로 관리합니다.
 [RequireComponent(typeof(BallDataManager))]
 public class BallEffectController : MonoBehaviour
 {
@@ -54,8 +54,8 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
-        // 분열로 복제 공을 만드는 순간에는 새 공의 OnSpawn 효과를 건너뜁니다.
-        // OnSpawn에 SplitBall을 넣었을 때 생성 즉시 연쇄 분열되는 것을 막습니다.
+        // SplitBall로 복제되는 순간에는 새 공의 OnSpawn 효과를 건너뜁니다.
+        // OnSpawn에 SplitBall이 있을 때 생성 즉시 무한 분열되는 것을 막기 위함입니다.
         if (isCreatingSplitBall)
         {
             return;
@@ -205,7 +205,7 @@ public class BallEffectController : MonoBehaviour
     {
         if (!canSplit)
         {
-            Debug.Log($"[BallEffectController] {name}은 분열로 생성된 공이라 다시 분열할 수 없습니다.", this);
+            Debug.Log($"[BallEffectController] {name}은 분열로 생성된 공이므로 다시 분열하지 않습니다.", this);
             return;
         }
 
@@ -218,48 +218,55 @@ public class BallEffectController : MonoBehaviour
         Vector2 baseDirection = GetSplitBaseDirection();
         float speed = GetSplitSpeed();
         float startAngle = Random.Range(0f, 360f);
+        float spawnOffset = GetSplitSpawnOffset();
 
         isCreatingSplitBall = true;
 
-        for (int i = 0; i < splitCount; i++)
+        try
         {
-            float angle = startAngle + (360f / splitCount * i);
-            Vector2 direction = RotateDirection(baseDirection, angle);
-            Vector3 spawnPosition = transform.position + (Vector3)(direction * 0.25f);
-
-            GameObject splitBall = Instantiate(gameObject, spawnPosition, Quaternion.identity);
-            splitBall.name = $"{gameObject.name} Split";
-            ApplyOriginalIdentity(splitBall);
-
-            Rigidbody2D splitRigidbody = splitBall.GetComponent<Rigidbody2D>();
-            if (splitRigidbody != null)
+            for (int i = 0; i < splitCount; i++)
             {
-                splitRigidbody.linearVelocity = direction * speed;
-            }
+                float angle = startAngle + (360f / splitCount * i);
+                Vector2 direction = RotateDirection(baseDirection, angle);
+                Vector3 spawnPosition = transform.position + (Vector3)(direction * spawnOffset);
 
-            BallRuntimeStatus splitRuntimeStatus = splitBall.GetComponent<BallRuntimeStatus>();
-            if (splitRuntimeStatus != null)
-            {
-                splitRuntimeStatus.Initialize();
-            }
+                GameObject splitBall = Instantiate(gameObject, spawnPosition, Quaternion.identity);
+                splitBall.name = $"{gameObject.name} Split";
+                ApplyOriginalIdentity(splitBall);
 
-            BallEffectController splitEffectController = splitBall.GetComponent<BallEffectController>();
-            if (splitEffectController != null)
-            {
-                splitEffectController.DisableSplit();
-                splitEffectController.Initialize();
+                BallRuntimeStatus splitRuntimeStatus = splitBall.GetComponent<BallRuntimeStatus>();
+                if (splitRuntimeStatus != null)
+                {
+                    splitRuntimeStatus.Initialize();
+                }
+
+                BallEffectController splitEffectController = splitBall.GetComponent<BallEffectController>();
+                if (splitEffectController != null)
+                {
+                    splitEffectController.DisableSplit();
+                    splitEffectController.Initialize();
+                }
+
+                Ball splitBallMovement = splitBall.GetComponent<Ball>();
+                if (splitBallMovement != null)
+                {
+                    // 원본의 물리/파괴 플래그를 그대로 쓰지 않고 새 공처럼 재초기화합니다.
+                    splitBallMovement.InitializeAsSplitBall(direction, speed);
+                }
             }
         }
-
-        isCreatingSplitBall = false;
+        finally
+        {
+            isCreatingSplitBall = false;
+        }
 
         Debug.Log($"[BallEffectController] {name} 공이 {splitCount}개로 분열했습니다.", this);
     }
 
     void ApplyOriginalIdentity(GameObject splitBall)
     {
-        // Instantiate(gameObject)는 기본적으로 원본 공의 컴포넌트, 태그, 레이어를 복제합니다.
-        // 그래도 분열 공이 항상 실제 공과 같은 판정을 받도록 루트와 자식 오브젝트의 태그/레이어를 한 번 더 맞춥니다.
+        // Instantiate(gameObject)는 원본 공의 컴포넌트, 태그, 레이어를 복제합니다.
+        // 그래도 자식 콜라이더 구조가 있을 수 있으므로 태그/레이어를 한 번 더 맞춰줍니다.
         splitBall.tag = gameObject.tag;
         splitBall.layer = gameObject.layer;
 
@@ -290,7 +297,7 @@ public class BallEffectController : MonoBehaviour
         int minCount = Mathf.Max(1, Mathf.RoundToInt(effectData.minValue));
         int maxCount = Mathf.Max(minCount, Mathf.RoundToInt(effectData.maxValue));
 
-        // 실수로 너무 큰 값이 들어와 씬에 공이 과도하게 생기지 않도록 기본 제한을 둡니다.
+        // 실수로 너무 큰 값을 넣었을 때 공이 과도하게 생기지 않도록 제한합니다.
         maxCount = Mathf.Min(maxCount, 20);
 
         return Random.Range(minCount, maxCount + 1);
@@ -303,7 +310,13 @@ public class BallEffectController : MonoBehaviour
             return ballRigidbody.linearVelocity.normalized;
         }
 
-        return Random.insideUnitCircle.normalized;
+        Vector2 randomDirection = Random.insideUnitCircle;
+        if (randomDirection.sqrMagnitude > 0.0001f)
+        {
+            return randomDirection.normalized;
+        }
+
+        return Vector2.right;
     }
 
     float GetSplitSpeed()
@@ -319,6 +332,19 @@ public class BallEffectController : MonoBehaviour
         }
 
         return 10f;
+    }
+
+    float GetSplitSpawnOffset()
+    {
+        // 원본과 너무 겹쳐 태어나면 첫 물리 프레임의 충돌 콜백이 불안정할 수 있습니다.
+        // 콜라이더 크기 기준으로 살짝 밖에서 생성합니다.
+        Collider2D ballCollider = GetComponent<Collider2D>();
+        if (ballCollider == null)
+        {
+            return 0.5f;
+        }
+
+        return Mathf.Max(0.25f, ballCollider.bounds.extents.magnitude + 0.05f);
     }
 
     Vector2 RotateDirection(Vector2 direction, float angle)
@@ -403,7 +429,6 @@ public class BallEffectController : MonoBehaviour
                 continue;
             }
 
-            // 상황은 SpawnEffects, ObjectHitEffects 같은 리스트 위치가 정합니다.
             runtimeStates.Add(new BallEffectRuntimeState(effects[i], trigger));
         }
     }

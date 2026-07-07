@@ -1354,6 +1354,7 @@ MonoBehaviour:
   enemyDataHolder: {fileID: 603199995}
   ballSpawner: {fileID: 648819986}
   finalDamageText: {fileID: 1793054952}
+  startBattleOnStart: 1
   checkInterval: 0.25
   finalDamageDelay: 0.5
   nextTurnDelay: 0.5

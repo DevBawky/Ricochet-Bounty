@@ -9,13 +9,13 @@ public class PlayerBallDeck : MonoBehaviour
     [Header("Runtime")]
     [SerializeField] List<BallDataSO> drawPile = new List<BallDataSO>();
     [SerializeField] List<BallDataSO> discardPile = new List<BallDataSO>();
-    [SerializeField] List<BallDataSO> currentHand = new List<BallDataSO>();
+    [SerializeField] List<BallDataSO> currentCylinder = new List<BallDataSO>();
 
     public IReadOnlyList<BallDataSO> CurrentHand
     {
         get
         {
-            return currentHand;
+            return currentCylinder;
         }
     }
 
@@ -25,7 +25,7 @@ public class PlayerBallDeck : MonoBehaviour
     {
         get
         {
-            return currentHand;
+            return currentCylinder;
         }
     }
 
@@ -49,7 +49,7 @@ public class PlayerBallDeck : MonoBehaviour
     {
         get
         {
-            return currentHand.Count;
+            return currentCylinder.Count;
         }
     }
 
@@ -64,7 +64,7 @@ public class PlayerBallDeck : MonoBehaviour
         // ScriptableObject 자체는 공유하고, 런타임 리스트의 순서와 위치만 변경합니다.
         drawPile.Clear();
         discardPile.Clear();
-        currentHand.Clear();
+        currentCylinder.Clear();
 
         for (int i = 0; i < startingDeck.Count; i++)
         {
@@ -78,7 +78,7 @@ public class PlayerBallDeck : MonoBehaviour
         }
 
         Shuffle(drawPile);
-        Debug.Log($"[PlayerBallDeck] 덱 초기화 완료. drawPile: {drawPile.Count}, discardPile: {discardPile.Count}, currentCylinder: {currentHand.Count}", this);
+        Debug.Log($"[PlayerBallDeck] 덱 초기화 완료. drawPile: {drawPile.Count}, discardPile: {discardPile.Count}, currentCylinder: {currentCylinder.Count}", this);
     }
 
     public void DrawBalls(int count)
@@ -89,9 +89,9 @@ public class PlayerBallDeck : MonoBehaviour
             return;
         }
 
-        if (currentHand.Count > 0)
+        if (currentCylinder.Count > 0)
         {
-            Debug.LogWarning($"[PlayerBallDeck] currentCylinder에 탄환이 남아 있어 새로 뽑지 않습니다. currentCylinder: {currentHand.Count}", this);
+            Debug.LogWarning($"[PlayerBallDeck] currentCylinder에 탄환이 남아 있어 새로 뽑지 않습니다. currentCylinder: {currentCylinder.Count}", this);
             LogPileState("Draw skipped");
             return;
         }
@@ -108,7 +108,7 @@ public class PlayerBallDeck : MonoBehaviour
 
             BallDataSO drawnBall = drawPile[0];
             drawPile.RemoveAt(0);
-            currentHand.Add(drawnBall);
+            currentCylinder.Add(drawnBall);
 
             string drawnName = drawnBall != null ? drawnBall.name : "NULL";
             Debug.Log($"[PlayerBallDeck] 이번에 뽑힌 탄환: {drawnName}", this);
@@ -121,25 +121,25 @@ public class PlayerBallDeck : MonoBehaviour
     public void DiscardCurrentHand()
     {
         // 발사가 끝난 currentCylinder를 discardPile로 옮기고 currentCylinder를 비웁니다.
-        if (currentHand.Count <= 0)
+        if (currentCylinder.Count <= 0)
         {
             Debug.Log("[PlayerBallDeck] discardPile로 옮길 currentCylinder 탄환이 없습니다.", this);
             LogPileState("Discard skipped");
             return;
         }
 
-        for (int i = 0; i < currentHand.Count; i++)
+        for (int i = 0; i < currentCylinder.Count; i++)
         {
-            if (currentHand[i] == null)
+            if (currentCylinder[i] == null)
             {
                 continue;
             }
 
-            discardPile.Add(currentHand[i]);
-            Debug.Log($"[PlayerBallDeck] 발사 후 discardPile 이동: {currentHand[i].name}", this);
+            discardPile.Add(currentCylinder[i]);
+            Debug.Log($"[PlayerBallDeck] 발사 후 discardPile 이동: {currentCylinder[i].name}", this);
         }
 
-        currentHand.Clear();
+        currentCylinder.Clear();
         LogPileState("Discard complete");
     }
 
@@ -179,6 +179,6 @@ public class PlayerBallDeck : MonoBehaviour
 
     void LogPileState(string context)
     {
-        Debug.Log($"[PlayerBallDeck] {context} | drawPile: {drawPile.Count}, discardPile: {discardPile.Count}, currentCylinder: {currentHand.Count}", this);
+        Debug.Log($"[PlayerBallDeck] {context} | drawPile: {drawPile.Count}, discardPile: {discardPile.Count}, currentCylinder: {currentCylinder.Count}", this);
     }
 }

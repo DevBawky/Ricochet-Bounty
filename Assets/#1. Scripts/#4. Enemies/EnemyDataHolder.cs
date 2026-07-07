@@ -12,6 +12,14 @@ public class EnemyDataHolder : MonoBehaviour
 
     bool isDead;
 
+    public bool IsDead
+    {
+        get
+        {
+            return isDead || currentHealth <= 0;
+        }
+    }
+
     public int CurrentHealth
     {
         get
@@ -31,20 +39,21 @@ public class EnemyDataHolder : MonoBehaviour
         {
             Debug.LogWarning("[EnemyDataHolder] EnemyData가 연결되어 있지 않아 체력을 초기화할 수 없습니다.", this);
             currentHealth = 0;
+            isDead = true;
             UpdateHealthBar();
             return;
         }
 
         currentHealth = Mathf.Max(0, enemyData.MaxHealth);
-        isDead = false;
+        isDead = currentHealth <= 0;
         UpdateHealthBar();
 
-        Debug.Log($"[EnemyDataHolder] 적 체력 초기화 완료. maxHealth: {enemyData.MaxHealth}, currentHealth: {currentHealth}", this);
+        Debug.Log($"[EnemyDataHolder] 적 체력 초기화 완료. maxHealth: {enemyData.MaxHealth}, currentHealth: {currentHealth}, IsDead: {IsDead}", this);
     }
 
     public void TakeDamage(int damage)
     {
-        if (isDead)
+        if (IsDead)
         {
             Debug.Log("[EnemyDataHolder] 이미 사망한 적이므로 대미지 적용을 무시합니다.", this);
             return;
@@ -60,12 +69,16 @@ public class EnemyDataHolder : MonoBehaviour
         currentHealth = Mathf.Max(0, currentHealth - safeDamage);
         UpdateHealthBar();
 
-        Debug.Log($"[EnemyDataHolder] 적 대미지 적용: -{safeDamage}, currentHealth: {currentHealth}, fillAmount: {GetHealthFillAmount()}", this);
+        Debug.Log($"[EnemyDataHolder] 대미지 적용: -{safeDamage}, currentHealth: {currentHealth}, fillAmount: {GetHealthFillAmount()}", this);
 
         if (currentHealth <= 0)
         {
             Die();
+            Debug.Log($"[EnemyDataHolder] TakeDamage 후 사망 확인. IsDead: {IsDead}", this);
+            return;
         }
+
+        Debug.Log($"[EnemyDataHolder] TakeDamage 후 생존 확인. IsDead: {IsDead}", this);
     }
 
     void Die()

@@ -26,24 +26,17 @@ public class Ball : MonoBehaviour
 
     void Awake()
     {
-        _rigidbody = GetComponent<Rigidbody2D>();
-        _ballDataManager = GetComponent<BallDataManager>();
-        _runtimeStatus = GetComponent<BallRuntimeStatus>();
-        _effectController = GetComponent<BallEffectController>();
-
-        _rigidbody.freezeRotation = true;
-        _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-        _rigidbody.interpolation = RigidbodyInterpolation2D.Interpolate;
+        CacheComponents();
+        ConfigureRigidbody();
     }
 
     void Start()
     {
-        // 생성 직후에는 아직 충돌이 없을 수 있으므로, 발사 시점을 기준으로 무충돌 타이머를 시작합니다.
-        _lastCollisionTime = Time.time;
-
+        // 생성 직후에는 아직 충돌이 없을 수 있으므로, 생성 시점부터 무충돌 파괴 타이머를 시작합니다.
+        ResetNoCollisionDestroyTimer();
         ApplyBallDataLaunchSpeed();
 
-        // BallSpawner가 이미 속도를 지정한 공은 여기서 다시 랜덤 발사하지 않습니다.
+        // BallSpawner나 SplitBall 초기화가 이미 속도를 넣은 공은 여기서 다시 랜덤 발사하지 않습니다.
         if (!_hasExternalLaunch)
         {
             LaunchRandomDirection();
@@ -52,9 +45,17 @@ public class Ball : MonoBehaviour
 
     public void Launch(Vector2 direction, float speed)
     {
+        CacheComponents();
+
+        if (_rigidbody == null)
+        {
+            Debug.LogWarning($"[Ball] {name} Rigidbody2D가 없어 발사할 수 없습니다.", this);
+            return;
+        }
+
         if (!IsSafeDirection(direction))
         {
-            Debug.LogWarning($"[Ball] {name}의 발사 방향이 유효하지 않아 오른쪽 방향으로 보정합니다.", this);
+            Debug.LogWarning($"[Ball] {name} 발사 방향이 유효하지 않아 오른쪽 방향으로 보정합니다.", this);
             direction = Vector2.right;
         }
 
@@ -63,8 +64,39 @@ public class Ball : MonoBehaviour
         _lastMoveDirection = direction.normalized;
         _rigidbody.linearVelocity = _lastMoveDirection * _launchForce;
         _hasExternalLaunch = true;
+        _rigidbody.WakeUp();
 
         Debug.Log($"[Ball] {name} 발사 완료. direction: {_lastMoveDirection}, speed: {_launchForce}", this);
+    }
+
+    public void ResetNoCollisionDestroyTimer()
+    {
+        // SplitBall은 원본 공을 복제하므로 원본의 무충돌 파괴 타이머 상태가 같이 복사될 수 있습니다.
+        // 새로 태어난 분열 공은 생성 시점부터 No Collision Destroy Delay를 다시 세도록 초기화합니다.
+        _lastCollisionTime = Time.time;
+        _isDestroyingByNoCollision = false;
+
+        Debug.Log($"[Ball] {name} No Collision Destroy 타이머 초기화. delay: {_noCollisionDestroyDelay}", this);
+    }
+
+    public void InitializeAsSplitBall(Vector2 direction, float speed)
+    {
+        // SplitBall은 원본 공을 통째로 복제하기 때문에 private 런타임 값도 함께 복사됩니다.
+        // 분열 공은 새로 발사된 공처럼 물리/타이머/이동 상태를 명시적으로 다시 잡아줍니다.
+        CacheComponents();
+        ConfigureRigidbody();
+        EnableColliders();
+
+        _lastVelocity = Vector2.zero;
+        _lastMoveDirection = IsSafeDirection(direction) ? direction.normalized : Vector2.right;
+        _lastWallHitSystemTime = -999f;
+        _collisionCount = 0;
+        _hasExternalLaunch = true;
+
+        ResetNoCollisionDestroyTimer();
+        Launch(_lastMoveDirection, speed);
+
+        Debug.Log($"[Ball] {name} 분열 공 초기화 완료. direction: {_lastMoveDirection}, speed: {speed}", this);
     }
 
     void Update()
@@ -74,6 +106,11 @@ public class Ball : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (_rigidbody == null)
+        {
+            return;
+        }
+
         _lastVelocity = _rigidbody.linearVelocity;
         RememberMoveDirection(_lastVelocity);
         KeepSpeedInRange();
@@ -83,7 +120,7 @@ public class Ball : MonoBehaviour
     {
         Vector2 direction = GetRandomDirection();
         _lastMoveDirection = direction;
-        _rigidbody.linearVelocity = direction * _launchForce;
+        Launch(direction, _launchForce);
     }
 
     void ApplyBallDataLaunchSpeed()
@@ -104,7 +141,7 @@ public class Ball : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // 어떤 Collider2D와 충돌하든 "충돌이 감지됨"으로 보고 무충돌 파괴 타이머를 갱신합니다.
+        // 어떤 Collider2D와 충돌해도 무충돌 파괴 타이머를 갱신합니다.
         RefreshCollisionTimer();
 
         if (!collision.gameObject.CompareTag("Wall"))
@@ -119,7 +156,7 @@ public class Ball : MonoBehaviour
 
     void OnCollisionStay2D(Collision2D collision)
     {
-        // 벽이나 오브젝트에 계속 닿아 있는 상태도 충돌 감지 상태로 처리합니다.
+        // 벽이나 오브젝트와 계속 닿아 있는 상태도 충돌 감지 상태로 처리합니다.
         RefreshCollisionTimer();
 
         if (!collision.gameObject.CompareTag("Wall"))
@@ -127,8 +164,6 @@ public class Ball : MonoBehaviour
             return;
         }
 
-        // 벽에 붙어 있을 때는 위치를 직접 밀지 않습니다.
-        // Rigidbody2D.position을 수동으로 바꾸면 TilemapCollider 반대편으로 넘어가는 원인이 될 수 있습니다.
         Vector2 normal = FindBestWallNormal(collision);
         Vector2 velocity = GetSafeVelocity();
 
@@ -256,7 +291,7 @@ public class Ball : MonoBehaviour
             return _lastVelocity;
         }
 
-        if (IsSafeDirection(_rigidbody.linearVelocity))
+        if (_rigidbody != null && IsSafeDirection(_rigidbody.linearVelocity))
         {
             return _rigidbody.linearVelocity;
         }
@@ -304,6 +339,54 @@ public class Ball : MonoBehaviour
         }
 
         return Vector2.right;
+    }
+
+    void CacheComponents()
+    {
+        if (_rigidbody == null)
+        {
+            _rigidbody = GetComponent<Rigidbody2D>();
+        }
+
+        if (_ballDataManager == null)
+        {
+            _ballDataManager = GetComponent<BallDataManager>();
+        }
+
+        if (_runtimeStatus == null)
+        {
+            _runtimeStatus = GetComponent<BallRuntimeStatus>();
+        }
+
+        if (_effectController == null)
+        {
+            _effectController = GetComponent<BallEffectController>();
+        }
+    }
+
+    void ConfigureRigidbody()
+    {
+        if (_rigidbody == null)
+        {
+            return;
+        }
+
+        _rigidbody.simulated = true;
+        _rigidbody.bodyType = RigidbodyType2D.Dynamic;
+        _rigidbody.freezeRotation = true;
+        _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        _rigidbody.interpolation = RigidbodyInterpolation2D.Interpolate;
+        _rigidbody.angularVelocity = 0f;
+        _rigidbody.WakeUp();
+    }
+
+    void EnableColliders()
+    {
+        Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = true;
+        }
     }
 
     bool IsSafeDirection(Vector2 direction)
