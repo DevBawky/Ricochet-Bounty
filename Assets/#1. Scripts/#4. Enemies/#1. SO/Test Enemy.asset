@@ -12,4 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 347907c4e5fc7c64dbce2e24ccdc3e3f, type: 3}
   m_Name: Test Enemy
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemySprite: {fileID: 6937817954938267909, guid: 32b5800169b000d429e0dace6ba6cd28, type: 3}
   maxHealth: 1000
+  isBoss: 0

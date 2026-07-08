@@ -36,6 +36,7 @@ public class StateManager : MonoBehaviour
     [SerializeField] DamageUI damageUI;
     [SerializeField] EnemyDataHolder enemyDataHolder;
     [SerializeField] BallSpawner ballSpawner;
+    [SerializeField] RoundManager roundManager;
 
     [Header("UI Panels")]
     [SerializeField] GameObject playerPanel;
@@ -93,24 +94,42 @@ public class StateManager : MonoBehaviour
         if (currentState == nextState)
         {
             RefreshUIPanels();
+
+            if (nextState == GameState.Battle && roundManager != null && roundManager.SpawnedBattleGrid == null)
+            {
+                roundManager.SpawnSelectedBattleGrid();
+            }
+
             Debug.Log($"[StateManager] GameState 유지: {currentState}", this);
             return;
         }
 
+        GameState previousState = currentState;
         Debug.Log($"[StateManager] GameState 변경: {currentState} -> {nextState}", this);
         currentState = nextState;
         RefreshUIPanels();
+        HandleBattleGridStateChange(previousState, nextState);
     }
 
     // MainMenu UI의 Play Game 버튼에서 호출합니다.
     public void OnClickPlayGame()
     {
+        if (roundManager != null)
+        {
+            roundManager.StartNewRun();
+        }
+
         ChangeState(GameState.RoundSelect);
     }
 
     // RoundSelect UI의 Battle 선택 버튼에서 호출합니다.
     public void OnClickSelectBattle()
     {
+        if (roundManager != null)
+        {
+            roundManager.PrepareCurrentWaveBattle();
+        }
+
         ChangeState(GameState.Battle);
         StartBattle();
     }
@@ -140,6 +159,12 @@ public class StateManager : MonoBehaviour
     {
         StopTurnCoroutines();
         ChangeBattleState(BattleState.None);
+
+        if (roundManager != null)
+        {
+            roundManager.StartNewRun();
+        }
+
         ChangeState(GameState.RoundSelect);
     }
 
@@ -325,6 +350,13 @@ public class StateManager : MonoBehaviour
     public void EndBattle()
     {
         Debug.Log("[StateManager] 전투 종료. 적이 사망했습니다.", this);
+
+        if (roundManager != null)
+        {
+            roundManager.HandleBattleCleared();
+            return;
+        }
+
         OnBattleCleared();
     }
 
@@ -367,7 +399,25 @@ public class StateManager : MonoBehaviour
         ShowFinalDamage(finalDamage);
         Debug.Log($"[StateManager] 최종 대미지 계산 완료: {finalDamage}", this);
 
-        if (enemyDataHolder != null)
+        if (roundManager != null && roundManager.SelectedEnemyData != null)
+        {
+            roundManager.ApplyDamageToCurrentEnemy(finalDamage);
+
+            if (roundManager.CurrentEnemyHp <= 0)
+            {
+                resolveTurnCoroutine = null;
+                yield break;
+            }
+
+            roundManager.OnShotEndedWithoutEnemyDefeated();
+
+            if (roundManager.CurrentPlayerLife <= 0)
+            {
+                resolveTurnCoroutine = null;
+                yield break;
+            }
+        }
+        else if (enemyDataHolder != null)
         {
             enemyDataHolder.TakeDamage(finalDamage);
             Debug.Log($"[StateManager] 적 생존 여부 확인. IsDead: {enemyDataHolder.IsDead}", this);
@@ -454,6 +504,24 @@ public class StateManager : MonoBehaviour
         }
     }
 
+    void HandleBattleGridStateChange(GameState previousState, GameState nextState)
+    {
+        if (roundManager == null)
+        {
+            return;
+        }
+
+        if (previousState == GameState.Battle && nextState != GameState.Battle)
+        {
+            roundManager.ClearSpawnedBattleGrid();
+        }
+
+        if (nextState == GameState.Battle)
+        {
+            roundManager.SpawnSelectedBattleGrid();
+        }
+    }
+
     void SetPanelActive(GameObject panel, bool isActive)
     {
         // 인스펙터에 패널이 아직 연결되지 않아도 상태 전환 자체는 안전하게 진행합니다.
@@ -518,6 +586,11 @@ public class StateManager : MonoBehaviour
         if (ballSpawner == null)
         {
             ballSpawner = FindFirstObjectByType<BallSpawner>();
+        }
+
+        if (roundManager == null)
+        {
+            roundManager = FindFirstObjectByType<RoundManager>();
         }
     }
 }
