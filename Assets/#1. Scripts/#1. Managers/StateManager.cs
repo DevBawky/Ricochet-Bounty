@@ -2,6 +2,17 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 
+public enum GameState
+{
+    MainMenu,
+    RoundSelect,
+    Battle,
+    Result,
+    Shop,
+    GameOver,
+    Clear
+}
+
 public enum BattleState
 {
     None,
@@ -16,7 +27,9 @@ public enum BattleState
 
 public class StateManager : MonoBehaviour
 {
-    [SerializeField] BattleState currentState = BattleState.None;
+    [Header("Game State")]
+    [SerializeField] GameState currentState = GameState.MainMenu;
+    [SerializeField] BattleState currentBattleState = BattleState.None;
 
     [Header("References")]
     [SerializeField] DamageManager damageManager;
@@ -24,11 +37,18 @@ public class StateManager : MonoBehaviour
     [SerializeField] EnemyDataHolder enemyDataHolder;
     [SerializeField] BallSpawner ballSpawner;
 
+    [Header("UI Panels")]
+    [SerializeField] GameObject playerPanel;
+    [SerializeField] GameObject mainMenuPanel;
+    [SerializeField] GameObject roundSelectPanel;
+    [SerializeField] GameObject battlePanel;
+    [SerializeField] GameObject resultPanel;
+    [SerializeField] GameObject shopPanel;
+    [SerializeField] GameObject gameOverPanel;
+    [SerializeField] GameObject clearPanel;
+
     [Header("UI")]
     [SerializeField] TMP_Text finalDamageText;
-
-    [Header("Battle Settings")]
-    [SerializeField] bool startBattleOnStart = true;
 
     [Header("Turn Timing")]
     [SerializeField] float checkInterval = 0.25f;
@@ -37,8 +57,9 @@ public class StateManager : MonoBehaviour
 
     Coroutine checkBallsCoroutine;
     Coroutine resolveTurnCoroutine;
+    Coroutine startNextTurnCoroutine;
 
-    public BattleState CurrentState
+    public GameState CurrentState
     {
         get
         {
@@ -46,32 +67,116 @@ public class StateManager : MonoBehaviour
         }
     }
 
+    public BattleState CurrentBattleState
+    {
+        get
+        {
+            return currentBattleState;
+        }
+    }
+
     void Awake()
     {
         FindMissingReferences();
-        ChangeState(BattleState.None);
+        ChangeBattleState(BattleState.None);
     }
 
     void Start()
     {
-        if (startBattleOnStart)
+        // 게임 시작 시에는 항상 메인 메뉴 UI만 보이도록 초기화합니다.
+        ChangeState(GameState.MainMenu);
+    }
+
+    // 외부 UI 버튼 또는 게임 로직에서 게임의 큰 화면 상태를 전환할 때 사용합니다.
+    public void ChangeState(GameState nextState)
+    {
+        if (currentState == nextState)
         {
-            StartBattle();
+            RefreshUIPanels();
+            Debug.Log($"[StateManager] GameState 유지: {currentState}", this);
+            return;
         }
+
+        Debug.Log($"[StateManager] GameState 변경: {currentState} -> {nextState}", this);
+        currentState = nextState;
+        RefreshUIPanels();
+    }
+
+    // MainMenu UI의 Play Game 버튼에서 호출합니다.
+    public void OnClickPlayGame()
+    {
+        ChangeState(GameState.RoundSelect);
+    }
+
+    // RoundSelect UI의 Battle 선택 버튼에서 호출합니다.
+    public void OnClickSelectBattle()
+    {
+        ChangeState(GameState.Battle);
+        StartBattle();
+    }
+
+    // Result UI의 Continue 또는 Pay Out 버튼에서 호출합니다.
+    public void OnClickContinueResult()
+    {
+        ChangeState(GameState.Shop);
+    }
+
+    // Shop UI의 Next Battle 버튼에서 호출합니다.
+    public void OnClickNextBattle()
+    {
+        ChangeState(GameState.RoundSelect);
+    }
+
+    // GameOver 또는 Clear UI에서 메인 메뉴로 돌아갈 때 호출합니다.
+    public void OnClickGoToMainMenu()
+    {
+        StopTurnCoroutines();
+        ChangeBattleState(BattleState.None);
+        ChangeState(GameState.MainMenu);
+    }
+
+    // GameOver UI에서 다시 시작할 때 호출합니다.
+    public void OnClickRestartRun()
+    {
+        StopTurnCoroutines();
+        ChangeBattleState(BattleState.None);
+        ChangeState(GameState.RoundSelect);
+    }
+
+    // Clear UI에서 무한 모드로 진입할 때 호출합니다.
+    public void OnClickEnterEndlessMode()
+    {
+        ChangeState(GameState.RoundSelect);
+    }
+
+    // 적을 모두 처치했을 때 호출합니다. 추후 라운드 데이터가 추가되면 Clear 분기 로직을 이곳에 확장합니다.
+    public void OnBattleCleared()
+    {
+        StopTurnCoroutines();
+        ChangeBattleState(BattleState.BattleEnd);
+        ChangeState(GameState.Result);
+    }
+
+    // 플레이어의 라이프가 모두 소모되었을 때 호출합니다.
+    public void OnPlayerDefeated()
+    {
+        StopTurnCoroutines();
+        ChangeBattleState(BattleState.BattleEnd);
+        ChangeState(GameState.GameOver);
     }
 
     public void StartBattle()
     {
         FindMissingReferences();
 
-        if (currentState != BattleState.None && currentState != BattleState.BattleEnd)
+        if (currentBattleState != BattleState.None && currentBattleState != BattleState.BattleEnd)
         {
-            Debug.Log($"[StateManager] 이미 전투가 진행 중입니다. 현재 상태: {currentState}", this);
+            Debug.Log($"[StateManager] 이미 전투가 진행 중입니다. 현재 전투 상태: {currentBattleState}", this);
             return;
         }
 
         Debug.Log("[StateManager] 전투를 시작합니다.", this);
-        ChangeState(BattleState.BattleStart);
+        ChangeBattleState(BattleState.BattleStart);
         StartTurn();
     }
 
@@ -79,14 +184,14 @@ public class StateManager : MonoBehaviour
     {
         FindMissingReferences();
 
-        if (currentState == BattleState.BattleEnd)
+        if (currentBattleState == BattleState.BattleEnd)
         {
             Debug.Log("[StateManager] 전투가 종료되어 새 턴을 시작하지 않습니다.", this);
             return;
         }
 
         StopTurnCoroutines();
-        ChangeState(BattleState.TurnStart);
+        ChangeBattleState(BattleState.TurnStart);
         Debug.Log("[StateManager] 턴 시작. DamageManager 초기화 후 currentCylinder를 뽑습니다.", this);
 
         if (damageManager != null)
@@ -107,14 +212,14 @@ public class StateManager : MonoBehaviour
             Debug.LogWarning("[StateManager] BallSpawner가 없어 currentCylinder를 뽑을 수 없습니다.", this);
         }
 
-        ChangeState(BattleState.WaitingForPlayerInput);
+        ChangeBattleState(BattleState.WaitingForPlayerInput);
         Debug.Log("[StateManager] 플레이어 입력 대기 상태입니다. 이제 발사할 수 있습니다.", this);
     }
 
     public bool CanPlayerFire()
     {
-        bool canFire = currentState == BattleState.WaitingForPlayerInput;
-        Debug.Log($"[StateManager] CanPlayerFire 확인: {canFire}, 현재 상태: {currentState}", this);
+        bool canFire = currentState == GameState.Battle && currentBattleState == BattleState.WaitingForPlayerInput;
+        Debug.Log($"[StateManager] CanPlayerFire 확인: {canFire}, 게임 상태: {currentState}, 전투 상태: {currentBattleState}", this);
         return canFire;
     }
 
@@ -122,23 +227,23 @@ public class StateManager : MonoBehaviour
     {
         if (!CanPlayerFire())
         {
-            Debug.LogWarning($"[StateManager] 발사를 시작할 수 없는 상태입니다. 현재 상태: {currentState}", this);
+            Debug.LogWarning($"[StateManager] 발사를 시작할 수 없는 상태입니다. 게임 상태: {currentState}, 전투 상태: {currentBattleState}", this);
             return;
         }
 
-        ChangeState(BattleState.Firing);
-        Debug.Log("[StateManager] 플레이어 발사 시작 알림 수신. 상태를 Firing으로 변경했습니다.", this);
+        ChangeBattleState(BattleState.Firing);
+        Debug.Log("[StateManager] 플레이어 발사 시작 알림 수신. 전투 상태를 Firing으로 변경했습니다.", this);
     }
 
     public void OnBallFireSequenceFinished()
     {
-        if (currentState != BattleState.Firing)
+        if (currentBattleState != BattleState.Firing)
         {
-            Debug.LogWarning($"[StateManager] Firing 상태가 아닌데 발사 완료 알림을 받았습니다. 현재 상태: {currentState}", this);
+            Debug.LogWarning($"[StateManager] Firing 상태가 아닌데 발사 완료 알림을 받았습니다. 현재 전투 상태: {currentBattleState}", this);
             return;
         }
 
-        ChangeState(BattleState.WaitingForBalls);
+        ChangeBattleState(BattleState.WaitingForBalls);
         Debug.Log("[StateManager] currentCylinder의 모든 탄환 발사 완료. Ball 태그 오브젝트 감지를 시작합니다.", this);
 
         if (checkBallsCoroutine != null)
@@ -151,9 +256,9 @@ public class StateManager : MonoBehaviour
 
     public void CheckRemainingBalls()
     {
-        if (currentState != BattleState.WaitingForBalls)
+        if (currentBattleState != BattleState.WaitingForBalls)
         {
-            Debug.Log($"[StateManager] Ball 감지를 건너뜁니다. 현재 상태: {currentState}", this);
+            Debug.Log($"[StateManager] Ball 감지를 건너뜁니다. 현재 전투 상태: {currentBattleState}", this);
             return;
         }
 
@@ -185,9 +290,9 @@ public class StateManager : MonoBehaviour
 
     public void ResolveTurnResult()
     {
-        if (currentState != BattleState.WaitingForBalls)
+        if (currentBattleState != BattleState.WaitingForBalls)
         {
-            Debug.LogWarning($"[StateManager] 턴 결과를 처리할 수 없는 상태입니다. 현재 상태: {currentState}", this);
+            Debug.LogWarning($"[StateManager] 턴 결과를 처리할 수 없는 상태입니다. 현재 전투 상태: {currentBattleState}", this);
             return;
         }
 
@@ -204,30 +309,34 @@ public class StateManager : MonoBehaviour
     {
         Debug.Log("[StateManager] 턴을 종료합니다.", this);
 
-        if (currentState == BattleState.BattleEnd)
+        if (currentBattleState == BattleState.BattleEnd)
         {
             return;
         }
 
-        StartCoroutine(StartNextTurnAfterDelay());
+        if (startNextTurnCoroutine != null)
+        {
+            StopCoroutine(startNextTurnCoroutine);
+        }
+
+        startNextTurnCoroutine = StartCoroutine(StartNextTurnAfterDelay());
     }
 
     public void EndBattle()
     {
-        StopTurnCoroutines();
-        ChangeState(BattleState.BattleEnd);
         Debug.Log("[StateManager] 전투 종료. 적이 사망했습니다.", this);
+        OnBattleCleared();
     }
 
     IEnumerator CheckRemainingBallsRoutine()
     {
         WaitForSeconds wait = new WaitForSeconds(Mathf.Max(0.05f, checkInterval));
 
-        while (currentState == BattleState.WaitingForBalls)
+        while (currentBattleState == BattleState.WaitingForBalls)
         {
             CheckRemainingBalls();
 
-            if (currentState != BattleState.WaitingForBalls)
+            if (currentBattleState != BattleState.WaitingForBalls)
             {
                 yield break;
             }
@@ -238,7 +347,7 @@ public class StateManager : MonoBehaviour
 
     IEnumerator ResolveTurnResultRoutine()
     {
-        ChangeState(BattleState.ResolvingTurn);
+        ChangeBattleState(BattleState.ResolvingTurn);
         Debug.Log($"[StateManager] Ball이 0개입니다. {finalDamageDelay}초 뒤 최종 대미지를 계산합니다.", this);
 
         yield return new WaitForSeconds(Mathf.Max(0f, finalDamageDelay));
@@ -283,6 +392,7 @@ public class StateManager : MonoBehaviour
     {
         Debug.Log($"[StateManager] 적이 살아있습니다. {nextTurnDelay}초 뒤 다음 턴을 시작합니다.", this);
         yield return new WaitForSeconds(Mathf.Max(0f, nextTurnDelay));
+        startNextTurnCoroutine = null;
         StartTurn();
     }
 
@@ -303,16 +413,68 @@ public class StateManager : MonoBehaviour
         }
     }
 
-    void ChangeState(BattleState nextState)
+    void RefreshUIPanels()
     {
-        if (currentState == nextState)
+        // 상태 전환 시에는 먼저 모든 UI 패널을 끈 뒤, 현재 상태에 필요한 패널만 다시 켭니다.
+        SetPanelActive(playerPanel, false);
+        SetPanelActive(mainMenuPanel, false);
+        SetPanelActive(roundSelectPanel, false);
+        SetPanelActive(battlePanel, false);
+        SetPanelActive(resultPanel, false);
+        SetPanelActive(shopPanel, false);
+        SetPanelActive(gameOverPanel, false);
+        SetPanelActive(clearPanel, false);
+
+        // Player Panel은 MainMenu를 제외한 모든 상태에서 항상 표시합니다.
+        SetPanelActive(playerPanel, currentState != GameState.MainMenu);
+
+        switch (currentState)
         {
-            Debug.Log($"[StateManager] BattleState 유지: {currentState}", this);
+            case GameState.MainMenu:
+                SetPanelActive(mainMenuPanel, true);
+                break;
+            case GameState.RoundSelect:
+                SetPanelActive(roundSelectPanel, true);
+                break;
+            case GameState.Battle:
+                SetPanelActive(battlePanel, true);
+                break;
+            case GameState.Result:
+                SetPanelActive(resultPanel, true);
+                break;
+            case GameState.Shop:
+                SetPanelActive(shopPanel, true);
+                break;
+            case GameState.GameOver:
+                SetPanelActive(gameOverPanel, true);
+                break;
+            case GameState.Clear:
+                SetPanelActive(clearPanel, true);
+                break;
+        }
+    }
+
+    void SetPanelActive(GameObject panel, bool isActive)
+    {
+        // 인스펙터에 패널이 아직 연결되지 않아도 상태 전환 자체는 안전하게 진행합니다.
+        if (panel == null)
+        {
             return;
         }
 
-        Debug.Log($"[StateManager] BattleState 변경: {currentState} -> {nextState}", this);
-        currentState = nextState;
+        panel.SetActive(isActive);
+    }
+
+    void ChangeBattleState(BattleState nextState)
+    {
+        if (currentBattleState == nextState)
+        {
+            Debug.Log($"[StateManager] BattleState 유지: {currentBattleState}", this);
+            return;
+        }
+
+        Debug.Log($"[StateManager] BattleState 변경: {currentBattleState} -> {nextState}", this);
+        currentBattleState = nextState;
     }
 
     void StopTurnCoroutines()
@@ -327,6 +489,12 @@ public class StateManager : MonoBehaviour
         {
             StopCoroutine(resolveTurnCoroutine);
             resolveTurnCoroutine = null;
+        }
+
+        if (startNextTurnCoroutine != null)
+        {
+            StopCoroutine(startNextTurnCoroutine);
+            startNextTurnCoroutine = null;
         }
     }
 
