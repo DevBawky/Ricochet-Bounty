@@ -10,17 +10,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
-  m_Name: Test Multiplier Ball
+  m_Name: Glass Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
-  ValueType: 1
-  Score: 0.2
-  ballColor: {r: 0.2783019, g: 0.6650411, b: 1, a: 1}
+  ValueType: 0
+  Score: 20
+  ballColor: {r: 0.75, g: 0.95, b: 1, a: 0.85}
   ballSprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
-  launchSpeed: 10
+  launchSpeed: 11
   maxDurability: 10
-  wallHitDurabilityDamage: 2
+  wallHitDurabilityDamage: 1
   objectHitDurabilityDamage: 1
   spawnEffects: []
-  objectHitEffects: []
-  wallHitEffects: []
+  objectHitEffects:
+  - effectType: 3
+    triggerChance: 0.12
+    cooldown: 0
+    maxTriggerCount: 0
+    minValue: 0
+    maxValue: 0
+  wallHitEffects:
+  - effectType: 3
+    triggerChance: 0.12
+    cooldown: 0
+    maxTriggerCount: 0
+    minValue: 0
+    maxValue: 0
   destroyEffects: []

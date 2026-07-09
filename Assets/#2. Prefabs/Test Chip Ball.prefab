@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 8871000000000000001}
   - component: {fileID: 8871000000000000002}
   m_Layer: 3
-  m_Name: Test Chip Ball
+  m_Name: 기본 Chips 탄환
   m_TagString: Ball
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

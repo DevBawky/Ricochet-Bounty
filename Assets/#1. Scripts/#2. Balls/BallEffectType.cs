@@ -11,5 +11,8 @@ public enum BallEffectType
     AddRandomScoreValue,
 
     // 현재 공을 파괴합니다.
-    DestroySelf
+    DestroySelf,
+
+    // Adds gold through GoldManager.
+    AddGold
 }

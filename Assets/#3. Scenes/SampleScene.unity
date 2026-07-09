@@ -2000,14 +2000,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBallDeck
   startingDeck:
-  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
-  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
-  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
-  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
-  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
-  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
-  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
-  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
+  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
+  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
+  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
+  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
+  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
   drawPile: []
   discardPile: []
   currentCylinder: []
@@ -2090,11 +2087,60 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 851381631}
+  - {fileID: 910000002}
   - {fileID: 1027342622}
   - {fileID: 500031833}
   - {fileID: 616322116}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &910000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 910000002}
+  - component: {fileID: 910000003}
+  m_Layer: 0
+  m_Name: GoldManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &910000002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 910000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 860666543}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &910000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 910000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e9d20a5f1134bb4aa1e35d0aab4f9c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GoldManager
+  initialGold: 0
+  onGoldChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &930209547 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3033743157436423122, guid: 981664e9a8140e6498416da7e65af77a, type: 3}

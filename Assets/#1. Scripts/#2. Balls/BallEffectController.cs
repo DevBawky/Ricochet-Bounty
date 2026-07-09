@@ -10,6 +10,7 @@ public class BallEffectController : MonoBehaviour
 
     [Header("References")]
     [SerializeField] DamageManager damageManager;
+    [SerializeField] GoldManager goldManager;
 
     [Header("Options")]
     [SerializeField] bool triggerSpawnEffectsOnEnable = true;
@@ -86,6 +87,11 @@ public class BallEffectController : MonoBehaviour
         if (damageManager == null)
         {
             damageManager = FindFirstObjectByType<DamageManager>();
+        }
+
+        if (goldManager == null)
+        {
+            goldManager = FindFirstObjectByType<GoldManager>();
         }
 
         if (!ballDataManager.ValidateData())
@@ -187,6 +193,10 @@ public class BallEffectController : MonoBehaviour
 
             case BallEffectType.DestroySelf:
                 ExecuteDestroySelf();
+                break;
+
+            case BallEffectType.AddGold:
+                ExecuteAddGold(effectData);
                 break;
         }
     }
@@ -411,6 +421,8 @@ public class BallEffectController : MonoBehaviour
 
     void ExecuteDestroySelf()
     {
+        Debug.Log($"[BallEffectController] {name} triggered DestroySelf.", this);
+
         if (runtimeStatus != null)
         {
             runtimeStatus.DestroyBall();
@@ -418,6 +430,25 @@ public class BallEffectController : MonoBehaviour
         }
 
         Destroy(gameObject);
+    }
+
+    void ExecuteAddGold(BallEffectData effectData)
+    {
+        if (goldManager == null)
+        {
+            Debug.LogWarning("[BallEffectController] GoldManager was not found. AddGold effect cannot run.", this);
+            return;
+        }
+
+        int amount = Mathf.RoundToInt(Random.Range(effectData.minValue, effectData.maxValue));
+        if (amount <= 0)
+        {
+            Debug.LogWarning($"[BallEffectController] AddGold amount must be greater than 0. Amount: {amount}", this);
+            return;
+        }
+
+        goldManager.AddGold(amount);
+        Debug.Log($"[BallEffectController] {name} granted {amount} gold.", this);
     }
 
     void BuildRuntimeStates()
