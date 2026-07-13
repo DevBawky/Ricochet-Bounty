@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
   m_Name: Golden Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
+  price: 20
+  rarity: 1
   ValueType: 0
   Score: 1
   ballColor: {r: 1, g: 0.82, b: 0.18, a: 1}
@@ -28,6 +30,23 @@ MonoBehaviour:
     maxTriggerCount: 0
     minValue: 1
     maxValue: 1
+    chipsPerStack: 1
+    multiplierPerStack: 0.1
+    targetStack: 3
+    chipsIncrease: 1
+    multiplierIncrease: 1
+    baseChipsIncrease: 1
+    chipsIncreasePerOverheat: 1
+    baseMultiplierIncrease: 1
+    multiplierIncreasePerOverheat: 0.2
+    selfDestroyStartOverheat: 5
+    selfDestroyChance: 0.15
+    rewardEffectType: 0
+    rewardValuePerStack: 1
+    rewardMinValue: 1
+    rewardMaxValue: 1
+    baseRewardValue: 1
+    rewardValuePerOverheat: 0.2
   wallHitEffects:
   - effectType: 4
     triggerChance: 0.5
@@ -35,4 +54,21 @@ MonoBehaviour:
     maxTriggerCount: 0
     minValue: 1
     maxValue: 1
+    chipsPerStack: 1
+    multiplierPerStack: 0.1
+    targetStack: 3
+    chipsIncrease: 1
+    multiplierIncrease: 1
+    baseChipsIncrease: 1
+    chipsIncreasePerOverheat: 1
+    baseMultiplierIncrease: 1
+    multiplierIncreasePerOverheat: 0.2
+    selfDestroyStartOverheat: 5
+    selfDestroyChance: 0.15
+    rewardEffectType: 0
+    rewardValuePerStack: 1
+    rewardMinValue: 1
+    rewardMaxValue: 1
+    baseRewardValue: 1
+    rewardValuePerOverheat: 0.2
   destroyEffects: []

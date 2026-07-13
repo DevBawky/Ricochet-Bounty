@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
   m_Name: Split Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
+  price: 20
+  rarity: 1
   ValueType: 0
   Score: 8
   ballColor: {r: 0.45, g: 1, b: 0.55, a: 1}
@@ -29,4 +31,21 @@ MonoBehaviour:
     maxTriggerCount: 1
     minValue: 3
     maxValue: 3
+    chipsPerStack: 1
+    multiplierPerStack: 0.1
+    targetStack: 3
+    chipsIncrease: 1
+    multiplierIncrease: 1
+    baseChipsIncrease: 1
+    chipsIncreasePerOverheat: 1
+    baseMultiplierIncrease: 1
+    multiplierIncreasePerOverheat: 0.2
+    selfDestroyStartOverheat: 5
+    selfDestroyChance: 0.15
+    rewardEffectType: 0
+    rewardValuePerStack: 1
+    rewardMinValue: 1
+    rewardMaxValue: 1
+    baseRewardValue: 1
+    rewardValuePerOverheat: 0.2
   destroyEffects: []

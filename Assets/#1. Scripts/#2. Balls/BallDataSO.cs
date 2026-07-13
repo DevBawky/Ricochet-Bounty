@@ -8,6 +8,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Ball Data", menuName = "Ball Data")]
 public class BallDataSO : ScriptableObject
 {
+    [Header("Shop")]
+    [SerializeField, Tooltip("Shop purchase price.")]
+    int price = 10;
+
+    [SerializeField, Tooltip("Rarity used by shop rarity weights.")]
+    BallRarity rarity = BallRarity.Common;
+
     [Header("Damage Value")]
     [Tooltip("이 공이 점수 오브젝트에 닿았을 때 Chips를 올릴지, Multiplier를 올릴지 정합니다.")]
     public DamageValueType ValueType;
@@ -57,6 +64,22 @@ public class BallDataSO : ScriptableObject
         get
         {
             return launchSpeed;
+        }
+    }
+
+    public int Price
+    {
+        get
+        {
+            return Mathf.Max(0, price);
+        }
+    }
+
+    public BallRarity Rarity
+    {
+        get
+        {
+            return rarity;
         }
     }
 

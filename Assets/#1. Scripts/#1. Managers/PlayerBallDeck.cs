@@ -143,6 +143,19 @@ public class PlayerBallDeck : MonoBehaviour
         LogPileState("Discard complete");
     }
 
+    public void AddBallToDeck(BallDataSO ballData)
+    {
+        if (ballData == null)
+        {
+            Debug.LogWarning("[PlayerBallDeck] Cannot add null BallDataSO to deck.", this);
+            return;
+        }
+
+        discardPile.Add(ballData);
+        Debug.Log($"[PlayerBallDeck] Purchased ball added to discardPile: {ballData.name}", this);
+        LogPileState("Add purchased ball");
+    }
+
     bool EnsureDrawablePile()
     {
         if (drawPile.Count > 0)

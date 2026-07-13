@@ -37,6 +37,7 @@ public class StateManager : MonoBehaviour
     [SerializeField] EnemyDataHolder enemyDataHolder;
     [SerializeField] BallSpawner ballSpawner;
     [SerializeField] RoundManager roundManager;
+    [SerializeField] ShopManager shopManager;
 
     [Header("UI Panels")]
     [SerializeField] GameObject playerPanel;
@@ -100,6 +101,15 @@ public class StateManager : MonoBehaviour
                 roundManager.SpawnSelectedBattleGrid();
             }
 
+            if (nextState == GameState.Shop)
+            {
+                FindMissingReferences();
+                if (shopManager != null)
+                {
+                    shopManager.GenerateShopItems();
+                }
+            }
+
             Debug.Log($"[StateManager] GameState 유지: {currentState}", this);
             return;
         }
@@ -109,6 +119,15 @@ public class StateManager : MonoBehaviour
         currentState = nextState;
         RefreshUIPanels();
         HandleBattleGridStateChange(previousState, nextState);
+
+        if (nextState == GameState.Shop)
+        {
+            FindMissingReferences();
+            if (shopManager != null)
+            {
+                shopManager.GenerateShopItems();
+            }
+        }
     }
 
     // MainMenu UI의 Play Game 버튼에서 호출합니다.
@@ -591,6 +610,11 @@ public class StateManager : MonoBehaviour
         if (roundManager == null)
         {
             roundManager = FindFirstObjectByType<RoundManager>();
+        }
+
+        if (shopManager == null)
+        {
+            shopManager = FindFirstObjectByType<ShopManager>(FindObjectsInactive.Include);
         }
     }
 }
