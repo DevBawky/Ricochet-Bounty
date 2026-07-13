@@ -6,8 +6,10 @@ public class Ball : MonoBehaviour
     [SerializeField] float _launchForce = 10f;
 
     [Header("Speed")]
-    [SerializeField] float _minMoveSpeed = 6f;
+    [SerializeField, Tooltip("Minimum speed kept after the ball has been launched.")]
+    float _minMoveSpeed = 6f;
     [SerializeField] float _maxMoveSpeed = 24f;
+    [SerializeField] bool _logMinimumSpeedCorrection;
 
     [Header("No Collision Destroy")]
     [SerializeField] float _noCollisionDestroyDelay = 5f;
@@ -106,7 +108,7 @@ public class Ball : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (_rigidbody == null)
+        if (!CanCorrectSpeed())
         {
             return;
         }
@@ -257,6 +259,11 @@ public class Ball : MonoBehaviour
 
     void KeepSpeedInRange()
     {
+        if (!CanCorrectSpeed())
+        {
+            return;
+        }
+
         Vector2 velocity = _rigidbody.linearVelocity;
         float speed = velocity.magnitude;
 
@@ -272,7 +279,17 @@ public class Ball : MonoBehaviour
         }
 
         Vector2 direction = IsSafeDirection(velocity) ? velocity.normalized : _lastMoveDirection;
+        if (!IsSafeDirection(direction))
+        {
+            direction = Vector2.right;
+        }
+
         SetVelocity(direction * _minMoveSpeed);
+
+        if (_logMinimumSpeedCorrection)
+        {
+            Debug.Log($"[Ball] {name} speed corrected to minimum speed. Previous Speed: {speed}, Minimum Speed: {_minMoveSpeed}, Direction: {direction}", this);
+        }
     }
 
     void SetVelocity(Vector2 velocity)
@@ -397,5 +414,35 @@ public class Ball : MonoBehaviour
         }
 
         return direction.sqrMagnitude > 0.0001f;
+    }
+
+    bool CanCorrectSpeed()
+    {
+        if (_rigidbody == null)
+        {
+            return false;
+        }
+
+        if (!isActiveAndEnabled || !_rigidbody.simulated)
+        {
+            return false;
+        }
+
+        if (!_hasExternalLaunch)
+        {
+            return false;
+        }
+
+        if (_isDestroyingByNoCollision)
+        {
+            return false;
+        }
+
+        if (_runtimeStatus != null && _runtimeStatus.IsDestroying)
+        {
+            return false;
+        }
+
+        return _minMoveSpeed > 0f;
     }
 }

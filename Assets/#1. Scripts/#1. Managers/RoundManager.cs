@@ -166,6 +166,7 @@ public class RoundManager : MonoBehaviour
 
         spawnedBattleGrid = Instantiate(selectedBattleGridPrefab, Vector3.zero, Quaternion.identity);
         spawnedBattleGrid.name = selectedBattleGridPrefab.name;
+        SpawnBattleGridObjects();
 
         Debug.Log($"[RoundManager] 전투 맵 생성 완료: {spawnedBattleGrid.name}, 위치: {spawnedBattleGrid.transform.position}", this);
     }
@@ -306,6 +307,23 @@ public class RoundManager : MonoBehaviour
         }
 
         roundProgress.CurrentWaveIndex++;
+    }
+
+    void SpawnBattleGridObjects()
+    {
+        if (spawnedBattleGrid == null)
+        {
+            return;
+        }
+
+        BattleGridObjectSpawner objectSpawner = spawnedBattleGrid.GetComponentInChildren<BattleGridObjectSpawner>();
+        if (objectSpawner == null)
+        {
+            Debug.Log($"[RoundManager] BattleGridObjectSpawner가 없는 맵입니다. Grid: {spawnedBattleGrid.name}", spawnedBattleGrid);
+            return;
+        }
+
+        objectSpawner.SpawnObjects();
     }
 
     StageData GetCurrentStageData()
