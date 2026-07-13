@@ -27,4 +27,60 @@ public class BallEffectData
 
     [Tooltip("효과 수치의 최대값입니다. SplitBall에서는 최대 분열 개수로 사용합니다.")]
     public float maxValue = 1f;
+
+    [Header("Stack Cash Out Chips")]
+    [Tooltip("StackCashOutChips effect: Chips granted per Stack when the ball is destroyed.")]
+    public int chipsPerStack = 1;
+
+    [Tooltip("StackCashOutMultiplier effect: Mult granted per Stack when the ball is destroyed.")]
+    public float multiplierPerStack = 0.1f;
+
+    [Header("Stack")]
+    [Tooltip("Stack effects: Stack count required before the reward is granted.")]
+    public int targetStack = 3;
+
+    [Tooltip("StackChips effect: Chips amount granted when target Stack is reached.")]
+    public int chipsIncrease = 1;
+
+    [Tooltip("StackMultiplier effect: Mult amount granted when target Stack is reached.")]
+    public float multiplierIncrease = 1f;
+
+    [Header("Overheat")]
+    [Tooltip("OverheatChips effect: base Chips amount granted on each wall/object hit.")]
+    public int baseChipsIncrease = 1;
+
+    [Tooltip("OverheatChips effect: extra Chips amount granted per current Overheat.")]
+    public float chipsIncreasePerOverheat = 1f;
+
+    [Tooltip("OverheatMultiplier effect: base Mult amount granted on each wall/object hit.")]
+    public float baseMultiplierIncrease = 1f;
+
+    [Tooltip("OverheatMultiplier effect: extra Mult amount granted per current Overheat.")]
+    public float multiplierIncreasePerOverheat = 0.2f;
+
+    [Tooltip("OverheatMultiplier effect: Overheat value where self-destroy rolls begin.")]
+    public int selfDestroyStartOverheat = 5;
+
+    [Range(0f, 1f)]
+    [Tooltip("OverheatMultiplier effect: self-destroy chance per hit after the start Overheat is reached.")]
+    public float selfDestroyChance = 0.15f;
+
+    [Header("Linked Reward Effect")]
+    [Tooltip("Generic Stack/CashOut/Overheat effects: reward effect to run when the condition is met.")]
+    public BallEffectRewardType rewardEffectType = BallEffectRewardType.AddChips;
+
+    [Tooltip("Generic StackCashOutEffect: reward value added per Stack.")]
+    public float rewardValuePerStack = 1f;
+
+    [Tooltip("Generic StackEffect: minimum reward value when target Stack is reached.")]
+    public float rewardMinValue = 1f;
+
+    [Tooltip("Generic StackEffect: maximum reward value when target Stack is reached.")]
+    public float rewardMaxValue = 1f;
+
+    [Tooltip("Generic OverheatEffect: base reward value on each wall/object hit.")]
+    public float baseRewardValue = 1f;
+
+    [Tooltip("Generic OverheatEffect: extra reward value per current Overheat.")]
+    public float rewardValuePerOverheat = 0.2f;
 }

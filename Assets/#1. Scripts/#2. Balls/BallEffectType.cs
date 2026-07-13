@@ -14,5 +14,32 @@ public enum BallEffectType
     DestroySelf,
 
     // Adds gold through GoldManager.
-    AddGold
+    AddGold,
+
+    // Builds a stack on wall/object hits, then grants Chips from that stack when the ball is destroyed.
+    StackCashOutChips,
+
+    // Builds a stack on object hits, then grants Multiplier and resets the stack when the target is reached.
+    StackMultiplier,
+
+    // Builds Overheat on wall/object hits, grants more Multiplier as Overheat rises, and can destroy itself.
+    OverheatMultiplier,
+
+    // Builds a stack on wall/object hits, then grants Multiplier from that stack when the ball is destroyed.
+    StackCashOutMultiplier,
+
+    // Builds a stack on object hits, then grants Chips and resets the stack when the target is reached.
+    StackChips,
+
+    // Builds Overheat on wall/object hits, grants more Chips as Overheat rises, and can destroy itself.
+    OverheatChips,
+
+    // Builds a stack on wall/object hits, then runs the selected reward effect from that stack when destroyed.
+    StackCashOutEffect,
+
+    // Builds a stack on object hits, then runs the selected reward effect and resets the stack when the target is reached.
+    StackEffect,
+
+    // Builds Overheat on wall/object hits, then runs the selected reward effect with a value that scales by Overheat.
+    OverheatEffect
 }

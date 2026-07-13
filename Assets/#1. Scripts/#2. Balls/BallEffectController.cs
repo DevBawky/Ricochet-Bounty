@@ -18,6 +18,15 @@ public class BallEffectController : MonoBehaviour
     [Header("Runtime State")]
     [SerializeField] List<BallEffectRuntimeState> runtimeStates = new List<BallEffectRuntimeState>();
     [SerializeField] bool canSplit = true;
+    [SerializeField] int stackCashOutChipsStack;
+    [SerializeField] int stackCashOutMultiplierStack;
+    [SerializeField] int stackChipsStack;
+    [SerializeField] int stackMultiplierStack;
+    [SerializeField] int overheatChipsOverheat;
+    [SerializeField] int overheatMultiplierOverheat;
+    [SerializeField] int linkedCashOutStack;
+    [SerializeField] int linkedStack;
+    [SerializeField] int linkedOverheat;
 
     static bool isCreatingSplitBall;
     public static bool SuppressSpawnEffectsOnEnable;
@@ -165,13 +174,19 @@ public class BallEffectController : MonoBehaviour
                 continue;
             }
 
-            ExecuteEffect(state.EffectData);
+            ExecuteEffect(state);
             state.MarkTriggered();
         }
     }
 
-    void ExecuteEffect(BallEffectData effectData)
+    void ExecuteEffect(BallEffectRuntimeState state)
     {
+        if (state == null)
+        {
+            return;
+        }
+
+        BallEffectData effectData = state.EffectData;
         if (effectData == null)
         {
             return;
@@ -198,6 +213,42 @@ public class BallEffectController : MonoBehaviour
             case BallEffectType.AddGold:
                 ExecuteAddGold(effectData);
                 break;
+
+            case BallEffectType.StackCashOutChips:
+                ExecuteStackCashOutChips(effectData, state.Trigger);
+                break;
+
+            case BallEffectType.StackMultiplier:
+                ExecuteStackMultiplier(effectData, state.Trigger);
+                break;
+
+            case BallEffectType.OverheatMultiplier:
+                ExecuteOverheatMultiplier(effectData, state.Trigger);
+                break;
+
+            case BallEffectType.StackCashOutMultiplier:
+                ExecuteStackCashOutMultiplier(effectData, state.Trigger);
+                break;
+
+            case BallEffectType.StackChips:
+                ExecuteStackChips(effectData, state.Trigger);
+                break;
+
+            case BallEffectType.OverheatChips:
+                ExecuteOverheatChips(effectData, state.Trigger);
+                break;
+
+            case BallEffectType.StackCashOutEffect:
+                ExecuteStackCashOutEffect(effectData, state.Trigger);
+                break;
+
+            case BallEffectType.StackEffect:
+                ExecuteStackEffect(effectData, state.Trigger);
+                break;
+
+            case BallEffectType.OverheatEffect:
+                ExecuteOverheatEffect(effectData, state.Trigger);
+                break;
         }
     }
 
@@ -222,6 +273,16 @@ public class BallEffectController : MonoBehaviour
         }
 
         int splitCount = GetSplitCount(effectData);
+        if (splitCount <= 0)
+        {
+            return;
+        }
+
+        ExecuteSplitBallCount(splitCount);
+    }
+
+    void ExecuteSplitBallCount(int splitCount)
+    {
         if (splitCount <= 0)
         {
             return;
@@ -451,9 +512,434 @@ public class BallEffectController : MonoBehaviour
         Debug.Log($"[BallEffectController] {name} granted {amount} gold.", this);
     }
 
+    void ExecuteStackCashOutChips(BallEffectData effectData, BallEffectTrigger trigger)
+    {
+        if (trigger == BallEffectTrigger.OnObjectHit || trigger == BallEffectTrigger.OnWallHit)
+        {
+            stackCashOutChipsStack++;
+            Debug.Log($"[StackCashOutChipsBallEffect] {name} Stack increased. Trigger: {trigger}, Stack: {stackCashOutChipsStack}", this);
+            return;
+        }
+
+        if (trigger != BallEffectTrigger.OnDestroy)
+        {
+            return;
+        }
+
+        int chipsPerStack = Mathf.Max(0, effectData.chipsPerStack);
+        int grantedChips = stackCashOutChipsStack * chipsPerStack;
+
+        if (damageManager == null)
+        {
+            Debug.LogWarning($"[StackCashOutChipsBallEffect] DamageManager was not found. Final Stack: {stackCashOutChipsStack}, Chips not granted.", this);
+            stackCashOutChipsStack = 0;
+            return;
+        }
+
+        if (grantedChips > 0)
+        {
+            damageManager.AddChips(grantedChips);
+        }
+
+        Debug.Log($"[StackCashOutChipsBallEffect] {name} cashed out. Final Stack: {stackCashOutChipsStack}, Chips Per Stack: {chipsPerStack}, Granted Chips: {grantedChips}", this);
+        stackCashOutChipsStack = 0;
+    }
+
+    void ExecuteStackCashOutMultiplier(BallEffectData effectData, BallEffectTrigger trigger)
+    {
+        if (trigger == BallEffectTrigger.OnObjectHit || trigger == BallEffectTrigger.OnWallHit)
+        {
+            stackCashOutMultiplierStack++;
+            Debug.Log($"[StackCashOutMultiplierBallEffect] {name} Stack increased. Trigger: {trigger}, Stack: {stackCashOutMultiplierStack}", this);
+            return;
+        }
+
+        if (trigger != BallEffectTrigger.OnDestroy)
+        {
+            return;
+        }
+
+        float multiplierPerStack = Mathf.Max(0f, effectData.multiplierPerStack);
+        float grantedMultiplier = stackCashOutMultiplierStack * multiplierPerStack;
+
+        if (damageManager == null)
+        {
+            Debug.LogWarning($"[StackCashOutMultiplierBallEffect] DamageManager was not found. Final Stack: {stackCashOutMultiplierStack}, Mult not granted.", this);
+            stackCashOutMultiplierStack = 0;
+            return;
+        }
+
+        if (grantedMultiplier > 0f)
+        {
+            damageManager.AddMultiplier(grantedMultiplier);
+        }
+
+        Debug.Log($"[StackCashOutMultiplierBallEffect] {name} cashed out. Final Stack: {stackCashOutMultiplierStack}, Mult Per Stack: {multiplierPerStack}, Granted Mult: {grantedMultiplier}", this);
+        stackCashOutMultiplierStack = 0;
+    }
+
+    void ExecuteStackChips(BallEffectData effectData, BallEffectTrigger trigger)
+    {
+        if (trigger != BallEffectTrigger.OnObjectHit)
+        {
+            return;
+        }
+
+        int targetStack = Mathf.Max(1, effectData.targetStack);
+        stackChipsStack++;
+
+        Debug.Log($"[StackChipsBallEffect] {name} Stack increased. Stack: {stackChipsStack}/{targetStack}", this);
+
+        if (stackChipsStack < targetStack)
+        {
+            return;
+        }
+
+        int amount = Mathf.Max(0, effectData.chipsIncrease);
+        if (damageManager == null)
+        {
+            Debug.LogWarning($"[StackChipsBallEffect] DamageManager was not found. Chips not granted. Stack reset from {stackChipsStack}.", this);
+            stackChipsStack = 0;
+            return;
+        }
+
+        if (amount > 0)
+        {
+            damageManager.AddChips(amount);
+        }
+
+        Debug.Log($"[StackChipsBallEffect] {name} reached target Stack. Chips Granted: +{amount}, Stack Reset: {stackChipsStack}->0", this);
+        stackChipsStack = 0;
+    }
+
+    void ExecuteStackMultiplier(BallEffectData effectData, BallEffectTrigger trigger)
+    {
+        if (trigger != BallEffectTrigger.OnObjectHit)
+        {
+            return;
+        }
+
+        int targetStack = Mathf.Max(1, effectData.targetStack);
+        stackMultiplierStack++;
+
+        Debug.Log($"[StackMultiplierBallEffect] {name} Stack increased. Stack: {stackMultiplierStack}/{targetStack}", this);
+
+        if (stackMultiplierStack < targetStack)
+        {
+            return;
+        }
+
+        float amount = Mathf.Max(0f, effectData.multiplierIncrease);
+        if (damageManager == null)
+        {
+            Debug.LogWarning($"[StackMultiplierBallEffect] DamageManager was not found. Mult not granted. Stack reset from {stackMultiplierStack}.", this);
+            stackMultiplierStack = 0;
+            return;
+        }
+
+        if (amount > 0f)
+        {
+            damageManager.AddMultiplier(amount);
+        }
+
+        Debug.Log($"[StackMultiplierBallEffect] {name} reached target Stack. Mult Granted: +{amount}, Stack Reset: {stackMultiplierStack}->0", this);
+        stackMultiplierStack = 0;
+    }
+
+    void ExecuteOverheatMultiplier(BallEffectData effectData, BallEffectTrigger trigger)
+    {
+        if (trigger != BallEffectTrigger.OnObjectHit && trigger != BallEffectTrigger.OnWallHit)
+        {
+            return;
+        }
+
+        overheatMultiplierOverheat++;
+
+        float baseIncrease = Mathf.Max(0f, effectData.baseMultiplierIncrease);
+        float increasePerOverheat = Mathf.Max(0f, effectData.multiplierIncreasePerOverheat);
+        float amount = baseIncrease + overheatMultiplierOverheat * increasePerOverheat;
+
+        if (damageManager == null)
+        {
+            Debug.LogWarning($"[OverheatMultiplierBallEffect] DamageManager was not found. Overheat: {overheatMultiplierOverheat}, Mult not granted.", this);
+        }
+        else if (amount > 0f)
+        {
+            damageManager.AddMultiplier(amount);
+        }
+
+        int selfDestroyStartOverheat = Mathf.Max(1, effectData.selfDestroyStartOverheat);
+        float selfDestroyChance = Mathf.Clamp01(effectData.selfDestroyChance);
+        bool canRollSelfDestroy = overheatMultiplierOverheat >= selfDestroyStartOverheat && selfDestroyChance > 0f;
+        float roll = canRollSelfDestroy ? Random.value : -1f;
+        bool shouldSelfDestroy = canRollSelfDestroy && roll <= selfDestroyChance;
+
+        Debug.Log($"[OverheatMultiplierBallEffect] {name} hit. Trigger: {trigger}, Overheat: {overheatMultiplierOverheat}, Mult Granted: +{amount}, Self Destroy Roll: {(canRollSelfDestroy ? roll.ToString("0.000") : "Not Ready")}, Chance: {selfDestroyChance}, Destroy: {shouldSelfDestroy}", this);
+
+        if (!shouldSelfDestroy)
+        {
+            return;
+        }
+
+        ExecuteDestroySelf();
+    }
+
+    void ExecuteOverheatChips(BallEffectData effectData, BallEffectTrigger trigger)
+    {
+        if (trigger != BallEffectTrigger.OnObjectHit && trigger != BallEffectTrigger.OnWallHit)
+        {
+            return;
+        }
+
+        overheatChipsOverheat++;
+
+        int baseIncrease = Mathf.Max(0, effectData.baseChipsIncrease);
+        float increasePerOverheat = Mathf.Max(0f, effectData.chipsIncreasePerOverheat);
+        int amount = Mathf.RoundToInt(baseIncrease + overheatChipsOverheat * increasePerOverheat);
+
+        if (damageManager == null)
+        {
+            Debug.LogWarning($"[OverheatChipsBallEffect] DamageManager was not found. Overheat: {overheatChipsOverheat}, Chips not granted.", this);
+        }
+        else if (amount > 0)
+        {
+            damageManager.AddChips(amount);
+        }
+
+        int selfDestroyStartOverheat = Mathf.Max(1, effectData.selfDestroyStartOverheat);
+        float selfDestroyChance = Mathf.Clamp01(effectData.selfDestroyChance);
+        bool canRollSelfDestroy = overheatChipsOverheat >= selfDestroyStartOverheat && selfDestroyChance > 0f;
+        float roll = canRollSelfDestroy ? Random.value : -1f;
+        bool shouldSelfDestroy = canRollSelfDestroy && roll <= selfDestroyChance;
+
+        Debug.Log($"[OverheatChipsBallEffect] {name} hit. Trigger: {trigger}, Overheat: {overheatChipsOverheat}, Chips Granted: +{amount}, Self Destroy Roll: {(canRollSelfDestroy ? roll.ToString("0.000") : "Not Ready")}, Chance: {selfDestroyChance}, Destroy: {shouldSelfDestroy}", this);
+
+        if (!shouldSelfDestroy)
+        {
+            return;
+        }
+
+        ExecuteDestroySelf();
+    }
+
+    void ExecuteStackCashOutEffect(BallEffectData effectData, BallEffectTrigger trigger)
+    {
+        if (trigger == BallEffectTrigger.OnObjectHit || trigger == BallEffectTrigger.OnWallHit)
+        {
+            linkedCashOutStack++;
+            Debug.Log($"[StackCashOutEffect] {name} Stack increased. Trigger: {trigger}, Stack: {linkedCashOutStack}, Reward: {effectData.rewardEffectType}", this);
+            return;
+        }
+
+        if (trigger != BallEffectTrigger.OnDestroy)
+        {
+            return;
+        }
+
+        float rewardValue = linkedCashOutStack * Mathf.Max(0f, effectData.rewardValuePerStack);
+        ExecuteRewardEffect(effectData.rewardEffectType, rewardValue, $"StackCashOutEffect Stack: {linkedCashOutStack}");
+
+        Debug.Log($"[StackCashOutEffect] {name} cashed out. Final Stack: {linkedCashOutStack}, Reward: {effectData.rewardEffectType}, Reward Value: {rewardValue}", this);
+        linkedCashOutStack = 0;
+    }
+
+    void ExecuteStackEffect(BallEffectData effectData, BallEffectTrigger trigger)
+    {
+        if (trigger != BallEffectTrigger.OnObjectHit)
+        {
+            return;
+        }
+
+        int targetStack = Mathf.Max(1, effectData.targetStack);
+        linkedStack++;
+
+        Debug.Log($"[StackEffect] {name} Stack increased. Stack: {linkedStack}/{targetStack}, Reward: {effectData.rewardEffectType}", this);
+
+        if (linkedStack < targetStack)
+        {
+            return;
+        }
+
+        float minValue = Mathf.Min(effectData.rewardMinValue, effectData.rewardMaxValue);
+        float maxValue = Mathf.Max(effectData.rewardMinValue, effectData.rewardMaxValue);
+        float rewardValue = Random.Range(minValue, maxValue);
+
+        ExecuteRewardEffect(effectData.rewardEffectType, rewardValue, $"StackEffect Stack: {linkedStack}/{targetStack}");
+
+        Debug.Log($"[StackEffect] {name} reached target Stack. Reward: {effectData.rewardEffectType}, Reward Value: {rewardValue}, Stack Reset: {linkedStack}->0", this);
+        linkedStack = 0;
+    }
+
+    void ExecuteOverheatEffect(BallEffectData effectData, BallEffectTrigger trigger)
+    {
+        if (trigger != BallEffectTrigger.OnObjectHit && trigger != BallEffectTrigger.OnWallHit)
+        {
+            return;
+        }
+
+        linkedOverheat++;
+
+        float baseValue = Mathf.Max(0f, effectData.baseRewardValue);
+        float valuePerOverheat = Mathf.Max(0f, effectData.rewardValuePerOverheat);
+        float rewardValue = baseValue + linkedOverheat * valuePerOverheat;
+
+        ExecuteRewardEffect(effectData.rewardEffectType, rewardValue, $"OverheatEffect Overheat: {linkedOverheat}");
+
+        int selfDestroyStartOverheat = Mathf.Max(1, effectData.selfDestroyStartOverheat);
+        float selfDestroyChance = Mathf.Clamp01(effectData.selfDestroyChance);
+        bool canRollSelfDestroy = linkedOverheat >= selfDestroyStartOverheat && selfDestroyChance > 0f;
+        float roll = canRollSelfDestroy ? Random.value : -1f;
+        bool shouldSelfDestroy = canRollSelfDestroy && roll <= selfDestroyChance;
+
+        Debug.Log($"[OverheatEffect] {name} hit. Trigger: {trigger}, Overheat: {linkedOverheat}, Reward: {effectData.rewardEffectType}, Reward Value: {rewardValue}, Self Destroy Roll: {(canRollSelfDestroy ? roll.ToString("0.000") : "Not Ready")}, Chance: {selfDestroyChance}, Destroy: {shouldSelfDestroy}", this);
+
+        if (!shouldSelfDestroy)
+        {
+            return;
+        }
+
+        ExecuteDestroySelf();
+    }
+
+    void ExecuteRewardEffect(BallEffectRewardType rewardType, float value, string context)
+    {
+        switch (rewardType)
+        {
+            case BallEffectRewardType.AddChips:
+                AddRewardChips(value, context);
+                break;
+
+            case BallEffectRewardType.AddMultiplier:
+                AddRewardMultiplier(value, context);
+                break;
+
+            case BallEffectRewardType.AddRandomScoreValue:
+                ExecuteRewardRandomScoreValue(value, context);
+                break;
+
+            case BallEffectRewardType.HealDurability:
+                ExecuteRewardHealDurability(value, context);
+                break;
+
+            case BallEffectRewardType.SplitBall:
+                ExecuteRewardSplitBall(value, context);
+                break;
+
+            case BallEffectRewardType.DestroySelf:
+                Debug.Log($"[BallEffectController] Linked reward DestroySelf triggered. Context: {context}", this);
+                ExecuteDestroySelf();
+                break;
+
+            case BallEffectRewardType.AddGold:
+                ExecuteRewardAddGold(value, context);
+                break;
+        }
+    }
+
+    void AddRewardChips(float value, string context)
+    {
+        if (damageManager == null)
+        {
+            Debug.LogWarning($"[BallEffectController] DamageManager was not found. Linked Chips reward cannot run. Context: {context}", this);
+            return;
+        }
+
+        int amount = Mathf.RoundToInt(Mathf.Max(0f, value));
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        damageManager.AddChips(amount);
+    }
+
+    void AddRewardMultiplier(float value, string context)
+    {
+        if (damageManager == null)
+        {
+            Debug.LogWarning($"[BallEffectController] DamageManager was not found. Linked Mult reward cannot run. Context: {context}", this);
+            return;
+        }
+
+        float amount = Mathf.Max(0f, value);
+        if (amount <= 0f)
+        {
+            return;
+        }
+
+        damageManager.AddMultiplier(amount);
+    }
+
+    void ExecuteRewardRandomScoreValue(float value, string context)
+    {
+        if (Random.value < 0.5f)
+        {
+            AddRewardChips(value, context);
+            return;
+        }
+
+        AddRewardMultiplier(value, context);
+    }
+
+    void ExecuteRewardHealDurability(float value, string context)
+    {
+        if (runtimeStatus == null)
+        {
+            Debug.LogWarning($"[BallEffectController] BallRuntimeStatus was not found. Linked heal reward cannot run. Context: {context}", this);
+            return;
+        }
+
+        int amount = Mathf.RoundToInt(Mathf.Max(0f, value));
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        runtimeStatus.HealDurability(amount);
+    }
+
+    void ExecuteRewardSplitBall(float value, string context)
+    {
+        if (!canSplit)
+        {
+            Debug.Log($"[BallEffectController] Linked SplitBall reward skipped because this ball cannot split. Context: {context}", this);
+            return;
+        }
+
+        int splitCount = Mathf.Clamp(Mathf.RoundToInt(Mathf.Max(0f, value)), 0, 20);
+        ExecuteSplitBallCount(splitCount);
+    }
+
+    void ExecuteRewardAddGold(float value, string context)
+    {
+        if (goldManager == null)
+        {
+            Debug.LogWarning($"[BallEffectController] GoldManager was not found. Linked gold reward cannot run. Context: {context}", this);
+            return;
+        }
+
+        int amount = Mathf.RoundToInt(Mathf.Max(0f, value));
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        goldManager.AddGold(amount);
+        Debug.Log($"[BallEffectController] {name} granted linked reward gold: {amount}. Context: {context}", this);
+    }
+
     void BuildRuntimeStates()
     {
         runtimeStates.Clear();
+        stackCashOutChipsStack = 0;
+        stackCashOutMultiplierStack = 0;
+        stackChipsStack = 0;
+        stackMultiplierStack = 0;
+        overheatChipsOverheat = 0;
+        overheatMultiplierOverheat = 0;
+        linkedCashOutStack = 0;
+        linkedStack = 0;
+        linkedOverheat = 0;
 
         AddRuntimeStates(BallData.SpawnEffects, BallEffectTrigger.OnSpawn);
         AddRuntimeStates(BallData.ObjectHitEffects, BallEffectTrigger.OnObjectHit);
