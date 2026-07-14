@@ -33,6 +33,15 @@ public class BallDataSO : ScriptableObject
     [SerializeField, Tooltip("공이 발사되거나 이동을 시작할 때 사용할 기본 속도입니다.")]
     float launchSpeed = 10f;
 
+    [SerializeField, Tooltip("탄환이 직선으로 이동할지, 진행 방향을 기준으로 좌우 파동 이동할지 정합니다.")]
+    BallMovementType movementType = BallMovementType.Straight;
+
+    [SerializeField, Min(0f), Tooltip("Wave 이동의 좌우 흔들림 강도입니다. 전진 방향에 더해지는 수직 방향의 비율로 사용됩니다.")]
+    float waveAmplitude = 0.5f;
+
+    [SerializeField, Min(0f), Tooltip("Wave 이동이 1초 동안 좌우로 반복되는 횟수입니다.")]
+    float waveFrequency = 1f;
+
     [Header("Durability")]
     [SerializeField, Tooltip("공이 가질 수 있는 최대 내구도입니다. 현재 내구도는 공 오브젝트의 BallRuntimeStatus가 관리합니다.")]
     int maxDurability = 5;
@@ -64,6 +73,30 @@ public class BallDataSO : ScriptableObject
         get
         {
             return launchSpeed;
+        }
+    }
+
+    public BallMovementType MovementType
+    {
+        get
+        {
+            return movementType;
+        }
+    }
+
+    public float WaveAmplitude
+    {
+        get
+        {
+            return Mathf.Max(0f, waveAmplitude);
+        }
+    }
+
+    public float WaveFrequency
+    {
+        get
+        {
+            return Mathf.Max(0f, waveFrequency);
         }
     }
 

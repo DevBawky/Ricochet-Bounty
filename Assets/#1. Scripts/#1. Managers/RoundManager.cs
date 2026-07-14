@@ -30,6 +30,7 @@ public class RoundManager : MonoBehaviour
 
     [Header("Target UI")]
     [SerializeField] Image targetEnemyImage;
+    [SerializeField] TextMeshProUGUI targetEnemyNameText;
     [SerializeField] TextMeshProUGUI targetEnemyHpText;
     [SerializeField] Image targetEnemyHpFillImage;
 
@@ -541,10 +542,17 @@ public class RoundManager : MonoBehaviour
 
     void RefreshTargetUI()
     {
+        FindTargetEnemyNameText();
+
         if (targetEnemyImage != null)
         {
             targetEnemyImage.sprite = selectedEnemyData != null ? selectedEnemyData.EnemySprite : null;
             targetEnemyImage.enabled = selectedEnemyData != null && selectedEnemyData.EnemySprite != null;
+        }
+
+        if (targetEnemyNameText != null)
+        {
+            targetEnemyNameText.text = selectedEnemyData != null ? selectedEnemyData.EnemyName : "Enemy";
         }
 
         if (targetEnemyHpText != null)
@@ -591,7 +599,7 @@ public class RoundManager : MonoBehaviour
 
     string GetSelectedEnemyName()
     {
-        return selectedEnemyData != null ? selectedEnemyData.name : "None";
+        return selectedEnemyData != null ? selectedEnemyData.EnemyName : "None";
     }
 
     string GetSelectedGridName()
@@ -604,6 +612,27 @@ public class RoundManager : MonoBehaviour
         if (stateManager == null)
         {
             stateManager = FindFirstObjectByType<StateManager>();
+        }
+
+        FindTargetEnemyNameText();
+    }
+
+    void FindTargetEnemyNameText()
+    {
+        if (targetEnemyNameText != null || targetEnemyImage == null || targetEnemyImage.transform.parent == null)
+        {
+            return;
+        }
+
+        Transform enemyRoot = targetEnemyImage.transform.parent;
+        TextMeshProUGUI[] texts = enemyRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            if (texts[i] != null && texts[i].transform.parent == enemyRoot && texts[i].name == "Text (TMP)")
+            {
+                targetEnemyNameText = texts[i];
+                return;
+            }
         }
     }
 

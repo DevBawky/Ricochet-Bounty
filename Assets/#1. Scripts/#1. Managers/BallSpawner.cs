@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class BallSpawner : MonoBehaviour
 {
+    public event System.Action CylinderDrawn;
+    public event System.Action<int> BallFired;
+
     [Header("References")]
     [SerializeField] GameObject ballPrefab;
     [SerializeField] PlayerBallDeck deck;
@@ -49,6 +52,7 @@ public class BallSpawner : MonoBehaviour
         }
 
         deck.DrawBalls(drawCount);
+        CylinderDrawn?.Invoke();
         Debug.Log($"[BallSpawner] StateManager 요청으로 currentCylinder를 뽑았습니다. drawCount: {drawCount}", this);
     }
 
@@ -97,6 +101,7 @@ public class BallSpawner : MonoBehaviour
         {
             BallDataSO ballData = cylinderSnapshot[i];
             SpawnAndLaunchBall(ballData, firePosition);
+            BallFired?.Invoke(i);
 
             if (i < cylinderSnapshot.Count - 1 && fireInterval > 0f)
             {

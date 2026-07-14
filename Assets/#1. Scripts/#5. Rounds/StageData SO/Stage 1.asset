@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageData
   enemyCandidates:
   - {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}
-  - {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}
-  - {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}
-  - {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}
+  - {fileID: 11400000, guid: 5b6ffe89fc2bb8040a633da163a4a68c, type: 2}
+  - {fileID: 11400000, guid: 5ca38cfb75b231346a40f1ed9cb99d73, type: 2}
+  - {fileID: 11400000, guid: cf9a66c8cb7336342880d71e4d73a5d3, type: 2}
   battleGridCandidates:
   - {fileID: 5196045939092371683, guid: 41f06fa5aa908004f977ced8fd02f232, type: 3}
-  - {fileID: 5196045939092371683, guid: 41f06fa5aa908004f977ced8fd02f232, type: 3}
-  - {fileID: 5196045939092371683, guid: 41f06fa5aa908004f977ced8fd02f232, type: 3}
-  - {fileID: 5196045939092371683, guid: 41f06fa5aa908004f977ced8fd02f232, type: 3}
-  bossEnemy: {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}
+  - {fileID: 5196045939092371683, guid: 39d6c0fd87d7c3745960a390d32590db, type: 3}
+  - {fileID: 5196045939092371683, guid: d3c805e4295dfb24e8c8fdf360fed93b, type: 3}
+  - {fileID: 5196045939092371683, guid: 958fe26b8106be1498101e76c0a08cb3, type: 3}
+  bossEnemy: {fileID: 11400000, guid: cf914deacd67c1b4e8823c3fe80f7113, type: 2}
   bossBattleGrid: {fileID: 5196045939092371683, guid: 41f06fa5aa908004f977ced8fd02f232, type: 3}

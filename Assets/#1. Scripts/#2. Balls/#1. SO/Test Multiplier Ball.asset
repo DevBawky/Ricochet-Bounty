@@ -12,11 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
   m_Name: Test Multiplier Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
+  price: 10
+  rarity: 0
   ValueType: 1
   Score: 0.2
-  ballColor: {r: 0.2783019, g: 0.6650411, b: 1, a: 1}
-  ballSprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
-  launchSpeed: 10
+  ballColor: {r: 1, g: 1, b: 1, a: 1}
+  ballSprite: {fileID: -5872206286366487949, guid: 07a563a82ada3804783141bf72bdb0b6, type: 3}
+  launchSpeed: 20
+  movementType: 0
+  waveAmplitude: 0.5
+  waveFrequency: 1
   maxDurability: 10
   wallHitDurabilityDamage: 2
   objectHitDurabilityDamage: 1

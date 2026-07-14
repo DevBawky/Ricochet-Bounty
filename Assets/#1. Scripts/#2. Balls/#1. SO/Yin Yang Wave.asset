@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
+  m_Name: Yin Yang Wave
+  m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
+  price: 20
+  rarity: 1
+  ValueType: 0
+  Score: 0
+  ballColor: {r: 1, g: 1, b: 1, a: 1}
+  ballSprite: {fileID: 8642592069617770165, guid: 2fed4a4c350568347942af650a3ca425, type: 3}
+  launchSpeed: 20
+  movementType: 1
+  waveAmplitude: 1
+  waveFrequency: 2
+  maxDurability: 20
+  wallHitDurabilityDamage: 1
+  objectHitDurabilityDamage: 1
+  spawnEffects: []
+  objectHitEffects:
+  - effectType: 2
+    triggerChance: 1
+    cooldown: 0
+    maxTriggerCount: 0
+    minValue: 2
+    maxValue: 2
+    chipsPerStack: 1
+    multiplierPerStack: 0.1
+    targetStack: 3
+    chipsIncrease: 1
+    multiplierIncrease: 1
+    baseChipsIncrease: 1
+    chipsIncreasePerOverheat: 1
+    baseMultiplierIncrease: 1
+    multiplierIncreasePerOverheat: 0.2
+    selfDestroyStartOverheat: 5
+    selfDestroyChance: 0.15
+    rewardEffectType: 0
+    rewardValuePerStack: 1
+    rewardMinValue: 1
+    rewardMaxValue: 1
+    baseRewardValue: 1
+    rewardValuePerOverheat: 0.2
+  wallHitEffects: []
+  destroyEffects: []

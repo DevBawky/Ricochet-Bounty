@@ -16,9 +16,12 @@ MonoBehaviour:
   rarity: 1
   ValueType: 0
   Score: 8
-  ballColor: {r: 0.62, g: 0.68, b: 0.72, a: 1}
-  ballSprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
-  launchSpeed: 9.5
+  ballColor: {r: 1, g: 1, b: 1, a: 1}
+  ballSprite: {fileID: -8726049037242213528, guid: 604b74c714875a5429f8cdd5e72be37d, type: 3}
+  launchSpeed: 20
+  movementType: 0
+  waveAmplitude: 0.5
+  waveFrequency: 1
   maxDurability: 20
   wallHitDurabilityDamage: 1
   objectHitDurabilityDamage: 1

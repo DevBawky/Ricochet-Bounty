@@ -2196,12 +2196,13 @@ MonoBehaviour:
   battleViewRect: {fileID: 1204005090}
   cameraPadding: 5
   minimumOrthographicSize: 1
-  maximumOrthographicSize: 100
+  maximumOrthographicSize: 10
   stageText: {fileID: 2020165816}
   waveText: {fileID: 76728869}
   stageProgressText: {fileID: 1829938041}
   bossProgressBarImage: {fileID: 1585525082}
   targetEnemyImage: {fileID: 1574115299}
+  targetEnemyNameText: {fileID: 0}
   targetEnemyHpText: {fileID: 930209547}
   targetEnemyHpFillImage: {fileID: 1984839138}
   selectedEnemyData: {fileID: 0}
@@ -2383,11 +2384,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBallDeck
   startingDeck:
-  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
-  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
-  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
-  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
-  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
+  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
+  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
+  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
+  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
+  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
   drawPile: []
   discardPile: []
   currentCylinder: []

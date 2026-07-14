@@ -36,6 +36,10 @@ public class Ball : MonoBehaviour
     Vector2 _lastPhysicsPosition;
     float _travelDistanceSinceStuckCheck;
     float _nextStuckCheckTime;
+    float _waveElapsedTime;
+    Vector2 _waveForwardDirection = Vector2.right;
+    Vector2 _lastAppliedWaveVelocity;
+    bool _hasAppliedWaveVelocity;
 
     public float MinimumMoveSpeed
     {
@@ -49,6 +53,18 @@ public class Ball : MonoBehaviour
     {
         CacheComponents();
         ConfigureRigidbody();
+    }
+
+    void OnEnable()
+    {
+        // 풀에서 다시 활성화되거나 실행 중인 공을 복제해도 이전 발사/파동 상태를 이어받지 않습니다.
+        _hasExternalLaunch = false;
+        ResetWaveMovement(_lastMoveDirection);
+    }
+
+    void OnDisable()
+    {
+        ResetWaveMovement(_lastMoveDirection);
     }
 
     void Start()
@@ -82,6 +98,7 @@ public class Ball : MonoBehaviour
 
         _launchForce = Mathf.Clamp(Mathf.Max(0f, speed), _minMoveSpeed, _maxMoveSpeed);
         _lastMoveDirection = direction.normalized;
+        ResetWaveMovement(_lastMoveDirection);
         _rigidbody.linearVelocity = _lastMoveDirection * _launchForce;
         _hasExternalLaunch = true;
         _rigidbody.WakeUp();
@@ -134,9 +151,18 @@ public class Ball : MonoBehaviour
         }
 
         _lastVelocity = _rigidbody.linearVelocity;
-        RememberMoveDirection(_lastVelocity);
+        if (IsWaveMovementEnabled())
+        {
+            SynchronizeWaveDirectionWithPhysics(_lastVelocity);
+        }
+        else
+        {
+            RememberMoveDirection(_lastVelocity);
+        }
+
         KeepSpeedInRange();
         CheckAndRecoverFromStuck();
+        ApplyWaveMovement();
     }
 
     void LaunchRandomDirection()
@@ -366,6 +392,95 @@ public class Ball : MonoBehaviour
 
         _rigidbody.linearVelocity = direction * speed;
         _lastMoveDirection = direction;
+
+        if (IsWaveMovementEnabled())
+        {
+            // 벽 반사, Minimum Speed 보정, 끼임 탈출 결과를 다음 파동의 새 전진 방향으로 사용합니다.
+            _waveForwardDirection = direction;
+            _hasAppliedWaveVelocity = false;
+        }
+    }
+
+    void ApplyWaveMovement()
+    {
+        if (!IsWaveMovementEnabled())
+        {
+            return;
+        }
+
+        BallDataSO ballData = _ballDataManager.BallData;
+        float amplitude = ballData.WaveAmplitude;
+        float frequency = ballData.WaveFrequency;
+        if (amplitude <= 0f || frequency <= 0f)
+        {
+            _hasAppliedWaveVelocity = false;
+            return;
+        }
+
+        Vector2 currentVelocity = _rigidbody.linearVelocity;
+        if (!IsSafeDirection(currentVelocity))
+        {
+            return;
+        }
+
+        if (!IsSafeDirection(_waveForwardDirection))
+        {
+            _waveForwardDirection = currentVelocity.normalized;
+        }
+
+        _waveElapsedTime += Time.fixedDeltaTime;
+        float phase = _waveElapsedTime * frequency * Mathf.PI * 2f;
+        Vector2 perpendicular = new Vector2(-_waveForwardDirection.y, _waveForwardDirection.x);
+        float lateralAmount = Mathf.Sin(phase) * amplitude;
+        Vector2 waveDirection = (_waveForwardDirection + perpendicular * lateralAmount).normalized;
+        float speed = Mathf.Clamp(currentVelocity.magnitude, _minMoveSpeed, _maxMoveSpeed);
+        Vector2 waveVelocity = waveDirection * speed;
+
+        _rigidbody.linearVelocity = waveVelocity;
+        _lastVelocity = waveVelocity;
+        _lastMoveDirection = waveDirection;
+        _lastAppliedWaveVelocity = waveVelocity;
+        _hasAppliedWaveVelocity = true;
+    }
+
+    void SynchronizeWaveDirectionWithPhysics(Vector2 currentVelocity)
+    {
+        if (!IsSafeDirection(currentVelocity))
+        {
+            return;
+        }
+
+        if (!_hasAppliedWaveVelocity)
+        {
+            _waveForwardDirection = currentVelocity.normalized;
+            return;
+        }
+
+        Vector2 appliedDirection = _lastAppliedWaveVelocity.normalized;
+        Vector2 physicsDirection = currentVelocity.normalized;
+        if (Vector2.Dot(appliedDirection, physicsDirection) >= 0.9999f)
+        {
+            return;
+        }
+
+        // Physics2D 또는 충돌 오브젝트가 바꾼 실제 속도 방향을 보존합니다.
+        _waveForwardDirection = physicsDirection;
+        _hasAppliedWaveVelocity = false;
+    }
+
+    void ResetWaveMovement(Vector2 direction)
+    {
+        _waveElapsedTime = 0f;
+        _waveForwardDirection = IsSafeDirection(direction) ? direction.normalized : Vector2.right;
+        _lastAppliedWaveVelocity = Vector2.zero;
+        _hasAppliedWaveVelocity = false;
+    }
+
+    bool IsWaveMovementEnabled()
+    {
+        return _ballDataManager != null
+            && _ballDataManager.BallData != null
+            && _ballDataManager.BallData.MovementType == BallMovementType.Wave;
     }
 
     Vector2 GetSafeVelocity()
