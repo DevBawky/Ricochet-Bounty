@@ -15,7 +15,7 @@ MonoBehaviour:
   price: 20
   rarity: 1
   ValueType: 0
-  Score: 6
+  Score: 0
   ballColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
   ballSprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
   launchSpeed: 10

@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 
 public class RoundManager : MonoBehaviour
@@ -10,6 +11,16 @@ public class RoundManager : MonoBehaviour
 
     [Header("References")]
     [SerializeField] StateManager stateManager;
+
+    [Header("Battle Camera")]
+    [SerializeField, Tooltip("Orthographic camera used to display the Battle Grid.")]
+    Camera battleCamera;
+    [SerializeField, Tooltip("Screen-space UI region where the entire Battle Grid must be visible.")]
+    RectTransform battleViewRect;
+    [SerializeField, Min(0f), Tooltip("World-space margin added around every side of the Battle Grid.")]
+    float cameraPadding = 0.25f;
+    [SerializeField, Min(0.01f)] float minimumOrthographicSize = 1f;
+    [SerializeField, Min(0.01f)] float maximumOrthographicSize = 20f;
 
     [Header("Round UI")]
     [SerializeField] TextMeshProUGUI stageText;
@@ -167,8 +178,77 @@ public class RoundManager : MonoBehaviour
         spawnedBattleGrid = Instantiate(selectedBattleGridPrefab, Vector3.zero, Quaternion.identity);
         spawnedBattleGrid.name = selectedBattleGridPrefab.name;
         SpawnBattleGridObjects();
+        AdjustCameraToSpawnedBattleGrid();
 
         Debug.Log($"[RoundManager] 전투 맵 생성 완료: {spawnedBattleGrid.name}, 위치: {spawnedBattleGrid.transform.position}", this);
+    }
+
+    [ContextMenu("Adjust Camera To Spawned Battle Grid")]
+    public void AdjustCameraToSpawnedBattleGrid()
+    {
+        if (spawnedBattleGrid == null)
+        {
+            Debug.LogWarning("[RoundManager] Camera adjustment skipped because no Battle Grid is spawned.", this);
+            return;
+        }
+
+        if (battleCamera == null)
+        {
+            Debug.LogWarning("[RoundManager] Battle Camera is not connected.", this);
+            return;
+        }
+
+        if (!battleCamera.orthographic)
+        {
+            Debug.LogWarning("[RoundManager] Battle Camera must use Orthographic projection.", battleCamera);
+            return;
+        }
+
+        if (battleViewRect == null)
+        {
+            Debug.LogWarning("[RoundManager] Battle View RectTransform is not connected.", this);
+            return;
+        }
+
+        Canvas.ForceUpdateCanvases();
+
+        if (!TryGetBattleGridBounds(spawnedBattleGrid, out Bounds stageBounds))
+        {
+            Debug.LogWarning($"[RoundManager] No usable TilemapRenderer, Renderer, or Collider2D bounds were found under {spawnedBattleGrid.name}.", spawnedBattleGrid);
+            return;
+        }
+
+        if (!TryGetBattleViewScreenRect(battleViewRect, out Rect screenRect))
+        {
+            Debug.LogWarning("[RoundManager] Battle View has no usable screen-space area.", battleViewRect);
+            return;
+        }
+
+        float battleViewAspect = screenRect.width / screenRect.height;
+        float paddedWidth = stageBounds.size.x + cameraPadding * 2f;
+        float paddedHeight = stageBounds.size.y + cameraPadding * 2f;
+        float sizeForHeight = paddedHeight * 0.5f;
+        float sizeForWidth = paddedWidth * 0.5f / battleViewAspect;
+        float minimumSize = Mathf.Min(minimumOrthographicSize, maximumOrthographicSize);
+        float maximumSize = Mathf.Max(minimumOrthographicSize, maximumOrthographicSize);
+
+        battleCamera.orthographicSize = Mathf.Clamp(
+            Mathf.Max(sizeForHeight, sizeForWidth),
+            minimumSize,
+            maximumSize
+        );
+
+        Vector2 battleViewScreenCenter = screenRect.center;
+        float distanceToStagePlane = stageBounds.center.z - battleCamera.transform.position.z;
+        Vector3 worldAtBattleViewCenter = battleCamera.ScreenToWorldPoint(
+            new Vector3(battleViewScreenCenter.x, battleViewScreenCenter.y, distanceToStagePlane)
+        );
+        Vector3 cameraPosition = battleCamera.transform.position;
+        cameraPosition.x += stageBounds.center.x - worldAtBattleViewCenter.x;
+        cameraPosition.y += stageBounds.center.y - worldAtBattleViewCenter.y;
+        battleCamera.transform.position = cameraPosition;
+
+        Debug.Log($"[RoundManager] Battle Camera adjusted. Grid Bounds: {stageBounds}, Battle View: {screenRect}, Orthographic Size: {battleCamera.orthographicSize}, Camera Position: {battleCamera.transform.position}", this);
     }
 
     // Battle이 끝나거나 다른 상태로 이동할 때 생성된 전투 맵을 제거합니다.
@@ -326,6 +406,108 @@ public class RoundManager : MonoBehaviour
         objectSpawner.SpawnObjects();
     }
 
+    bool TryGetBattleGridBounds(GameObject battleGrid, out Bounds bounds)
+    {
+        TilemapRenderer[] tilemapRenderers = battleGrid.GetComponentsInChildren<TilemapRenderer>(true);
+        if (TryEncapsulateRendererBounds(tilemapRenderers, out bounds))
+        {
+            return true;
+        }
+
+        Renderer[] renderers = battleGrid.GetComponentsInChildren<Renderer>(true);
+        if (TryEncapsulateRendererBounds(renderers, out bounds))
+        {
+            return true;
+        }
+
+        Collider2D[] colliders = battleGrid.GetComponentsInChildren<Collider2D>(true);
+        bool hasBounds = false;
+        bounds = default;
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider2D collider = colliders[i];
+            if (collider == null || !collider.enabled || !collider.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            Bounds colliderBounds = collider.bounds;
+            if (colliderBounds.size.sqrMagnitude <= 0f)
+            {
+                continue;
+            }
+
+            if (!hasBounds)
+            {
+                bounds = colliderBounds;
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(colliderBounds);
+            }
+        }
+
+        return hasBounds;
+    }
+
+    bool TryEncapsulateRendererBounds<T>(T[] renderers, out Bounds bounds) where T : Renderer
+    {
+        bool hasBounds = false;
+        bounds = default;
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            T renderer = renderers[i];
+            if (renderer == null || !renderer.enabled || !renderer.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            Bounds rendererBounds = renderer.bounds;
+            if (rendererBounds.size.sqrMagnitude <= 0f)
+            {
+                continue;
+            }
+
+            if (!hasBounds)
+            {
+                bounds = rendererBounds;
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(rendererBounds);
+            }
+        }
+
+        return hasBounds;
+    }
+
+    bool TryGetBattleViewScreenRect(RectTransform viewRect, out Rect screenRect)
+    {
+        Vector3[] worldCorners = new Vector3[4];
+        viewRect.GetWorldCorners(worldCorners);
+
+        Canvas canvas = viewRect.GetComponentInParent<Canvas>();
+        Camera canvasCamera = null;
+        if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+        {
+            canvasCamera = canvas.worldCamera != null ? canvas.worldCamera : battleCamera;
+        }
+
+        Vector2 bottomLeft = RectTransformUtility.WorldToScreenPoint(canvasCamera, worldCorners[0]);
+        Vector2 topRight = RectTransformUtility.WorldToScreenPoint(canvasCamera, worldCorners[2]);
+        float xMin = Mathf.Min(bottomLeft.x, topRight.x);
+        float yMin = Mathf.Min(bottomLeft.y, topRight.y);
+        float width = Mathf.Abs(topRight.x - bottomLeft.x);
+        float height = Mathf.Abs(topRight.y - bottomLeft.y);
+
+        screenRect = new Rect(xMin, yMin, width, height);
+        return width > 0.01f && height > 0.01f;
+    }
+
     StageData GetCurrentStageData()
     {
         if (stageDataList == null || stageDataList.Length <= 0)
@@ -423,5 +605,12 @@ public class RoundManager : MonoBehaviour
         {
             stateManager = FindFirstObjectByType<StateManager>();
         }
+    }
+
+    void OnValidate()
+    {
+        cameraPadding = Mathf.Max(0f, cameraPadding);
+        minimumOrthographicSize = Mathf.Max(0.01f, minimumOrthographicSize);
+        maximumOrthographicSize = Mathf.Max(minimumOrthographicSize, maximumOrthographicSize);
     }
 }

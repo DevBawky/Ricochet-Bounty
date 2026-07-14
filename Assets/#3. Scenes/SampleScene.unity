@@ -676,6 +676,10 @@ PrefabInstance:
       propertyPath: m_sharedMaterial
       value: 
       objectReference: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+    - target: {fileID: 910000000000000001, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 914751953512124982, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
@@ -2188,6 +2192,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cacddaf17ae49b744b2e969caccc34ac, type: 2}
   - {fileID: 11400000, guid: 0f96633d1f107984e94d8a89354af672, type: 2}
   stateManager: {fileID: 500031832}
+  battleCamera: {fileID: 519420031}
+  battleViewRect: {fileID: 1204005090}
+  cameraPadding: 5
+  minimumOrthographicSize: 1
+  maximumOrthographicSize: 100
   stageText: {fileID: 2020165816}
   waveText: {fileID: 76728869}
   stageProgressText: {fileID: 1829938041}
@@ -2869,6 +2878,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!224 &1204005090 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 910000000000000002, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+  m_PrefabInstance: {fileID: 437536086}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1371054489
 PrefabInstance:
   m_ObjectHideFlags: 0
