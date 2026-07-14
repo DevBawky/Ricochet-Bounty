@@ -43,6 +43,8 @@ public class RoundManager : MonoBehaviour
     [Header("Player Life")]
     [SerializeField] int maxPlayerLife = 5;
     [SerializeField] int currentPlayerLife;
+    [SerializeField] int lastBattleRemainingLife;
+    [SerializeField] TextMeshProUGUI currentPlayerLifeText;
 
     public RoundProgress Progress
     {
@@ -92,30 +94,47 @@ public class RoundManager : MonoBehaviour
         }
     }
 
+    public int LastBattleRemainingLife
+    {
+        get
+        {
+            return lastBattleRemainingLife;
+        }
+    }
+
     void Awake()
     {
         FindMissingReferences();
 
+        maxPlayerLife = Mathf.Max(1, maxPlayerLife);
+
         if (currentPlayerLife <= 0)
         {
-            currentPlayerLife = Mathf.Max(0, maxPlayerLife);
+            currentPlayerLife = maxPlayerLife;
         }
+
+        currentPlayerLife = Mathf.Clamp(currentPlayerLife, 0, maxPlayerLife);
+        lastBattleRemainingLife = currentPlayerLife;
+        RefreshPlayerLifeUI();
     }
 
     void Start()
     {
         RefreshRoundUI();
         RefreshTargetUI();
+        RefreshPlayerLifeUI();
     }
 
     // 새 런을 시작할 때 진행도를 Stage 1, Wave 1로 되돌립니다.
     public void StartNewRun()
     {
         roundProgress.ResetRun();
-        currentPlayerLife = Mathf.Max(0, maxPlayerLife);
+        currentPlayerLife = maxPlayerLife;
+        lastBattleRemainingLife = maxPlayerLife;
         ClearSelectedBattleData();
         RefreshRoundUI();
         RefreshTargetUI();
+        RefreshPlayerLifeUI();
     }
 
     // 현재 Wave가 보스 Wave인지 확인합니다.
@@ -294,6 +313,7 @@ public class RoundManager : MonoBehaviour
         }
 
         currentPlayerLife = Mathf.Max(0, currentPlayerLife - 1);
+        RefreshPlayerLifeUI();
         Debug.Log($"[RoundManager] 적을 처치하지 못해 라이프를 1 차감합니다. 남은 라이프: {currentPlayerLife}", this);
 
         if (currentPlayerLife <= 0)
@@ -343,6 +363,17 @@ public class RoundManager : MonoBehaviour
         {
             stateManager.OnPlayerDefeated();
         }
+    }
+
+    // Battle 상태를 벗어나기 직전에 Result 정산용 잔여 라이프를 보존하고 다음 전투 라이프를 복구합니다.
+    public void CompleteBattleLife()
+    {
+        maxPlayerLife = Mathf.Max(1, maxPlayerLife);
+        lastBattleRemainingLife = Mathf.Clamp(currentPlayerLife, 0, maxPlayerLife);
+        currentPlayerLife = maxPlayerLife;
+        RefreshPlayerLifeUI();
+
+        Debug.Log($"[RoundManager] 전투 종료 라이프 정리. 정산용 잔여 라이프: {lastBattleRemainingLife}, 다음 전투 라이프: {currentPlayerLife}", this);
     }
 
     public void RefreshRoundUI()
@@ -615,6 +646,7 @@ public class RoundManager : MonoBehaviour
         }
 
         FindTargetEnemyNameText();
+        FindCurrentPlayerLifeText();
     }
 
     void FindTargetEnemyNameText()
@@ -636,8 +668,43 @@ public class RoundManager : MonoBehaviour
         }
     }
 
+    void FindCurrentPlayerLifeText()
+    {
+        if (currentPlayerLifeText != null)
+        {
+            return;
+        }
+
+        TextMeshProUGUI[] texts = FindObjectsByType<TextMeshProUGUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            if (texts[i] == null || texts[i].name != "Text | Current Life")
+            {
+                continue;
+            }
+
+            Transform parent = texts[i].transform.parent;
+            if (parent != null && parent.name == "LifeCount")
+            {
+                currentPlayerLifeText = texts[i];
+                return;
+            }
+        }
+    }
+
+    void RefreshPlayerLifeUI()
+    {
+        FindCurrentPlayerLifeText();
+        if (currentPlayerLifeText != null)
+        {
+            currentPlayerLifeText.text = $"{currentPlayerLife} / {maxPlayerLife}";
+        }
+    }
+
     void OnValidate()
     {
+        maxPlayerLife = Mathf.Max(1, maxPlayerLife);
+        currentPlayerLife = Mathf.Clamp(currentPlayerLife, 0, maxPlayerLife);
         cameraPadding = Mathf.Max(0f, cameraPadding);
         minimumOrthographicSize = Mathf.Max(0.01f, minimumOrthographicSize);
         maximumOrthographicSize = Mathf.Max(minimumOrthographicSize, maximumOrthographicSize);

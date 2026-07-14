@@ -117,6 +117,13 @@ public class StateManager : MonoBehaviour
         GameState previousState = currentState;
         Debug.Log($"[StateManager] GameState 변경: {currentState} -> {nextState}", this);
         currentState = nextState;
+
+        // Result UI가 활성화되기 전에 잔여 라이프를 정산용으로 보존하고 다음 전투 값을 복구합니다.
+        if (previousState == GameState.Battle && nextState != GameState.Battle && roundManager != null)
+        {
+            roundManager.CompleteBattleLife();
+        }
+
         RefreshUIPanels();
         HandleBattleGridStateChange(previousState, nextState);
 
@@ -430,7 +437,7 @@ public class StateManager : MonoBehaviour
 
             roundManager.OnShotEndedWithoutEnemyDefeated();
 
-            if (roundManager.CurrentPlayerLife <= 0)
+            if (currentState != GameState.Battle || currentBattleState == BattleState.BattleEnd)
             {
                 resolveTurnCoroutine = null;
                 yield break;

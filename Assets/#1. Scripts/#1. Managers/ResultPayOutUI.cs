@@ -38,7 +38,7 @@ public class ResultPayOutUI : MonoBehaviour
 
     public void RefreshPayOutPreview()
     {
-        cachedLeftLife = roundManager != null ? Mathf.Max(0, roundManager.CurrentPlayerLife) : 0;
+        cachedLeftLife = roundManager != null ? Mathf.Max(0, roundManager.LastBattleRemainingLife) : 0;
         int currentGold = goldManager != null ? Mathf.Max(0, goldManager.CurrentGold) : 0;
         cachedInterest = currentGold / Mathf.Max(1, goldPerInterest) * Mathf.Max(0, interestRewardPerStep);
         cachedTotal = cachedLeftLife + cachedInterest;

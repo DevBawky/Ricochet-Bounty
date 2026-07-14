@@ -2211,6 +2211,8 @@ MonoBehaviour:
   currentEnemyHp: 0
   maxPlayerLife: 5
   currentPlayerLife: 0
+  lastBattleRemainingLife: 0
+  currentPlayerLifeText: {fileID: 0}
 --- !u!4 &616322116
 Transform:
   m_ObjectHideFlags: 0
@@ -2389,6 +2391,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
   - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
   - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
+  - {fileID: 11400000, guid: 1c1b079b017344568837a7695529b145, type: 2}
+  - {fileID: 11400000, guid: 4fc753f78ca64011bcda465e40fbce2d, type: 2}
   drawPile: []
   discardPile: []
   currentCylinder: []
