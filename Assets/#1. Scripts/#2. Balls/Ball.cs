@@ -11,6 +11,14 @@ public class Ball : MonoBehaviour
     [SerializeField] float _maxMoveSpeed = 24f;
     [SerializeField] bool _logMinimumSpeedCorrection;
 
+    [Header("Stuck Recovery")]
+    [SerializeField, Min(0.1f), Tooltip("How often actual movement is checked for a stuck ball.")]
+    float _stuckCheckInterval = 0.5f;
+    [SerializeField, Min(0.01f), Tooltip("A ball travelling less than this distance during the check interval is considered stuck.")]
+    float _stuckMinimumTravelDistance = 0.2f;
+    [SerializeField, Min(0f), Tooltip("Small position nudge used before relaunching a stuck ball.")]
+    float _stuckEscapeDistance = 0.15f;
+
     [Header("No Collision Destroy")]
     [SerializeField] float _noCollisionDestroyDelay = 5f;
 
@@ -25,6 +33,17 @@ public class Ball : MonoBehaviour
     int _collisionCount;
     bool _hasExternalLaunch;
     bool _isDestroyingByNoCollision;
+    Vector2 _lastPhysicsPosition;
+    float _travelDistanceSinceStuckCheck;
+    float _nextStuckCheckTime;
+
+    public float MinimumMoveSpeed
+    {
+        get
+        {
+            return Mathf.Max(0f, _minMoveSpeed);
+        }
+    }
 
     void Awake()
     {
@@ -61,12 +80,12 @@ public class Ball : MonoBehaviour
             direction = Vector2.right;
         }
 
-        _launchForce = Mathf.Max(0f, speed);
-        _minMoveSpeed = Mathf.Min(_minMoveSpeed, _launchForce);
+        _launchForce = Mathf.Clamp(Mathf.Max(0f, speed), _minMoveSpeed, _maxMoveSpeed);
         _lastMoveDirection = direction.normalized;
         _rigidbody.linearVelocity = _lastMoveDirection * _launchForce;
         _hasExternalLaunch = true;
         _rigidbody.WakeUp();
+        ResetStuckCheck();
 
         Debug.Log($"[Ball] {name} 발사 완료. direction: {_lastMoveDirection}, speed: {_launchForce}", this);
     }
@@ -96,7 +115,8 @@ public class Ball : MonoBehaviour
         _hasExternalLaunch = true;
 
         ResetNoCollisionDestroyTimer();
-        Launch(_lastMoveDirection, speed);
+        float guaranteedSpeed = Mathf.Max(speed, _minMoveSpeed);
+        Launch(_lastMoveDirection, guaranteedSpeed);
 
         Debug.Log($"[Ball] {name} 분열 공 초기화 완료. direction: {_lastMoveDirection}, speed: {speed}", this);
     }
@@ -116,6 +136,7 @@ public class Ball : MonoBehaviour
         _lastVelocity = _rigidbody.linearVelocity;
         RememberMoveDirection(_lastVelocity);
         KeepSpeedInRange();
+        CheckAndRecoverFromStuck();
     }
 
     void LaunchRandomDirection()
@@ -137,8 +158,7 @@ public class Ball : MonoBehaviour
             return;
         }
 
-        _launchForce = _ballDataManager.BallData.LaunchSpeed;
-        _minMoveSpeed = Mathf.Min(_minMoveSpeed, _launchForce);
+        _launchForce = Mathf.Clamp(_ballDataManager.BallData.LaunchSpeed, _minMoveSpeed, _maxMoveSpeed);
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -246,14 +266,16 @@ public class Ball : MonoBehaviour
 
         _lastWallHitSystemTime = Time.fixedTime;
 
-        if (_runtimeStatus != null)
-        {
-            _runtimeStatus.ApplyWallHitDurabilityDamage();
-        }
-
         if (_effectController != null)
         {
             _effectController.TriggerWallHitEffects();
+        }
+
+        // Resolve hit effects before durability can destroy the ball. This lets the final
+        // hit contribute to stack/cash-out effects and allows durability healing to matter.
+        if (_runtimeStatus != null)
+        {
+            _runtimeStatus.ApplyWallHitDurabilityDamage();
         }
     }
 
@@ -290,6 +312,51 @@ public class Ball : MonoBehaviour
         {
             Debug.Log($"[Ball] {name} speed corrected to minimum speed. Previous Speed: {speed}, Minimum Speed: {_minMoveSpeed}, Direction: {direction}", this);
         }
+    }
+
+    void CheckAndRecoverFromStuck()
+    {
+        Vector2 currentPosition = _rigidbody.position;
+        _travelDistanceSinceStuckCheck += Vector2.Distance(currentPosition, _lastPhysicsPosition);
+        _lastPhysicsPosition = currentPosition;
+
+        if (Time.fixedTime < _nextStuckCheckTime)
+        {
+            return;
+        }
+
+        bool isStuck = _travelDistanceSinceStuckCheck < _stuckMinimumTravelDistance;
+        _travelDistanceSinceStuckCheck = 0f;
+        _nextStuckCheckTime = Time.fixedTime + _stuckCheckInterval;
+
+        if (!isStuck)
+        {
+            return;
+        }
+
+        Vector2 escapeDirection = GetRandomDirection();
+        if (_stuckEscapeDistance > 0f)
+        {
+            _rigidbody.position += escapeDirection * _stuckEscapeDistance;
+            _lastPhysicsPosition = _rigidbody.position;
+        }
+
+        SetVelocity(escapeDirection * Mathf.Max(_minMoveSpeed, _launchForce));
+        _rigidbody.WakeUp();
+
+        Debug.Log($"[Ball] {name} was stuck and has been relaunched. Direction: {escapeDirection}, Speed: {_rigidbody.linearVelocity.magnitude}", this);
+    }
+
+    void ResetStuckCheck()
+    {
+        if (_rigidbody == null)
+        {
+            return;
+        }
+
+        _lastPhysicsPosition = _rigidbody.position;
+        _travelDistanceSinceStuckCheck = 0f;
+        _nextStuckCheckTime = Time.fixedTime + _stuckCheckInterval;
     }
 
     void SetVelocity(Vector2 velocity)

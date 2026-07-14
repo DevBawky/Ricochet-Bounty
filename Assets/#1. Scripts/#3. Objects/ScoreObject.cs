@@ -74,16 +74,18 @@ public class ScoreObject : MonoBehaviour
     {
         // 점수 오브젝트에 닿았을 때 공의 내구도와 효과도 함께 처리합니다.
         // DamageManager는 점수만 담당하고, 공의 런타임 상태는 공에 붙은 컴포넌트들이 담당합니다.
-        BallRuntimeStatus runtimeStatus = ballDataManager.GetComponent<BallRuntimeStatus>();
-        if (runtimeStatus != null)
-        {
-            runtimeStatus.ApplyObjectHitDurabilityDamage();
-        }
-
         BallEffectController effectController = ballDataManager.GetComponent<BallEffectController>();
         if (effectController != null)
         {
             effectController.TriggerObjectHitEffects();
+        }
+
+        // Effects run first so a lethal hit is included in stack/cash-out rewards and
+        // HealDurability can prevent destruction when it restores enough durability.
+        BallRuntimeStatus runtimeStatus = ballDataManager.GetComponent<BallRuntimeStatus>();
+        if (runtimeStatus != null)
+        {
+            runtimeStatus.ApplyObjectHitDurabilityDamage();
         }
     }
 }

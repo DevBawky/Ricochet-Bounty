@@ -119,7 +119,7 @@ Rigidbody2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8
   m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 1
@@ -175,6 +175,11 @@ MonoBehaviour:
   _launchForce: 10
   _minMoveSpeed: 6
   _maxMoveSpeed: 24
+  _logMinimumSpeedCorrection: 0
+  _stuckCheckInterval: 0.5
+  _stuckMinimumTravelDistance: 0.2
+  _stuckEscapeDistance: 0.15
+  _noCollisionDestroyDelay: 5
 --- !u!114 &7864512390478123456
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -215,6 +220,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallEffectController
   damageManager: {fileID: 0}
+  goldManager: {fileID: 0}
   triggerSpawnEffectsOnEnable: 1
   runtimeStates: []
   canSplit: 1
+  stackCashOutChipsStack: 0
+  stackCashOutMultiplierStack: 0
+  stackChipsStack: 0
+  stackMultiplierStack: 0
+  overheatChipsOverheat: 0
+  overheatMultiplierOverheat: 0
+  linkedCashOutStack: 0
+  linkedStack: 0
+  linkedOverheat: 0

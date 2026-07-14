@@ -156,6 +156,8 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
+        RefreshMissingManagerReferences();
+
         for (int i = 0; i < runtimeStates.Count; i++)
         {
             BallEffectRuntimeState state = runtimeStates[i];
@@ -260,7 +262,8 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
-        int healAmount = Mathf.RoundToInt(Random.Range(effectData.minValue, effectData.maxValue));
+        GetOrderedRange(effectData, out float minValue, out float maxValue);
+        int healAmount = Mathf.RoundToInt(Random.Range(minValue, maxValue));
         runtimeStatus.HealDurability(healAmount);
     }
 
@@ -407,17 +410,24 @@ public class BallEffectController : MonoBehaviour
 
     float GetSplitSpeed()
     {
+        float minimumSpeed = 0f;
+        Ball ballMovement = GetComponent<Ball>();
+        if (ballMovement != null)
+        {
+            minimumSpeed = ballMovement.MinimumMoveSpeed;
+        }
+
         if (ballRigidbody != null && ballRigidbody.linearVelocity.sqrMagnitude > 0.0001f)
         {
-            return ballRigidbody.linearVelocity.magnitude;
+            return Mathf.Max(ballRigidbody.linearVelocity.magnitude, minimumSpeed);
         }
 
         if (BallData != null && BallData.LaunchSpeed > 0f)
         {
-            return BallData.LaunchSpeed;
+            return Mathf.Max(BallData.LaunchSpeed, minimumSpeed);
         }
 
-        return 10f;
+        return Mathf.Max(10f, minimumSpeed);
     }
 
     float GetSplitSpawnOffset()
@@ -464,7 +474,8 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
-        int amount = Mathf.RoundToInt(Random.Range(effectData.minValue, effectData.maxValue));
+        GetOrderedRange(effectData, out float minValue, out float maxValue);
+        int amount = Mathf.RoundToInt(Random.Range(minValue, maxValue));
         damageManager.AddChips(amount);
     }
 
@@ -476,7 +487,8 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
-        float amount = Random.Range(effectData.minValue, effectData.maxValue);
+        GetOrderedRange(effectData, out float minValue, out float maxValue);
+        float amount = Random.Range(minValue, maxValue);
         damageManager.AddMultiplier(amount);
     }
 
@@ -501,7 +513,8 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
-        int amount = Mathf.RoundToInt(Random.Range(effectData.minValue, effectData.maxValue));
+        GetOrderedRange(effectData, out float minValue, out float maxValue);
+        int amount = Mathf.RoundToInt(Random.Range(minValue, maxValue));
         if (amount <= 0)
         {
             Debug.LogWarning($"[BallEffectController] AddGold amount must be greater than 0. Amount: {amount}", this);
@@ -945,6 +958,25 @@ public class BallEffectController : MonoBehaviour
         AddRuntimeStates(BallData.ObjectHitEffects, BallEffectTrigger.OnObjectHit);
         AddRuntimeStates(BallData.WallHitEffects, BallEffectTrigger.OnWallHit);
         AddRuntimeStates(BallData.DestroyEffects, BallEffectTrigger.OnDestroy);
+    }
+
+    void RefreshMissingManagerReferences()
+    {
+        if (damageManager == null)
+        {
+            damageManager = FindFirstObjectByType<DamageManager>();
+        }
+
+        if (goldManager == null)
+        {
+            goldManager = FindFirstObjectByType<GoldManager>();
+        }
+    }
+
+    void GetOrderedRange(BallEffectData effectData, out float minValue, out float maxValue)
+    {
+        minValue = Mathf.Min(effectData.minValue, effectData.maxValue);
+        maxValue = Mathf.Max(effectData.minValue, effectData.maxValue);
     }
 
     void AddRuntimeStates(List<BallEffectData> effects, BallEffectTrigger trigger)

@@ -1343,8 +1343,8 @@ MonoBehaviour:
   - {fileID: 1040271004597938229, guid: 6986476a4108ce34f85a8ea040abc440, type: 3}
   minSpawnCount: 5
   maxSpawnCount: 7
-  minDistanceBetweenObjects: 2
-  overlapCheckRadius: 0.45
+  minDistanceBetweenObjects: 1
+  overlapCheckRadius: 0.3
   blockedLayerMask:
     serializedVersion: 2
     m_Bits: 64
