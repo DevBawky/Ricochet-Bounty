@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 2288774099532049046}
   - component: {fileID: 8558261128723342418}
   - component: {fileID: 3283043456777258460}
-  - component: {fileID: -4361611899909525153}
   m_Layer: 5
   m_Name: Shop_NewBall
   m_TagString: Untagged
@@ -78,24 +77,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &-4361611899909525153
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1119013904737735175}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 155cacd2f5a99474697a48e5d171a8d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ballNameText: {fileID: 0}
-  descriptionText: {fileID: 0}
-  priceText: {fileID: 7330229881559883613}
-  ballImage: {fileID: 8263414097758223492}
-  buyButton: {fileID: 8880466633720097607}
-  buyButtonText: {fileID: 0}
 --- !u!1 &2400156801547446415
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,7 +10,9 @@ public enum GameState
     Result,
     Shop,
     GameOver,
-    Clear
+    Clear,
+    Event,
+    Treasure
 }
 
 public enum BattleState
@@ -38,12 +40,17 @@ public class StateManager : MonoBehaviour
     [SerializeField] BallSpawner ballSpawner;
     [SerializeField] RoundManager roundManager;
     [SerializeField] ShopManager shopManager;
+    [SerializeField] RoundSelectManager roundSelectManager;
+    [SerializeField] EventManager eventManager;
+    [SerializeField] TreasureManager treasureManager;
 
     [Header("UI Panels")]
     [SerializeField] GameObject playerPanel;
     [SerializeField] GameObject mainMenuPanel;
     [SerializeField] GameObject roundSelectPanel;
     [SerializeField] GameObject battlePanel;
+    [SerializeField] GameObject eventPanel;
+    [SerializeField] GameObject treasurePanel;
     [SerializeField] GameObject resultPanel;
     [SerializeField] GameObject shopPanel;
     [SerializeField] GameObject gameOverPanel;
@@ -110,6 +117,12 @@ public class StateManager : MonoBehaviour
                 }
             }
 
+            if (nextState == GameState.RoundSelect)
+            {
+                FindMissingReferences();
+                roundSelectManager?.OnRoundSelectEntered();
+            }
+
             Debug.Log($"[StateManager] GameState 유지: {currentState}", this);
             return;
         }
@@ -140,6 +153,12 @@ public class StateManager : MonoBehaviour
                 shopManager.OnShopEntered();
             }
         }
+
+        if (nextState == GameState.RoundSelect)
+        {
+            FindMissingReferences();
+            roundSelectManager?.OnRoundSelectEntered();
+        }
     }
 
     // MainMenu UI의 Play Game 버튼에서 호출합니다.
@@ -161,20 +180,78 @@ public class StateManager : MonoBehaviour
     // RoundSelect UI의 Battle 선택 버튼에서 호출합니다.
     public void OnClickSelectBattle()
     {
+        WaveType waveType = roundManager != null ? roundManager.GetCurrentWaveType() : WaveType.Battle;
+        TryStartWaveContent(waveType);
+    }
+
+    public bool TryStartWaveContent(WaveType waveType)
+    {
         FindMissingReferences();
 
-        if (roundManager != null)
+        if (roundManager == null)
         {
-            roundManager.PrepareCurrentWaveBattle();
-
-            if (enemyDataHolder != null && roundManager.SelectedEnemyData != null)
-            {
-                enemyDataHolder.Initialize(roundManager.SelectedEnemyData, roundManager.MaximumEnemyHp);
-            }
+            Debug.LogWarning("[StateManager] RoundManager is missing.", this);
+            return false;
         }
 
-        ChangeState(GameState.Battle);
-        StartBattle();
+        bool isBossWave = roundManager.IsCurrentBossWave();
+        if (isBossWave && waveType != WaveType.Boss)
+        {
+            Debug.LogWarning($"[StateManager] Boss Wave cannot start as {waveType}.", this);
+            return false;
+        }
+
+        if (!isBossWave && waveType == WaveType.Boss)
+        {
+            Debug.LogWarning("[StateManager] Boss content cannot start during a normal Wave.", this);
+            return false;
+        }
+
+        switch (waveType)
+        {
+            case WaveType.Battle:
+            case WaveType.Boss:
+                roundManager.PrepareCurrentWaveBattle();
+                if (roundManager.SelectedEnemyData == null)
+                {
+                    return false;
+                }
+
+                if (enemyDataHolder != null)
+                {
+                    enemyDataHolder.Initialize(roundManager.SelectedEnemyData, roundManager.MaximumEnemyHp);
+                }
+
+                ChangeState(GameState.Battle);
+                StartBattle();
+                return true;
+
+            case WaveType.Event:
+                if (eventManager == null)
+                {
+                    Debug.LogWarning("[StateManager] EventManager is missing.", this);
+                    return false;
+                }
+
+                roundManager.PrepareNonBattleWave(waveType);
+                ChangeState(GameState.Event);
+                eventManager.BeginEvent();
+                return true;
+
+            case WaveType.Treasure:
+                if (treasureManager == null)
+                {
+                    Debug.LogWarning("[StateManager] TreasureManager is missing.", this);
+                    return false;
+                }
+
+                roundManager.PrepareNonBattleWave(waveType);
+                ChangeState(GameState.Treasure);
+                treasureManager.BeginTreasure();
+                return true;
+        }
+
+        return false;
     }
 
     // Result UI의 Continue 또는 Pay Out 버튼에서 호출합니다.
@@ -228,6 +305,13 @@ public class StateManager : MonoBehaviour
         StopTurnCoroutines();
         ChangeBattleState(BattleState.BattleEnd);
         ChangeState(GameState.Result);
+    }
+
+    public void OnNonBattleWaveCleared()
+    {
+        StopTurnCoroutines();
+        ChangeBattleState(BattleState.None);
+        ChangeState(GameState.Shop);
     }
 
     // 플레이어의 라이프가 모두 소모되었을 때 호출합니다.
@@ -518,6 +602,8 @@ public class StateManager : MonoBehaviour
         SetPanelActive(mainMenuPanel, false);
         SetPanelActive(roundSelectPanel, false);
         SetPanelActive(battlePanel, false);
+        SetPanelActive(eventPanel, false);
+        SetPanelActive(treasurePanel, false);
         SetPanelActive(resultPanel, false);
         SetPanelActive(shopPanel, false);
         SetPanelActive(gameOverPanel, false);
@@ -536,6 +622,12 @@ public class StateManager : MonoBehaviour
                 break;
             case GameState.Battle:
                 SetPanelActive(battlePanel, true);
+                break;
+            case GameState.Event:
+                SetPanelActive(eventPanel, true);
+                break;
+            case GameState.Treasure:
+                SetPanelActive(treasurePanel, true);
                 break;
             case GameState.Result:
                 SetPanelActive(resultPanel, true);
@@ -644,6 +736,31 @@ public class StateManager : MonoBehaviour
         if (shopManager == null)
         {
             shopManager = FindFirstObjectByType<ShopManager>(FindObjectsInactive.Include);
+        }
+
+        if (roundSelectManager == null)
+        {
+            roundSelectManager = FindFirstObjectByType<RoundSelectManager>(FindObjectsInactive.Include);
+        }
+
+        if (eventManager == null)
+        {
+            eventManager = FindFirstObjectByType<EventManager>(FindObjectsInactive.Include);
+        }
+
+        if (treasureManager == null)
+        {
+            treasureManager = FindFirstObjectByType<TreasureManager>(FindObjectsInactive.Include);
+        }
+
+        if (eventPanel == null && eventManager != null)
+        {
+            eventPanel = eventManager.gameObject;
+        }
+
+        if (treasurePanel == null && treasureManager != null)
+        {
+            treasurePanel = treasureManager.gameObject;
         }
     }
 }

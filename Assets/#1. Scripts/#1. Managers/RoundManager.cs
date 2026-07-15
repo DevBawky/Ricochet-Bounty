@@ -47,6 +47,8 @@ public class RoundManager : MonoBehaviour
     [SerializeField] int lastBattleRemainingLife;
     [SerializeField] TextMeshProUGUI currentPlayerLifeText;
 
+    bool nonBattleWaveCompletionLocked;
+
     public RoundProgress Progress
     {
         get
@@ -138,6 +140,7 @@ public class RoundManager : MonoBehaviour
     public void StartNewRun()
     {
         roundProgress.ResetRun();
+        nonBattleWaveCompletionLocked = false;
         currentPlayerLife = maxPlayerLife;
         lastBattleRemainingLife = maxPlayerLife;
         ClearSelectedBattleData();
@@ -161,6 +164,59 @@ public class RoundManager : MonoBehaviour
         }
 
         return WaveType.Battle;
+    }
+
+    public void BeginRoundSelection()
+    {
+        nonBattleWaveCompletionLocked = false;
+    }
+
+    public void PrepareNonBattleWave(WaveType waveType)
+    {
+        if (waveType != WaveType.Event && waveType != WaveType.Treasure)
+        {
+            Debug.LogWarning($"[RoundManager] {waveType} is not a non-battle WaveType.", this);
+            return;
+        }
+
+        ClearSelectedBattleData();
+        RefreshRoundUI();
+        RefreshTargetUI();
+    }
+
+    public bool CompleteNonBattleWave(WaveType waveType)
+    {
+        if (waveType != WaveType.Event && waveType != WaveType.Treasure)
+        {
+            Debug.LogWarning($"[RoundManager] Cannot complete {waveType} through the non-battle completion flow.", this);
+            return false;
+        }
+
+        if (IsCurrentBossWave())
+        {
+            Debug.LogWarning($"[RoundManager] Boss Wave cannot be completed as {waveType}.", this);
+            return false;
+        }
+
+        if (nonBattleWaveCompletionLocked)
+        {
+            Debug.LogWarning($"[RoundManager] Duplicate {waveType} completion was ignored.", this);
+            return false;
+        }
+
+        if (stateManager == null)
+        {
+            Debug.LogWarning("[RoundManager] StateManager is missing. The Wave was not completed.", this);
+            return false;
+        }
+
+        nonBattleWaveCompletionLocked = true;
+        AdvanceProgressAfterBattle(false);
+        ClearSelectedBattleData();
+        RefreshRoundUI();
+        RefreshTargetUI();
+        stateManager.OnNonBattleWaveCleared();
+        return true;
     }
 
     // Round Select에서 Battle 또는 Boss 카드를 선택했을 때 호출해 현재 전투 데이터를 확정합니다.
