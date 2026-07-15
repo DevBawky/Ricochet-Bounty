@@ -159,6 +159,33 @@ public class PlayerUpgradeManager : MonoBehaviour
         OnUpgradesChanged.Invoke();
     }
 
+    public PlayerUpgradeSaveData CaptureSaveData()
+    {
+        return new PlayerUpgradeSaveData
+        {
+            ballHpLevel = ballHpLevel,
+            ballDefenseLevel = ballDefenseLevel,
+            scoreBoostLevel = scoreBoostLevel,
+            currentDeleteCost = currentDeleteCost
+        };
+    }
+
+    public void RestoreSaveData(PlayerUpgradeSaveData data)
+    {
+        if (data == null)
+        {
+            ResetRunData();
+            return;
+        }
+
+        ballHpLevel = Mathf.Clamp(data.ballHpLevel, 0, MaxUpgradeLevel);
+        ballDefenseLevel = Mathf.Clamp(data.ballDefenseLevel, 0, MaxUpgradeLevel);
+        scoreBoostLevel = Mathf.Clamp(data.scoreBoostLevel, 0, MaxUpgradeLevel);
+        currentDeleteCost = Mathf.Max(0, data.currentDeleteCost);
+        RefreshPlayerPanel();
+        OnUpgradesChanged.Invoke();
+    }
+
     public int GetUpgradedMaxDurability(int baseDurability)
     {
         float ratio = GetPercent(PlayerUpgradeType.BallHp) / 100f;

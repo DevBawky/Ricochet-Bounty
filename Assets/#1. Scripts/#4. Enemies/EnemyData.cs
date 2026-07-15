@@ -3,6 +3,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Enemy Data", menuName = "Enemy Data")]
 public class EnemyData : ScriptableObject
 {
+    [Header("Save Identity")]
+    [SerializeField, Tooltip("Stable ID used by run save data. If empty, the asset name is used.")]
+    string saveId;
+
     [Header("Identity")]
     [SerializeField] string enemyName;
 
@@ -17,6 +21,14 @@ public class EnemyData : ScriptableObject
         get
         {
             return enemySprite;
+        }
+    }
+
+    public string SaveId
+    {
+        get
+        {
+            return string.IsNullOrWhiteSpace(saveId) ? name : saveId.Trim();
         }
     }
 

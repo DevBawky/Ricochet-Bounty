@@ -136,6 +136,70 @@ public class ShopManager : MonoBehaviour
         }
     }
 
+    public ShopSaveData CaptureSaveData()
+    {
+        ShopSaveData data = new ShopSaveData
+        {
+            currentRefreshCost = currentRefreshCost,
+            nextRefreshCost = nextRefreshCost
+        };
+
+        if (shopSlots != null)
+        {
+            for (int i = 0; i < shopSlots.Count; i++)
+            {
+                ShopBallUI slot = shopSlots[i];
+                data.slots.Add(new ShopSlotSaveData
+                {
+                    ballId = slot != null && slot.CurrentBallData != null ? slot.CurrentBallData.SaveId : string.Empty,
+                    purchased = slot != null && slot.IsPurchased
+                });
+            }
+        }
+
+        return data;
+    }
+
+    public void RestoreSaveData(ShopSaveData data, IList<BallDataSO> resolvedSlotBalls)
+    {
+        if (data == null)
+        {
+            ResetRefreshCostForShopVisit();
+            ClearSlots();
+            return;
+        }
+
+        currentRefreshCost = Mathf.Max(0, data.currentRefreshCost);
+        nextRefreshCost = Mathf.Max(0, data.nextRefreshCost);
+        RefreshCostUI();
+        ApplySlotDependencies();
+
+        if (shopSlots == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < shopSlots.Count; i++)
+        {
+            if (shopSlots[i] == null)
+            {
+                continue;
+            }
+
+            BallDataSO ballData = resolvedSlotBalls != null && i < resolvedSlotBalls.Count
+                ? resolvedSlotBalls[i]
+                : null;
+            bool purchased = data.slots != null && i < data.slots.Count && data.slots[i].purchased;
+            shopSlots[i].RestoreState(ballData, purchased);
+        }
+    }
+
+    public void ResetRuntimeState()
+    {
+        ResetRefreshCostForShopVisit();
+        ClearSlots();
+    }
+
     void ResetRefreshCostForShopVisit()
     {
         currentRefreshCost = Mathf.Max(0, firstRefreshCost);

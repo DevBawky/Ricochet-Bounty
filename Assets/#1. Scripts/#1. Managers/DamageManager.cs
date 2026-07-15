@@ -127,6 +127,14 @@ public class DamageManager : MonoBehaviour
         Debug.Log($"[DamageManager] Score Reset. Chips: {currentChips}, Multiplier: {currentMultiplier}", this);
     }
 
+    public void RestoreScore(int chips, float multiplier)
+    {
+        currentChips = Mathf.Max(0, chips);
+        currentMultiplier = Mathf.Max(0f, multiplier);
+        OnDamageValueChanged.Invoke();
+        Debug.Log($"[DamageManager] Score restored. Chips: {currentChips}, Multiplier: {currentMultiplier}", this);
+    }
+
     bool ShouldDoubleScore()
     {
         if (upgradeManager == null)

@@ -25,6 +25,8 @@ public class Bumper : MonoBehaviour
 
     Vector3 originalScale;
 
+    public Vector3 OriginalScale => originalScale;
+
     void Awake()
     {
         // 충돌 피드백 후 다시 돌아올 기준 크기가 필요하므로 시작할 때 원래 scale을 저장합니다.

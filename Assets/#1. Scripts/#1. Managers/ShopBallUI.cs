@@ -16,6 +16,9 @@ public class ShopBallUI : MonoBehaviour
     BallDataSO currentBallData;
     bool isPurchased;
 
+    public BallDataSO CurrentBallData => currentBallData;
+    public bool IsPurchased => isPurchased;
+
     void Awake()
     {
         BindBuyButton();
@@ -75,6 +78,13 @@ public class ShopBallUI : MonoBehaviour
         {
             buyButton.interactable = !playerBallDeck?.IsAtCapacity ?? true;
         }
+    }
+
+    public void RestoreState(BallDataSO data, bool purchased)
+    {
+        SetBallData(data);
+        isPurchased = purchased;
+        RefreshBuyButton();
     }
 
     public void BuyCurrentBall()

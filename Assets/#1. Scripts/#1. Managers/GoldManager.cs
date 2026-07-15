@@ -86,4 +86,11 @@ public class GoldManager : MonoBehaviour
 
         Debug.Log($"[GoldManager] Gold Reset. Gold: {currentGold}", this);
     }
+
+    public void RestoreGold(int amount)
+    {
+        currentGold = Mathf.Max(0, amount);
+        OnGoldChanged.Invoke();
+        Debug.Log($"[GoldManager] Gold restored. Gold: {currentGold}", this);
+    }
 }

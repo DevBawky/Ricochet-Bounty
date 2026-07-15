@@ -95,6 +95,7 @@ public class TreasureManager : MonoBehaviour
         }
 
         RefreshReceiveButton();
+        RunSaveManager.Instance?.RequestAutoSave("Treasure opened");
     }
 
     void OnReceiveClicked()
@@ -112,6 +113,7 @@ public class TreasureManager : MonoBehaviour
 
         rewardReceived = true;
         RefreshReceiveButton();
+        RunSaveManager.Instance?.RequestAutoSave("Treasure reward applied");
         CompleteTreasure();
     }
 
@@ -123,6 +125,54 @@ public class TreasureManager : MonoBehaviour
         }
 
         CompleteTreasure();
+    }
+
+    public TreasureSaveData CaptureSaveData()
+    {
+        return new TreasureSaveData
+        {
+            resultBallId = resultBallData != null ? resultBallData.SaveId : string.Empty,
+            treasureOpened = treasureOpened,
+            rewardReceived = rewardReceived,
+            completionRequested = completionRequested
+        };
+    }
+
+    public void RestoreSaveData(TreasureSaveData data, BallDataSO restoredResultBall)
+    {
+        FindMissingReferences();
+        BindButtons();
+        resultBallData = restoredResultBall;
+        treasureOpened = data != null && data.treasureOpened;
+        rewardReceived = data != null && data.rewardReceived;
+        completionRequested = data != null && data.completionRequested;
+
+        if (resultImage != null)
+        {
+            resultImage.sprite = resultBallData != null ? resultBallData.BallSprite : null;
+            resultImage.enabled = treasureOpened && resultBallData != null && resultBallData.BallSprite != null;
+        }
+
+        if (treasureResultPanel != null)
+        {
+            treasureResultPanel.SetActive(treasureOpened);
+        }
+
+        if (treasureButton != null)
+        {
+            treasureButton.gameObject.SetActive(!treasureOpened);
+            treasureButton.interactable = !treasureOpened;
+        }
+
+        RefreshReceiveButton();
+    }
+
+    public void ResetRuntimeState()
+    {
+        resultBallData = null;
+        treasureOpened = false;
+        rewardReceived = false;
+        completionRequested = false;
     }
 
     void CompleteTreasure()

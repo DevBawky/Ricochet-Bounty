@@ -58,4 +58,27 @@ public class ShotRuntimeContext : MonoBehaviour
 
         Debug.Log($"[ShotRuntimeContext] Dividend finalized. Gold: {GoldEarnedThisShot}, Balls: {participatingDividendBalls}, Chips: +{bonusChips}, Mult: +{bonusMultiplier:0.##}", this);
     }
+
+    public ShotRuntimeSaveData CaptureSaveData()
+    {
+        return new ShotRuntimeSaveData
+        {
+            goldEarnedThisShot = GoldEarnedThisShot,
+            dividendBallCount = DividendBallCount,
+            dividendMultiplierApplied = DividendMultiplierApplied
+        };
+    }
+
+    public void RestoreSaveData(ShotRuntimeSaveData data)
+    {
+        if (data == null)
+        {
+            ResetShot();
+            return;
+        }
+
+        GoldEarnedThisShot = Mathf.Max(0, data.goldEarnedThisShot);
+        DividendBallCount = Mathf.Max(0, data.dividendBallCount);
+        DividendMultiplierApplied = data.dividendMultiplierApplied;
+    }
 }

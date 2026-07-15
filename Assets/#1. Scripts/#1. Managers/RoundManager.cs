@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -40,6 +41,7 @@ public class RoundManager : MonoBehaviour
     [SerializeField] GameObject spawnedBattleGrid;
     [SerializeField] int maximumEnemyHp;
     [SerializeField] int currentEnemyHp;
+    [SerializeField] WaveType currentWaveType = WaveType.Battle;
 
     [Header("Player Life")]
     [SerializeField] int maxPlayerLife = 5;
@@ -113,6 +115,11 @@ public class RoundManager : MonoBehaviour
         }
     }
 
+    public int MaxPlayerLife => Mathf.Max(1, maxPlayerLife);
+
+    public WaveType CurrentWaveType => currentWaveType;
+    public bool NonBattleWaveCompletionLocked => nonBattleWaveCompletionLocked;
+
     void Awake()
     {
         FindMissingReferences();
@@ -143,6 +150,7 @@ public class RoundManager : MonoBehaviour
         nonBattleWaveCompletionLocked = false;
         currentPlayerLife = maxPlayerLife;
         lastBattleRemainingLife = maxPlayerLife;
+        currentWaveType = WaveType.Battle;
         ClearSelectedBattleData();
         RefreshRoundUI();
         RefreshTargetUI();
@@ -163,12 +171,13 @@ public class RoundManager : MonoBehaviour
             return WaveType.Boss;
         }
 
-        return WaveType.Battle;
+        return currentWaveType;
     }
 
     public void BeginRoundSelection()
     {
         nonBattleWaveCompletionLocked = false;
+        currentWaveType = IsCurrentBossWave() ? WaveType.Boss : WaveType.Battle;
     }
 
     public void PrepareNonBattleWave(WaveType waveType)
@@ -179,6 +188,7 @@ public class RoundManager : MonoBehaviour
             return;
         }
 
+        currentWaveType = waveType;
         ClearSelectedBattleData();
         RefreshRoundUI();
         RefreshTargetUI();
@@ -222,6 +232,7 @@ public class RoundManager : MonoBehaviour
     // Round Select에서 Battle 또는 Boss 카드를 선택했을 때 호출해 현재 전투 데이터를 확정합니다.
     public void PrepareCurrentWaveBattle()
     {
+        currentWaveType = IsCurrentBossWave() ? WaveType.Boss : WaveType.Battle;
         StageData currentStageData = GetCurrentStageData();
         if (currentStageData == null)
         {
@@ -266,6 +277,11 @@ public class RoundManager : MonoBehaviour
     // Battle 상태에 진입할 때 선택된 전투 맵 프리팹을 월드 좌표 (0, 0)에 생성합니다.
     public void SpawnSelectedBattleGrid()
     {
+        SpawnSelectedBattleGrid(true);
+    }
+
+    public void SpawnSelectedBattleGrid(bool spawnRandomObjects)
+    {
         ClearSpawnedBattleGrid();
 
         if (selectedBattleGridPrefab == null)
@@ -276,10 +292,164 @@ public class RoundManager : MonoBehaviour
 
         spawnedBattleGrid = Instantiate(selectedBattleGridPrefab, Vector3.zero, Quaternion.identity);
         spawnedBattleGrid.name = selectedBattleGridPrefab.name;
-        SpawnBattleGridObjects();
+        if (spawnRandomObjects)
+        {
+            SpawnBattleGridObjects();
+        }
         AdjustCameraToSpawnedBattleGrid();
 
         Debug.Log($"[RoundManager] 전투 맵 생성 완료: {spawnedBattleGrid.name}, 위치: {spawnedBattleGrid.transform.position}", this);
+    }
+
+    public void RestoreRunState(
+        int stageIndex,
+        int waveIndex,
+        WaveType waveType,
+        int playerLife,
+        int savedLastBattleRemainingLife,
+        EnemyData enemyData,
+        GameObject battleGridPrefab,
+        int enemyMaximumHp,
+        int enemyCurrentHp,
+        bool completionLocked)
+    {
+        roundProgress.CurrentStageIndex = Mathf.Clamp(stageIndex, 0, roundProgress.MaxStageCount - 1);
+        roundProgress.CurrentWaveIndex = Mathf.Clamp(waveIndex, 0, roundProgress.WaveCountPerStage - 1);
+        currentWaveType = waveType;
+        currentPlayerLife = Mathf.Clamp(playerLife, 0, maxPlayerLife);
+        lastBattleRemainingLife = Mathf.Clamp(savedLastBattleRemainingLife, 0, maxPlayerLife);
+        selectedEnemyData = enemyData;
+        selectedBattleGridPrefab = battleGridPrefab;
+        maximumEnemyHp = enemyData != null ? Mathf.Max(1, enemyMaximumHp) : 0;
+        currentEnemyHp = enemyData != null ? Mathf.Clamp(enemyCurrentHp, 0, maximumEnemyHp) : 0;
+        nonBattleWaveCompletionLocked = completionLocked;
+        ClearSpawnedBattleGrid();
+        RefreshRoundUI();
+        RefreshTargetUI();
+        RefreshPlayerLifeUI();
+    }
+
+    public EnemyData FindEnemyById(string enemyId)
+    {
+        if (string.IsNullOrWhiteSpace(enemyId) || stageDataList == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < stageDataList.Length; i++)
+        {
+            StageData stageData = stageDataList[i];
+            if (stageData == null)
+            {
+                continue;
+            }
+
+            EnemyData[] enemies = stageData.EnemyCandidates;
+            if (enemies != null)
+            {
+                for (int j = 0; j < enemies.Length; j++)
+                {
+                    if (enemies[j] != null && enemies[j].SaveId == enemyId)
+                    {
+                        return enemies[j];
+                    }
+                }
+            }
+
+            if (stageData.BossEnemy != null && stageData.BossEnemy.SaveId == enemyId)
+            {
+                return stageData.BossEnemy;
+            }
+        }
+
+        return null;
+    }
+
+    public GameObject FindBattleGridById(string battleGridId)
+    {
+        if (string.IsNullOrWhiteSpace(battleGridId) || stageDataList == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < stageDataList.Length; i++)
+        {
+            StageData stageData = stageDataList[i];
+            if (stageData == null)
+            {
+                continue;
+            }
+
+            GameObject[] battleGrids = stageData.BattleGridCandidates;
+            if (battleGrids != null)
+            {
+                for (int j = 0; j < battleGrids.Length; j++)
+                {
+                    if (battleGrids[j] != null && battleGrids[j].name == battleGridId)
+                    {
+                        return battleGrids[j];
+                    }
+                }
+            }
+
+            if (stageData.BossBattleGrid != null && stageData.BossBattleGrid.name == battleGridId)
+            {
+                return stageData.BossBattleGrid;
+            }
+        }
+
+        return null;
+    }
+
+    public List<BattleGridObjectSaveData> CaptureBattleGridObjects()
+    {
+        if (spawnedBattleGrid == null)
+        {
+            return new List<BattleGridObjectSaveData>();
+        }
+
+        BattleGridObjectSpawner spawner = spawnedBattleGrid.GetComponentInChildren<BattleGridObjectSpawner>(true);
+        return spawner != null ? spawner.CaptureSaveData() : new List<BattleGridObjectSaveData>();
+    }
+
+    public bool CanRestoreBattleGridObjects(GameObject battleGridPrefab, IList<BattleGridObjectSaveData> objects, out string error)
+    {
+        error = string.Empty;
+        if (battleGridPrefab == null)
+        {
+            error = "Battle Grid prefab is missing.";
+            return false;
+        }
+
+        BattleGridObjectSpawner spawner = battleGridPrefab.GetComponentInChildren<BattleGridObjectSpawner>(true);
+        if (spawner == null)
+        {
+            if (objects == null || objects.Count == 0)
+            {
+                return true;
+            }
+
+            error = $"Battle Grid '{battleGridPrefab.name}' has no BattleGridObjectSpawner.";
+            return false;
+        }
+
+        return spawner.CanRestoreObjects(objects, out error);
+    }
+
+    public bool RestoreBattleGridObjects(IList<BattleGridObjectSaveData> objects)
+    {
+        if (spawnedBattleGrid == null)
+        {
+            return false;
+        }
+
+        BattleGridObjectSpawner spawner = spawnedBattleGrid.GetComponentInChildren<BattleGridObjectSpawner>(true);
+        if (spawner == null)
+        {
+            return objects == null || objects.Count == 0;
+        }
+
+        return spawner.RestoreObjects(objects);
     }
 
     [ContextMenu("Adjust Camera To Spawned Battle Grid")]
@@ -358,6 +528,7 @@ public class RoundManager : MonoBehaviour
             return;
         }
 
+        spawnedBattleGrid.SetActive(false);
         Destroy(spawnedBattleGrid);
         spawnedBattleGrid = null;
     }

@@ -6715,7 +6715,6 @@ GameObject:
   - component: {fileID: 6005295215654032936}
   - component: {fileID: 3001831920005350662}
   - component: {fileID: 8657318350395942929}
-  - component: {fileID: 4226590350976589536}
   m_Layer: 5
   m_Name: Load Game
   m_TagString: Untagged
@@ -6783,40 +6782,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &4226590350976589536
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3553208643902266868}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4d5e6f7a8b94021c2d3e4f506172839, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TreasureManager
-  treasureButton: {fileID: 0}
-  treasureResultPanel: {fileID: 6980443952449729881}
-  resultImage: {fileID: 0}
-  deleteButton: {fileID: 2705307465727257388}
-  receiveButton: {fileID: 6946272341976213638}
-  playerBallDeck: {fileID: 0}
-  roundManager: {fileID: 0}
-  treasurePool:
-  - {fileID: 11400000, guid: 1a3884eefb6644c4b3f0c9da3a076599, type: 2}
-  - {fileID: 11400000, guid: 51ad800c29b748b4bf6262cae45d3cfb, type: 2}
-  - {fileID: 11400000, guid: 29b5f7c870814e8f9895f8a6f3287c11, type: 2}
-  - {fileID: 11400000, guid: 5ad82f3b933d4929b25c6fd4671bb00e, type: 2}
-  - {fileID: 11400000, guid: 1a0496980acb43419577f8039774f485, type: 2}
-  - {fileID: 11400000, guid: 1c1b079b017344568837a7695529b145, type: 2}
-  - {fileID: 11400000, guid: 4fc753f78ca64011bcda465e40fbce2d, type: 2}
-  - {fileID: 11400000, guid: 2ac0084fde0a4729a8658599f60b5933, type: 2}
-  - {fileID: 11400000, guid: fe0fc43f573d48d2b567367fa486a84a, type: 2}
-  - {fileID: 11400000, guid: 6be9ed6a53ec4d6fac8a26cb6033ac25, type: 2}
-  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
-  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
-  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
-  - {fileID: 11400000, guid: b30b651d787c5a14492bdfc3cfc67f8d, type: 2}
 --- !u!1 &3553410452414834318
 GameObject:
   m_ObjectHideFlags: 0

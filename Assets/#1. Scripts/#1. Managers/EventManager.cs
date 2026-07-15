@@ -126,6 +126,59 @@ public class EventManager : MonoBehaviour
             closeButton.gameObject.SetActive(true);
             closeButton.interactable = true;
         }
+
+        RunSaveManager.Instance?.RequestAutoSave("Event result applied");
+    }
+
+    public EventSaveData CaptureSaveData()
+    {
+        return new EventSaveData
+        {
+            eventId = currentEvent != null ? currentEvent.EventId : -1,
+            optionSelected = optionSelected,
+            completionRequested = completionRequested,
+            displayedDescription = eventDescriptionText != null ? eventDescriptionText.text : string.Empty
+        };
+    }
+
+    public void RestoreSaveData(EventSaveData data)
+    {
+        FindMissingReferences();
+        BindButtons();
+        currentEvent = data != null ? FindEventById(data.eventId) : null;
+        optionSelected = data != null && data.optionSelected;
+        completionRequested = data != null && data.completionRequested;
+
+        if (currentEvent == null)
+        {
+            SetEventText("Event", data != null ? data.displayedDescription : string.Empty, "Unavailable", "Unavailable");
+        }
+        else
+        {
+            string description = optionSelected && data != null
+                ? data.displayedDescription
+                : currentEvent.Description;
+            SetEventText(currentEvent.Title, description, currentEvent.Option1, currentEvent.Option2);
+        }
+
+        SetOptionButtons(!optionSelected && currentEvent != null);
+        if (closeButton != null)
+        {
+            closeButton.gameObject.SetActive(optionSelected);
+            closeButton.interactable = optionSelected && !completionRequested;
+        }
+    }
+
+    public void ResetRuntimeState()
+    {
+        currentEvent = null;
+        optionSelected = false;
+        completionRequested = false;
+    }
+
+    public bool HasEventId(int eventId)
+    {
+        return FindEventById(eventId) != null;
     }
 
     string ResolveTreasureKeys()
@@ -224,6 +277,24 @@ public class EventManager : MonoBehaviour
         }
 
         Debug.LogWarning("[EventManager] Event Pool has no valid entries.", this);
+        return null;
+    }
+
+    RoundEventData FindEventById(int eventId)
+    {
+        if (eventPool == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < eventPool.Length; i++)
+        {
+            if (eventPool[i] != null && eventPool[i].EventId == eventId)
+            {
+                return eventPool[i];
+            }
+        }
+
         return null;
     }
 

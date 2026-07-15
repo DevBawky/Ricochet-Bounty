@@ -24,6 +24,9 @@ public class PlayerBallDeck : MonoBehaviour
     public IReadOnlyList<BallDataSO> CurrentHand => currentCylinder;
     public IReadOnlyList<BallDataSO> CurrentCylinder => currentCylinder;
     public IReadOnlyList<BallDataSO> OwnedBalls => ownedBalls;
+    public IReadOnlyList<BallDataSO> StartingDeck => startingDeck;
+    public IReadOnlyList<BallDataSO> DrawPile => drawPile;
+    public IReadOnlyList<BallDataSO> DiscardPile => discardPile;
     public UnityEvent OnDeckChanged => onDeckChanged;
     public int DrawPileCount => drawPile.Count;
     public int DiscardPileCount => discardPile.Count;
@@ -66,6 +69,38 @@ public class PlayerBallDeck : MonoBehaviour
         Shuffle(drawPile);
         OnDeckChanged.Invoke();
         LogPileState("Reset complete");
+    }
+
+    public bool RestoreDeck(
+        IList<BallDataSO> restoredOwnedBalls,
+        IList<BallDataSO> restoredDrawPile,
+        IList<BallDataSO> restoredDiscardPile,
+        IList<BallDataSO> restoredCurrentCylinder)
+    {
+        if (restoredOwnedBalls == null || restoredDrawPile == null ||
+            restoredDiscardPile == null || restoredCurrentCylinder == null)
+        {
+            Debug.LogError("[PlayerBallDeck] Restore failed because one or more saved piles are null.", this);
+            return false;
+        }
+
+        if (restoredOwnedBalls.Count > MaxOwnedBallCount)
+        {
+            Debug.LogError($"[PlayerBallDeck] Restore failed. Owned ball count exceeds {MaxOwnedBallCount}.", this);
+            return false;
+        }
+
+        ownedBalls.Clear();
+        drawPile.Clear();
+        discardPile.Clear();
+        currentCylinder.Clear();
+        ownedBalls.AddRange(restoredOwnedBalls);
+        drawPile.AddRange(restoredDrawPile);
+        discardPile.AddRange(restoredDiscardPile);
+        currentCylinder.AddRange(restoredCurrentCylinder);
+        OnDeckChanged.Invoke();
+        LogPileState("Restore complete");
+        return true;
     }
 
     public void DrawBalls(int count)

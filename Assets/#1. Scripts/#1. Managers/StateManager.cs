@@ -161,11 +161,22 @@ public class StateManager : MonoBehaviour
             FindMissingReferences();
             roundSelectManager?.OnRoundSelectEntered();
         }
+
+        if (nextState != GameState.MainMenu)
+        {
+            RunSaveManager.Instance?.RequestAutoSave($"GameState changed to {nextState}");
+        }
     }
 
     // MainMenu UI의 Play Game 버튼에서 호출합니다.
     public void OnClickPlayGame()
     {
+        if (RunSaveManager.Instance != null)
+        {
+            RunSaveManager.Instance.OnClickPlayGame();
+            return;
+        }
+
         if (PlayerUpgradeManager.Instance != null)
         {
             PlayerUpgradeManager.Instance.ResetRunData();
@@ -279,6 +290,12 @@ public class StateManager : MonoBehaviour
     // GameOver UI에서 다시 시작할 때 호출합니다.
     public void OnClickRestartRun()
     {
+        if (RunSaveManager.Instance != null)
+        {
+            RunSaveManager.Instance.StartNewRunAndSave();
+            return;
+        }
+
         StopTurnCoroutines();
         ChangeBattleState(BattleState.None);
 
@@ -372,6 +389,7 @@ public class StateManager : MonoBehaviour
         }
 
         ChangeBattleState(BattleState.WaitingForPlayerInput);
+        RunSaveManager.Instance?.RequestAutoSave("Turn ready");
         Debug.Log("[StateManager] 플레이어 입력 대기 상태입니다. 이제 발사할 수 있습니다.", this);
     }
 
@@ -390,6 +408,7 @@ public class StateManager : MonoBehaviour
             return;
         }
 
+        RunSaveManager.Instance?.SaveCurrentRun("Before fire");
         FindMissingReferences();
         if (shotRuntimeContext != null)
         {
@@ -581,6 +600,8 @@ public class StateManager : MonoBehaviour
 
             roundManager.OnShotEndedWithoutEnemyDefeated();
 
+            RunSaveManager.Instance?.RequestAutoSave("Shot result and life applied");
+
             if (currentState != GameState.Battle || currentBattleState == BattleState.BattleEnd)
             {
                 resolveTurnCoroutine = null;
@@ -629,6 +650,43 @@ public class StateManager : MonoBehaviour
         yield return new WaitForSeconds(Mathf.Max(0f, nextTurnDelay));
         startNextTurnCoroutine = null;
         StartTurn();
+    }
+
+    public void RestoreLoadedState(GameState savedGameState, BattleState savedBattleState)
+    {
+        StopTurnCoroutines();
+        ClearActiveBalls();
+        currentState = savedGameState;
+        currentBattleState = savedGameState == GameState.Battle
+            ? BattleState.WaitingForPlayerInput
+            : savedBattleState == BattleState.BattleEnd ? BattleState.BattleEnd : BattleState.None;
+        RefreshUIPanels();
+
+        if (savedGameState == GameState.Battle && roundManager != null)
+        {
+            roundManager.AdjustCameraToSpawnedBattleGrid();
+            if (enemyDataHolder != null)
+            {
+                enemyDataHolder.Restore(
+                    roundManager.SelectedEnemyData,
+                    roundManager.MaximumEnemyHp,
+                    roundManager.CurrentEnemyHp);
+            }
+        }
+    }
+
+    public void ReturnToMainMenuAfterLoadFailure()
+    {
+        StopTurnCoroutines();
+        ClearActiveBalls();
+        currentBattleState = BattleState.None;
+        currentState = GameState.MainMenu;
+        if (roundManager != null)
+        {
+            roundManager.ClearSpawnedBattleGrid();
+        }
+
+        RefreshUIPanels();
     }
 
     void ShowFinalDamage(int finalDamage)
@@ -757,6 +815,21 @@ public class StateManager : MonoBehaviour
             StopCoroutine(startNextTurnCoroutine);
             startNextTurnCoroutine = null;
         }
+    }
+
+    void ClearActiveBalls()
+    {
+        Ball[] balls = FindObjectsByType<Ball>(FindObjectsSortMode.None);
+        for (int i = 0; i < balls.Length; i++)
+        {
+            if (balls[i] != null)
+            {
+                balls[i].gameObject.SetActive(false);
+                Destroy(balls[i].gameObject);
+            }
+        }
+
+        ballRegistry?.Clear();
     }
 
     void FindMissingReferences()

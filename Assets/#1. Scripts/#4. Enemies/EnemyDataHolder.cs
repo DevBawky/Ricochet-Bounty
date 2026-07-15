@@ -29,6 +29,15 @@ public class EnemyDataHolder : MonoBehaviour
         }
     }
 
+    public void Restore(EnemyData restoredEnemyData, int maximum, int current)
+    {
+        enemyData = restoredEnemyData;
+        maximumHealth = Mathf.Max(1, maximum);
+        currentHealth = enemyData != null ? Mathf.Clamp(current, 0, maximumHealth) : 0;
+        isDead = enemyData == null || currentHealth <= 0;
+        UpdateHealthBar();
+    }
+
     public void Initialize(EnemyData selectedEnemyData, int enemyHealth)
     {
         enemyData = selectedEnemyData;

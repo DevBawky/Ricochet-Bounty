@@ -8,6 +8,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Ball Data", menuName = "Ball Data")]
 public class BallDataSO : ScriptableObject
 {
+    [Header("Save Identity")]
+    [SerializeField, Tooltip("Stable ID used by run save data. If empty, the asset name is used.")]
+    string saveId;
+
     [Header("Shop")]
     [SerializeField, Tooltip("Shop purchase price.")]
     int price = 10;
@@ -73,6 +77,14 @@ public class BallDataSO : ScriptableObject
         get
         {
             return launchSpeed;
+        }
+    }
+
+    public string SaveId
+    {
+        get
+        {
+            return string.IsNullOrWhiteSpace(saveId) ? name : saveId.Trim();
         }
     }
 

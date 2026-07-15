@@ -39,6 +39,109 @@ public class BattleGridObjectSpawner : MonoBehaviour
         }
     }
 
+    public List<BattleGridObjectSaveData> CaptureSaveData()
+    {
+        List<BattleGridObjectSaveData> result = new List<BattleGridObjectSaveData>();
+        for (int i = 0; i < spawnedObjects.Count; i++)
+        {
+            GameObject spawnedObject = spawnedObjects[i];
+            if (spawnedObject == null)
+            {
+                continue;
+            }
+
+            Bumper bumper = spawnedObject.GetComponent<Bumper>();
+            result.Add(new BattleGridObjectSaveData
+            {
+                prefabId = spawnedObject.name,
+                position = spawnedObject.transform.position,
+                rotationEuler = spawnedObject.transform.eulerAngles,
+                localScale = bumper != null ? bumper.OriginalScale : spawnedObject.transform.localScale,
+                active = spawnedObject.activeSelf
+            });
+        }
+
+        return result;
+    }
+
+    public bool CanRestoreObjects(IList<BattleGridObjectSaveData> savedObjects, out string error)
+    {
+        error = string.Empty;
+        if (savedObjects == null)
+        {
+            error = "Battle Grid object list is null.";
+            return false;
+        }
+
+        for (int i = 0; i < savedObjects.Count; i++)
+        {
+            BattleGridObjectSaveData savedObject = savedObjects[i];
+            if (savedObject == null || string.IsNullOrWhiteSpace(savedObject.prefabId))
+            {
+                error = $"Battle Grid object {i} has no prefab ID.";
+                return false;
+            }
+
+            if (FindSpawnPrefab(savedObject.prefabId) == null)
+            {
+                error = $"Battle Grid object prefab ID '{savedObject.prefabId}' was not found.";
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public bool RestoreObjects(IList<BattleGridObjectSaveData> savedObjects)
+    {
+        if (!CanRestoreObjects(savedObjects, out string error))
+        {
+            Debug.LogError($"[BattleGridObjectSpawner] Restore failed. {error}", this);
+            return false;
+        }
+
+        ClearSpawnedObjects();
+        Transform parent = spawnedObjectParent != null ? spawnedObjectParent : transform;
+        for (int i = 0; i < savedObjects.Count; i++)
+        {
+            BattleGridObjectSaveData savedObject = savedObjects[i];
+            GameObject prefab = FindSpawnPrefab(savedObject.prefabId);
+            GameObject instance = Instantiate(
+                prefab,
+                savedObject.position,
+                Quaternion.Euler(savedObject.rotationEuler),
+                parent);
+            instance.name = prefab.name;
+            instance.transform.localScale = savedObject.localScale;
+            instance.SetActive(savedObject.active);
+            spawnedObjects.Add(instance);
+            spawnedPositions.Add(savedObject.position);
+        }
+
+        lastRequestedCount = spawnedObjects.Count;
+        lastFailedAttempts = 0;
+        return true;
+    }
+
+    public GameObject FindSpawnPrefab(string prefabId)
+    {
+        if (spawnPrefabs == null || string.IsNullOrWhiteSpace(prefabId))
+        {
+            return null;
+        }
+
+        for (int i = 0; i < spawnPrefabs.Count; i++)
+        {
+            GameObject prefab = spawnPrefabs[i];
+            if (prefab != null && prefab.name == prefabId)
+            {
+                return prefab;
+            }
+        }
+
+        return null;
+    }
+
     public void SpawnObjects()
     {
         ClearSpawnedObjects();
@@ -174,6 +277,7 @@ public class BattleGridObjectSpawner : MonoBehaviour
 
             if (Application.isPlaying)
             {
+                spawnedObject.SetActive(false);
                 Destroy(spawnedObject);
             }
             else

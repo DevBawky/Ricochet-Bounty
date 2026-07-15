@@ -80,6 +80,55 @@ public class RoundSelectManager : MonoBehaviour
         }
     }
 
+    public RoundSelectSaveData CaptureSaveData()
+    {
+        RoundSelectSaveData data = new RoundSelectSaveData
+        {
+            selectionLocked = selectionLocked
+        };
+
+        FindCards();
+        if (cards != null)
+        {
+            for (int i = 0; i < cards.Length; i++)
+            {
+                if (cards[i] != null && cards[i].gameObject.activeSelf)
+                {
+                    data.displayedWaveTypes.Add(cards[i].DisplayedWaveType);
+                }
+            }
+        }
+
+        return data;
+    }
+
+    public void RestoreSaveData(RoundSelectSaveData data)
+    {
+        FindCards();
+        selectionLocked = data != null && data.selectionLocked;
+        if (cards == null || data == null || data.displayedWaveTypes == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < cards.Length; i++)
+        {
+            if (cards[i] == null)
+            {
+                continue;
+            }
+
+            if (i < data.displayedWaveTypes.Count)
+            {
+                cards[i].Configure(GetSettings(data.displayedWaveTypes[i]), this);
+            }
+            else
+            {
+                cards[i].SetVisible(false);
+            }
+        }
+    }
+
     void ShowBossSelection()
     {
         WaveTypeSettings bossSettings = GetSettings(WaveType.Boss);
