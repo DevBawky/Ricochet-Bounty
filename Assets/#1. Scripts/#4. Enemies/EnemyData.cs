@@ -9,9 +9,6 @@ public class EnemyData : ScriptableObject
     [Header("Visual")]
     [SerializeField] Sprite enemySprite;
 
-    [Header("Stats")]
-    [SerializeField] int maxHealth = 10;
-
     [Header("Round")]
     [SerializeField] bool isBoss;
 
@@ -28,14 +25,6 @@ public class EnemyData : ScriptableObject
         get
         {
             return string.IsNullOrWhiteSpace(enemyName) ? name : enemyName;
-        }
-    }
-
-    public int MaxHealth
-    {
-        get
-        {
-            return maxHealth;
         }
     }
 

@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: AEGIS9
   enemySprite: {fileID: 21300000, guid: 31d026ac22d8bdb4c91dad6f7a3deb63, type: 3}
-  maxHealth: 10000
   isBoss: 1

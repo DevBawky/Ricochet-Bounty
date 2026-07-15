@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Flux Collector
   enemySprite: {fileID: 21300000, guid: 1e8e1b818c2a9164884a346ddb4a3a4e, type: 3}
-  maxHealth: 4000
   isBoss: 0

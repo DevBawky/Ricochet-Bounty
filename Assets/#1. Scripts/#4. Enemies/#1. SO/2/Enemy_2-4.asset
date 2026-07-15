@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Prism Guard
   enemySprite: {fileID: 21300000, guid: 0780b6a36f02a3f4b9515f92097be5c3, type: 3}
-  maxHealth: 5000
   isBoss: 0

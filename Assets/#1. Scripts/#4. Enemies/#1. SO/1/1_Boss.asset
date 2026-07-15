@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Alley Hound 9000
   enemySprite: {fileID: 21300000, guid: b88a71190b1125a4281bd9936d04e6c6, type: 3}
-  maxHealth: 10000
   isBoss: 1

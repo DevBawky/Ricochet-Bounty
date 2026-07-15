@@ -161,9 +161,16 @@ public class StateManager : MonoBehaviour
     // RoundSelect UI의 Battle 선택 버튼에서 호출합니다.
     public void OnClickSelectBattle()
     {
+        FindMissingReferences();
+
         if (roundManager != null)
         {
             roundManager.PrepareCurrentWaveBattle();
+
+            if (enemyDataHolder != null && roundManager.SelectedEnemyData != null)
+            {
+                enemyDataHolder.Initialize(roundManager.SelectedEnemyData, roundManager.MaximumEnemyHp);
+            }
         }
 
         ChangeState(GameState.Battle);

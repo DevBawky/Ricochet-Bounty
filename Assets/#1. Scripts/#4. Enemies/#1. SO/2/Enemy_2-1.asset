@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Velo City Courier
   enemySprite: {fileID: 21300000, guid: e216ad2704f07fd4a8a28775ec674b74, type: 3}
-  maxHealth: 3300
   isBoss: 0

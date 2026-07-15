@@ -12,6 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 465191d13055fc7418f3fa8733a71d0b, type: 3}
   m_Name: Stage 5
   m_EditorClassIdentifier: Assembly-CSharp::StageData
+  enemyHealthByWave:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
   enemyCandidates:
   - {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}
   - {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}

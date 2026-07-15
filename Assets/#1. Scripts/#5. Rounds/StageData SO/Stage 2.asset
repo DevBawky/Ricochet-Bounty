@@ -12,15 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 465191d13055fc7418f3fa8733a71d0b, type: 3}
   m_Name: Stage 2
   m_EditorClassIdentifier: Assembly-CSharp::StageData
+  enemyHealthByWave: e40c0000a00f00003011000088130000a816000010270000
   enemyCandidates:
-  - {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}
-  - {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}
-  - {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}
-  - {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}
+  - {fileID: 11400000, guid: de7ad5dc427b6104ab4d1aca6a5d4eb1, type: 2}
+  - {fileID: 11400000, guid: 40f3cd1aad29d7e4097b7d868b1d76d9, type: 2}
+  - {fileID: 11400000, guid: 7d26ad59d1424d44ab18281ac81cabcd, type: 2}
+  - {fileID: 11400000, guid: 98c34e4d8ec41dd4aaa0e890496bbab0, type: 2}
+  - {fileID: 11400000, guid: 1f14a0ad0b0e1154d967070f8a64b0a2, type: 2}
   battleGridCandidates:
-  - {fileID: 5726141693149781847, guid: 246534feb05ab5f4aa13abd236bcabf3, type: 3}
-  - {fileID: 5726141693149781847, guid: 246534feb05ab5f4aa13abd236bcabf3, type: 3}
-  - {fileID: 5726141693149781847, guid: 246534feb05ab5f4aa13abd236bcabf3, type: 3}
-  - {fileID: 5726141693149781847, guid: 246534feb05ab5f4aa13abd236bcabf3, type: 3}
-  bossEnemy: {fileID: 11400000, guid: 33088e92769eef646beab661835d0213, type: 2}
-  bossBattleGrid: {fileID: 5726141693149781847, guid: 246534feb05ab5f4aa13abd236bcabf3, type: 3}
+  - {fileID: 5196045939092371683, guid: 5010bf92ae44079478e1b37b2dce04b4, type: 3}
+  - {fileID: 5196045939092371683, guid: 4a1bfd469c952f64d85285d4ee2227b3, type: 3}
+  - {fileID: 5196045939092371683, guid: 5a411907b4e4d644c92914d761c63e5e, type: 3}
+  - {fileID: 5196045939092371683, guid: b6ff80244a625b14babe3316707d6a01, type: 3}
+  bossEnemy: {fileID: 11400000, guid: 5cc5547ca607830458b223edb211b1a7, type: 2}
+  bossBattleGrid: {fileID: 5196045939092371683, guid: 84c7574febf02284aaf927a73e678fbc, type: 3}

@@ -263,8 +263,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Defeat enemies and earn new rewards!
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 782fbf4d2ffebec4f9d8d52c82ecb04a, type: 2}
-  m_sharedMaterial: {fileID: -3530011570356485383, guid: 782fbf4d2ffebec4f9d8d52c82ecb04a, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -288,7 +288,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 45.95
+  m_fontSize: 18
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -400,8 +400,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Beat Enemy
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 782fbf4d2ffebec4f9d8d52c82ecb04a, type: 2}
-  m_sharedMaterial: {fileID: -3530011570356485383, guid: 782fbf4d2ffebec4f9d8d52c82ecb04a, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -425,7 +425,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 49.8
+  m_fontSize: 18
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -481,7 +481,6 @@ GameObject:
   - component: {fileID: 5889433810356467935}
   - component: {fileID: 6676674676915501313}
   - component: {fileID: 8364085752718984176}
-  - component: {fileID: 9191572344453878872}
   m_Layer: 5
   m_Name: Stage Select Panel
   m_TagString: Untagged
@@ -550,33 +549,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &9191572344453878872
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7619242031764307174}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 906240358ec2328488f38e1d9b83b799, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _panelImage: {fileID: 8364085752718984176}
-  _stageIconImage: {fileID: 5630673158645643793}
-  _roomTypeText: {fileID: 8159834885385661869}
-  _descriptionText: {fileID: 6511321789227131241}
-  _goStageButton: {fileID: 1904205381306737347}
-  _normalSprite: {fileID: -6087145111136432132, guid: 4494a1bff5329ea4f91ad345ebdabb80, type: 3}
-  _treasureSprite: {fileID: 850810456245385814, guid: 4494a1bff5329ea4f91ad345ebdabb80, type: 3}
-  _eventSprite: {fileID: 1071667594346908803, guid: 4494a1bff5329ea4f91ad345ebdabb80, type: 3}
-  _shopSprite: {fileID: 6571973182483461542, guid: 4494a1bff5329ea4f91ad345ebdabb80, type: 3}
-  _bossSprite: {fileID: 7789645867280137733, guid: 4494a1bff5329ea4f91ad345ebdabb80, type: 3}
-  _normalIconSprite: {fileID: 1345598292, guid: fb1baa2719696bb41bd7f138e7b0dcc2, type: 3}
-  _treasureIconSprite: {fileID: -2136333250, guid: fb1baa2719696bb41bd7f138e7b0dcc2, type: 3}
-  _eventIconSprite: {fileID: -1648826688, guid: fb1baa2719696bb41bd7f138e7b0dcc2, type: 3}
-  _shopIconSprite: {fileID: 883420785, guid: fb1baa2719696bb41bd7f138e7b0dcc2, type: 3}
-  _bossIconSprite: {fileID: -1695940581, guid: fb1baa2719696bb41bd7f138e7b0dcc2, type: 3}
 --- !u!1 &8242945021155070826
 GameObject:
   m_ObjectHideFlags: 0
@@ -644,8 +616,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: GO!
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 782fbf4d2ffebec4f9d8d52c82ecb04a, type: 2}
-  m_sharedMaterial: {fileID: -3530011570356485383, guid: 782fbf4d2ffebec4f9d8d52c82ecb04a, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

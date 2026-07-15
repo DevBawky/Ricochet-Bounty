@@ -956,7 +956,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2143039963330679603, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_Name
-      value: Canvas (1)
+      value: Canvas
       objectReference: {fileID: 0}
     - target: {fileID: 2143039963330679603, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_IsActive
@@ -2362,6 +2362,7 @@ MonoBehaviour:
   selectedEnemyData: {fileID: 0}
   selectedBattleGridPrefab: {fileID: 0}
   spawnedBattleGrid: {fileID: 0}
+  maximumEnemyHp: 0
   currentEnemyHp: 0
   maxPlayerLife: 5
   currentPlayerLife: 0

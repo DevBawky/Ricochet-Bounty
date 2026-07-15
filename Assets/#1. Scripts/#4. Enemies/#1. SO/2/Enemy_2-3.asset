@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Holo Promoter
   enemySprite: {fileID: 21300000, guid: 16fd2fdfaafa58b448f30d1a7a4a68dc, type: 3}
-  maxHealth: 4400
   isBoss: 0

@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Zip Runner Z-02
   enemySprite: {fileID: 21300000, guid: 3374190607f699b4386bf85e17740c2a, type: 3}
-  maxHealth: 1200
   isBoss: 0

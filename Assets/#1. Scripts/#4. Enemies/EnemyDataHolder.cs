@@ -11,6 +11,7 @@ public class EnemyDataHolder : MonoBehaviour
     [SerializeField] Image healthBarImage;
 
     bool isDead;
+    int maximumHealth;
 
     public bool IsDead
     {
@@ -28,13 +29,11 @@ public class EnemyDataHolder : MonoBehaviour
         }
     }
 
-    void Start()
+    public void Initialize(EnemyData selectedEnemyData, int enemyHealth)
     {
-        Initialize();
-    }
+        enemyData = selectedEnemyData;
+        maximumHealth = Mathf.Max(1, enemyHealth);
 
-    public void Initialize()
-    {
         if (enemyData == null)
         {
             Debug.LogWarning("[EnemyDataHolder] EnemyData가 연결되어 있지 않아 체력을 초기화할 수 없습니다.", this);
@@ -44,11 +43,11 @@ public class EnemyDataHolder : MonoBehaviour
             return;
         }
 
-        currentHealth = Mathf.Max(0, enemyData.MaxHealth);
+        currentHealth = maximumHealth;
         isDead = currentHealth <= 0;
         UpdateHealthBar();
 
-        Debug.Log($"[EnemyDataHolder] 적 체력 초기화 완료. maxHealth: {enemyData.MaxHealth}, currentHealth: {currentHealth}, IsDead: {IsDead}", this);
+        Debug.Log($"[EnemyDataHolder] 적 체력 초기화 완료. maxHealth: {maximumHealth}, currentHealth: {currentHealth}, IsDead: {IsDead}", this);
     }
 
     public void TakeDamage(int damage)
@@ -106,11 +105,11 @@ public class EnemyDataHolder : MonoBehaviour
 
     float GetHealthFillAmount()
     {
-        if (enemyData == null || enemyData.MaxHealth <= 0)
+        if (enemyData == null || maximumHealth <= 0)
         {
             return 0f;
         }
 
-        return Mathf.Clamp01((float)currentHealth / enemyData.MaxHealth);
+        return Mathf.Clamp01((float)currentHealth / maximumHealth);
     }
 }

@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Med-Tech Attendant
   enemySprite: {fileID: 21300000, guid: 7156ae59b401bae4daf60c8edc6d61a6, type: 3}
-  maxHealth: 5800
   isBoss: 0

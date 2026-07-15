@@ -38,6 +38,7 @@ public class RoundManager : MonoBehaviour
     [SerializeField] EnemyData selectedEnemyData;
     [SerializeField] GameObject selectedBattleGridPrefab;
     [SerializeField] GameObject spawnedBattleGrid;
+    [SerializeField] int maximumEnemyHp;
     [SerializeField] int currentEnemyHp;
 
     [Header("Player Life")]
@@ -91,6 +92,14 @@ public class RoundManager : MonoBehaviour
         get
         {
             return currentPlayerLife;
+        }
+    }
+
+    public int MaximumEnemyHp
+    {
+        get
+        {
+            return maximumEnemyHp;
         }
     }
 
@@ -177,7 +186,21 @@ public class RoundManager : MonoBehaviour
             selectedBattleGridPrefab = PickRandomBattleGrid(currentStageData.BattleGridCandidates);
         }
 
-        currentEnemyHp = selectedEnemyData != null ? Mathf.Max(0, selectedEnemyData.MaxHealth) : 0;
+        int currentWaveIndex = roundProgress.CurrentWaveIndex;
+        currentStageData.TryGetEnemyHealth(currentWaveIndex, out maximumEnemyHp);
+
+        if (selectedEnemyData == null)
+        {
+            maximumEnemyHp = 0;
+            currentEnemyHp = 0;
+            Debug.LogWarning($"[RoundManager] Stage {roundProgress.CurrentStageIndex + 1}, Wave {currentWaveIndex + 1}에서 선택할 EnemyData가 없습니다.", this);
+        }
+        else
+        {
+            maximumEnemyHp = Mathf.Max(1, maximumEnemyHp);
+            currentEnemyHp = maximumEnemyHp;
+        }
+
         RefreshRoundUI();
         RefreshTargetUI();
 
@@ -594,7 +617,7 @@ public class RoundManager : MonoBehaviour
             }
             else
             {
-                targetEnemyHpText.text = $"{currentEnemyHp} / {selectedEnemyData.MaxHealth}";
+                targetEnemyHpText.text = $"{currentEnemyHp} / {maximumEnemyHp}";
             }
         }
 
@@ -612,12 +635,12 @@ public class RoundManager : MonoBehaviour
 
     float GetCurrentEnemyHpRatio()
     {
-        if (selectedEnemyData == null || selectedEnemyData.MaxHealth <= 0)
+        if (selectedEnemyData == null || maximumEnemyHp <= 0)
         {
             return 0f;
         }
 
-        return Mathf.Clamp01((float)currentEnemyHp / selectedEnemyData.MaxHealth);
+        return Mathf.Clamp01((float)currentEnemyHp / maximumEnemyHp);
     }
 
     void ClearSelectedBattleData()
@@ -625,6 +648,7 @@ public class RoundManager : MonoBehaviour
         ClearSpawnedBattleGrid();
         selectedEnemyData = null;
         selectedBattleGridPrefab = null;
+        maximumEnemyHp = 0;
         currentEnemyHp = 0;
     }
 
