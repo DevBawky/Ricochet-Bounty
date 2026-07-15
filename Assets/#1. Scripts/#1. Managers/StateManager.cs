@@ -35,6 +35,8 @@ public class StateManager : MonoBehaviour
 
     [Header("References")]
     [SerializeField] DamageManager damageManager;
+    [SerializeField] BallRegistry ballRegistry;
+    [SerializeField] ShotRuntimeContext shotRuntimeContext;
     [SerializeField] DamageUI damageUI;
     [SerializeField] EnemyDataHolder enemyDataHolder;
     [SerializeField] BallSpawner ballSpawner;
@@ -388,6 +390,16 @@ public class StateManager : MonoBehaviour
             return;
         }
 
+        FindMissingReferences();
+        if (shotRuntimeContext != null)
+        {
+            shotRuntimeContext.ResetShot();
+        }
+        else
+        {
+            Debug.LogWarning("[StateManager] ShotRuntimeContext가 없어 발사 단위 상태를 초기화할 수 없습니다.", this);
+        }
+
         ChangeBattleState(BattleState.Firing);
         Debug.Log("[StateManager] 플레이어 발사 시작 알림 수신. 전투 상태를 Firing으로 변경했습니다.", this);
     }
@@ -416,6 +428,26 @@ public class StateManager : MonoBehaviour
         if (currentBattleState != BattleState.WaitingForBalls)
         {
             Debug.Log($"[StateManager] Ball 감지를 건너뜁니다. 현재 전투 상태: {currentBattleState}", this);
+            return;
+        }
+
+        FindMissingReferences();
+        if (ballRegistry != null)
+        {
+            int activeBallCount = ballRegistry.ActiveBallCount;
+            Debug.Log($"[StateManager] BallRegistry 활성 탄환 수: {activeBallCount}", this);
+
+            if (activeBallCount <= 0)
+            {
+                if (checkBallsCoroutine != null)
+                {
+                    StopCoroutine(checkBallsCoroutine);
+                    checkBallsCoroutine = null;
+                }
+
+                ResolveTurnResult();
+            }
+
             return;
         }
 
@@ -521,6 +553,11 @@ public class StateManager : MonoBehaviour
         int finalDamage = 0;
         if (damageManager != null)
         {
+            if (shotRuntimeContext != null)
+            {
+                shotRuntimeContext.ApplyDividendBonus(damageManager);
+            }
+
             finalDamage = damageManager.CalculateFinalScore();
         }
         else
@@ -534,6 +571,7 @@ public class StateManager : MonoBehaviour
         if (roundManager != null && roundManager.SelectedEnemyData != null)
         {
             roundManager.ApplyDamageToCurrentEnemy(finalDamage);
+            ResetResolvedShot();
 
             if (roundManager.CurrentEnemyHp <= 0)
             {
@@ -552,6 +590,7 @@ public class StateManager : MonoBehaviour
         else if (enemyDataHolder != null)
         {
             enemyDataHolder.TakeDamage(finalDamage);
+            ResetResolvedShot();
             Debug.Log($"[StateManager] 적 생존 여부 확인. IsDead: {enemyDataHolder.IsDead}", this);
 
             if (enemyDataHolder.IsDead)
@@ -564,10 +603,24 @@ public class StateManager : MonoBehaviour
         else
         {
             Debug.LogWarning("[StateManager] EnemyDataHolder가 없어 적에게 대미지를 적용할 수 없습니다. 다음 턴으로 진행합니다.", this);
+            ResetResolvedShot();
         }
 
         resolveTurnCoroutine = null;
         EndTurn();
+    }
+
+    void ResetResolvedShot()
+    {
+        if (damageManager != null)
+        {
+            damageManager.ResetScore();
+        }
+
+        if (shotRuntimeContext != null)
+        {
+            shotRuntimeContext.ResetShot();
+        }
     }
 
     IEnumerator StartNextTurnAfterDelay()
@@ -711,6 +764,16 @@ public class StateManager : MonoBehaviour
         if (damageManager == null)
         {
             damageManager = FindFirstObjectByType<DamageManager>();
+        }
+
+        if (ballRegistry == null)
+        {
+            ballRegistry = FindFirstObjectByType<BallRegistry>();
+        }
+
+        if (shotRuntimeContext == null)
+        {
+            shotRuntimeContext = FindFirstObjectByType<ShotRuntimeContext>();
         }
 
         if (damageUI == null)

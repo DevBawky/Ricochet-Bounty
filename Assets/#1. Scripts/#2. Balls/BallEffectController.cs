@@ -11,6 +11,8 @@ public class BallEffectController : MonoBehaviour
     [Header("References")]
     [SerializeField] DamageManager damageManager;
     [SerializeField] GoldManager goldManager;
+    [SerializeField] BallRegistry ballRegistry;
+    [SerializeField] ShotRuntimeContext shotRuntimeContext;
 
     [Header("Options")]
     [SerializeField] bool triggerSpawnEffectsOnEnable = true;
@@ -27,6 +29,11 @@ public class BallEffectController : MonoBehaviour
     [SerializeField] int linkedCashOutStack;
     [SerializeField] int linkedStack;
     [SerializeField] int linkedOverheat;
+    [SerializeField] bool isColonyChild;
+    [SerializeField] bool breedingAttempted;
+    [SerializeField] bool dividendRegistered;
+    [SerializeField] int highPopulationObjectHits;
+    [SerializeField] int goldEarnedByThisBall;
 
     static bool isCreatingSplitBall;
     public static bool SuppressSpawnEffectsOnEnable;
@@ -103,6 +110,16 @@ public class BallEffectController : MonoBehaviour
             goldManager = FindFirstObjectByType<GoldManager>();
         }
 
+        if (ballRegistry == null)
+        {
+            ballRegistry = FindFirstObjectByType<BallRegistry>();
+        }
+
+        if (shotRuntimeContext == null)
+        {
+            shotRuntimeContext = FindFirstObjectByType<ShotRuntimeContext>();
+        }
+
         if (!ballDataManager.ValidateData())
         {
             return;
@@ -129,6 +146,12 @@ public class BallEffectController : MonoBehaviour
         canSplit = false;
     }
 
+    public void ConfigureAsColonyChild()
+    {
+        isColonyChild = true;
+        canSplit = false;
+    }
+
     public void TriggerSpawnEffects()
     {
         TriggerEffects(BallEffectTrigger.OnSpawn);
@@ -136,6 +159,12 @@ public class BallEffectController : MonoBehaviour
 
     public void TriggerObjectHitEffects()
     {
+        RefreshMissingManagerReferences();
+        if (isColonyChild && damageManager != null)
+        {
+            damageManager.AddChips(1);
+        }
+
         TriggerEffects(BallEffectTrigger.OnObjectHit);
     }
 
@@ -251,6 +280,22 @@ public class BallEffectController : MonoBehaviour
             case BallEffectType.OverheatEffect:
                 ExecuteOverheatEffect(effectData, state.Trigger);
                 break;
+
+            case BallEffectType.BreedOnFirstWallHit:
+                ExecuteBreedOnFirstWallHit(state.Trigger);
+                break;
+
+            case BallEffectType.SwarmPopulation:
+                ExecuteSwarmPopulation(state.Trigger);
+                break;
+
+            case BallEffectType.CompoundBounty:
+                ExecuteCompoundBounty(state.Trigger);
+                break;
+
+            case BallEffectType.Dividend:
+                ExecuteDividend(state.Trigger);
+                break;
         }
     }
 
@@ -281,11 +326,28 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
-        ExecuteSplitBallCount(splitCount);
+        ExecuteSplitBallCount(splitCount, false);
     }
 
-    void ExecuteSplitBallCount(int splitCount)
+    void ExecuteSplitBallCount(int splitCount, bool createColonyChildren)
     {
+        if (splitCount <= 0)
+        {
+            return;
+        }
+
+        RefreshMissingManagerReferences();
+
+        if (ballRegistry != null)
+        {
+            splitCount = Mathf.Min(splitCount, ballRegistry.AvailableSlots);
+        }
+        else if (createColonyChildren)
+        {
+            Debug.LogWarning("[BallEffectController] BallRegistry is required to enforce the colony population limit. Breeding was skipped.", this);
+            return;
+        }
+
         if (splitCount <= 0)
         {
             return;
@@ -313,13 +375,24 @@ public class BallEffectController : MonoBehaviour
                 BallRuntimeStatus splitRuntimeStatus = splitBall.GetComponent<BallRuntimeStatus>();
                 if (splitRuntimeStatus != null)
                 {
-                    splitRuntimeStatus.Initialize();
+                    if (createColonyChildren)
+                    {
+                        splitRuntimeStatus.InitializeAsChild(1);
+                    }
+                    else
+                    {
+                        splitRuntimeStatus.Initialize();
+                    }
                 }
 
                 BallEffectController splitEffectController = splitBall.GetComponent<BallEffectController>();
                 if (splitEffectController != null)
                 {
                     splitEffectController.DisableSplit();
+                    if (createColonyChildren)
+                    {
+                        splitEffectController.ConfigureAsColonyChild();
+                    }
                     splitEffectController.Initialize();
                 }
 
@@ -521,8 +594,132 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
+        GrantBallGold(amount, "AddGold", true);
+    }
+
+    void ExecuteBreedOnFirstWallHit(BallEffectTrigger trigger)
+    {
+        if (trigger != BallEffectTrigger.OnWallHit || breedingAttempted || isColonyChild)
+        {
+            return;
+        }
+
+        // The first wall hit consumes breeding even when the registry has no free slots.
+        breedingAttempted = true;
+        ExecuteSplitBallCount(2, true);
+    }
+
+    void ExecuteSwarmPopulation(BallEffectTrigger trigger)
+    {
+        if (trigger != BallEffectTrigger.OnObjectHit || damageManager == null)
+        {
+            return;
+        }
+
+        RefreshMissingManagerReferences();
+        if (ballRegistry == null)
+        {
+            Debug.LogWarning("[BallEffectController] BallRegistry was not found. SwarmPopulation cannot run.", this);
+            return;
+        }
+
+        int activeBallCount = ballRegistry.ActiveBallCount;
+        int chips = activeBallCount >= 9 ? 4 : activeBallCount >= 6 ? 3 : 2;
+        damageManager.AddChips(chips);
+
+        if (activeBallCount < 9)
+        {
+            return;
+        }
+
+        highPopulationObjectHits++;
+        if (highPopulationObjectHits % 3 == 0)
+        {
+            damageManager.AddMultiplier(0.2f);
+        }
+    }
+
+    void ExecuteCompoundBounty(BallEffectTrigger trigger)
+    {
+        if (goldManager == null || damageManager == null)
+        {
+            return;
+        }
+
+        int gold = goldManager.CurrentGold;
+        if (trigger == BallEffectTrigger.OnObjectHit)
+        {
+            int chips = Mathf.Clamp(gold / 5 + 1, 1, 5);
+            damageManager.AddChips(chips);
+            return;
+        }
+
+        if (trigger != BallEffectTrigger.OnDestroy)
+        {
+            return;
+        }
+
+        float multiplier = gold >= 30 ? 0.6f : gold >= 20 ? 0.4f : gold >= 10 ? 0.2f : 0f;
+        if (multiplier > 0f)
+        {
+            damageManager.AddMultiplier(multiplier);
+        }
+    }
+
+    void ExecuteDividend(BallEffectTrigger trigger)
+    {
+        if (trigger != BallEffectTrigger.OnSpawn || dividendRegistered)
+        {
+            return;
+        }
+
+        RefreshMissingManagerReferences();
+        if (shotRuntimeContext == null)
+        {
+            Debug.LogWarning("[BallEffectController] ShotRuntimeContext was not found. Dividend registration was skipped.", this);
+            return;
+        }
+
+        dividendRegistered = true;
+        shotRuntimeContext.RegisterDividendBall();
+    }
+
+    void GrantBallGold(int requestedAmount, string context, bool enforceGoldenBallCap)
+    {
+        RefreshMissingManagerReferences();
+        if (goldManager == null || requestedAmount <= 0)
+        {
+            return;
+        }
+
+        if (isColonyChild)
+        {
+            Debug.Log($"[BallEffectController] Colony child {name} cannot earn gold. Context: {context}", this);
+            return;
+        }
+
+        const int MaxGoldPerBall = 2;
+        int amount = enforceGoldenBallCap
+            ? Mathf.Min(requestedAmount, MaxGoldPerBall - goldEarnedByThisBall)
+            : requestedAmount;
+        if (amount <= 0)
+        {
+            return;
+        }
+
         goldManager.AddGold(amount);
-        Debug.Log($"[BallEffectController] {name} granted {amount} gold.", this);
+        if (enforceGoldenBallCap)
+        {
+            goldEarnedByThisBall += amount;
+        }
+
+        if (shotRuntimeContext != null)
+        {
+            shotRuntimeContext.RecordGoldEarned(amount);
+        }
+
+        string capLog = enforceGoldenBallCap ? $" ({goldEarnedByThisBall}/{MaxGoldPerBall})" : string.Empty;
+        Debug.Log($"[BallEffectController] {name} granted {amount} gold{capLog}. Context: {context}", this);
     }
 
     void ExecuteStackCashOutChips(BallEffectData effectData, BallEffectTrigger trigger)
@@ -920,7 +1117,7 @@ public class BallEffectController : MonoBehaviour
         }
 
         int splitCount = Mathf.Clamp(Mathf.RoundToInt(Mathf.Max(0f, value)), 0, 20);
-        ExecuteSplitBallCount(splitCount);
+        ExecuteSplitBallCount(splitCount, false);
     }
 
     void ExecuteRewardAddGold(float value, string context)
@@ -937,8 +1134,7 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
-        goldManager.AddGold(amount);
-        Debug.Log($"[BallEffectController] {name} granted linked reward gold: {amount}. Context: {context}", this);
+        GrantBallGold(amount, context, false);
     }
 
     void BuildRuntimeStates()
@@ -953,6 +1149,10 @@ public class BallEffectController : MonoBehaviour
         linkedCashOutStack = 0;
         linkedStack = 0;
         linkedOverheat = 0;
+        breedingAttempted = false;
+        dividendRegistered = false;
+        highPopulationObjectHits = 0;
+        goldEarnedByThisBall = 0;
 
         AddRuntimeStates(BallData.SpawnEffects, BallEffectTrigger.OnSpawn);
         AddRuntimeStates(BallData.ObjectHitEffects, BallEffectTrigger.OnObjectHit);
@@ -970,6 +1170,16 @@ public class BallEffectController : MonoBehaviour
         if (goldManager == null)
         {
             goldManager = FindFirstObjectByType<GoldManager>();
+        }
+
+        if (ballRegistry == null)
+        {
+            ballRegistry = FindFirstObjectByType<BallRegistry>();
+        }
+
+        if (shotRuntimeContext == null)
+        {
+            shotRuntimeContext = FindFirstObjectByType<ShotRuntimeContext>();
         }
     }
 

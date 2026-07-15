@@ -26,6 +26,7 @@ public class Ball : MonoBehaviour
     BallDataManager _ballDataManager;
     BallRuntimeStatus _runtimeStatus;
     BallEffectController _effectController;
+    BallRegistry _ballRegistry;
     Vector2 _lastVelocity;
     Vector2 _lastMoveDirection = Vector2.right;
     float _lastWallHitSystemTime = -999f;
@@ -60,15 +61,22 @@ public class Ball : MonoBehaviour
         // 풀에서 다시 활성화되거나 실행 중인 공을 복제해도 이전 발사/파동 상태를 이어받지 않습니다.
         _hasExternalLaunch = false;
         ResetWaveMovement(_lastMoveDirection);
+        RegisterWithBallRegistry();
     }
 
     void OnDisable()
     {
+        if (_ballRegistry != null)
+        {
+            _ballRegistry.Unregister(this);
+        }
+
         ResetWaveMovement(_lastMoveDirection);
     }
 
     void Start()
     {
+        RegisterWithBallRegistry();
         // 생성 직후에는 아직 충돌이 없을 수 있으므로, 생성 시점부터 무충돌 파괴 타이머를 시작합니다.
         ResetNoCollisionDestroyTimer();
         ApplyBallDataLaunchSpeed();
@@ -302,6 +310,19 @@ public class Ball : MonoBehaviour
         if (_runtimeStatus != null)
         {
             _runtimeStatus.ApplyWallHitDurabilityDamage();
+        }
+    }
+
+    void RegisterWithBallRegistry()
+    {
+        if (_ballRegistry == null)
+        {
+            _ballRegistry = FindFirstObjectByType<BallRegistry>();
+        }
+
+        if (_ballRegistry != null)
+        {
+            _ballRegistry.Register(this);
         }
     }
 

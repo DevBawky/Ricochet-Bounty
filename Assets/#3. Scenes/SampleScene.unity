@@ -497,6 +497,8 @@ GameObject:
   m_Component:
   - component: {fileID: 500031833}
   - component: {fileID: 500031832}
+  - component: {fileID: 500031834}
+  - component: {fileID: 500031835}
   m_Layer: 0
   m_Name: StateManager
   m_TagString: Untagged
@@ -519,6 +521,8 @@ MonoBehaviour:
   currentState: 0
   currentBattleState: 0
   damageManager: {fileID: 851381630}
+  ballRegistry: {fileID: 500031834}
+  shotRuntimeContext: {fileID: 500031835}
   damageUI: {fileID: 437536097}
   enemyDataHolder: {fileID: 0}
   ballSpawner: {fileID: 648819986}
@@ -556,6 +560,32 @@ Transform:
   m_Children: []
   m_Father: {fileID: 860666543}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &500031834
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500031831}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24b872ba0e53492da84b7a50027ad243, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallRegistry
+  maxActiveBallCount: 12
+--- !u!114 &500031835
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500031831}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e46f5bca42b43f89ffeb02ed3b5edae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShotRuntimeContext
+  dividendMultiplierPerGold: 0.2
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -922,13 +952,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBallDeck
   startingDeck:
-  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
-  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
-  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
-  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
-  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
-  - {fileID: 11400000, guid: 1c1b079b017344568837a7695529b145, type: 2}
-  - {fileID: 11400000, guid: 4fc753f78ca64011bcda465e40fbce2d, type: 2}
+  - {fileID: 11400000, guid: 5ad82f3b933d4929b25c6fd4671bb00e, type: 2}
+  - {fileID: 11400000, guid: 5ad82f3b933d4929b25c6fd4671bb00e, type: 2}
+  - {fileID: 11400000, guid: 5ad82f3b933d4929b25c6fd4671bb00e, type: 2}
+  - {fileID: 11400000, guid: 5ccb61b870624f37a212b43c2d00c948, type: 2}
+  - {fileID: 11400000, guid: d0b2085e84b7425385bc8312136c0387, type: 2}
   ownedBalls: []
   drawPile: []
   discardPile: []

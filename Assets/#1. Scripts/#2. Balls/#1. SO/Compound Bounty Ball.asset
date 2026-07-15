@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
+  m_Name: Compound Bounty Ball
+  m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
+  price: 10
+  rarity: 0
+  ValueType: 0
+  Score: 1
+  ballColor: {r: 1, g: 1, b: 1, a: 1}
+  ballSprite: {fileID: -4702091335822192148, guid: 5c1c59b0a3eea044ea33d6f4fa3353b5, type: 3}
+  launchSpeed: 10
+  movementType: 0
+  waveAmplitude: 0.5
+  waveFrequency: 1
+  maxDurability: 5
+  wallHitDurabilityDamage: 1
+  objectHitDurabilityDamage: 1
+  spawnEffects: []
+  objectHitEffects:
+  - effectType: 16
+    triggerChance: 1
+    cooldown: 0
+    maxTriggerCount: 0
+    minValue: 1
+    maxValue: 1
+  wallHitEffects: []
+  destroyEffects:
+  - effectType: 16
+    triggerChance: 1
+    cooldown: 0
+    maxTriggerCount: 1
+    minValue: 1
+    maxValue: 1

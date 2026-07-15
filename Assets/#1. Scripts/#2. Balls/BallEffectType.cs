@@ -41,5 +41,17 @@ public enum BallEffectType
     StackEffect,
 
     // Builds Overheat on wall/object hits, then runs the selected reward effect with a value that scales by Overheat.
-    OverheatEffect
+    OverheatEffect,
+
+    // On the first wall hit, creates two one-durability colony children.
+    BreedOnFirstWallHit,
+
+    // Grants Chips by the current active-ball population and Mult every third high-population hit.
+    SwarmPopulation,
+
+    // Grants Chips from held gold on object hit and the highest held-gold Mult tier on destroy.
+    CompoundBounty,
+
+    // Registers this ball in the shot-level dividend count when spawned.
+    Dividend
 }

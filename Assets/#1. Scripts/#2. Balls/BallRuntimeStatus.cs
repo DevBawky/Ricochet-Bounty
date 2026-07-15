@@ -68,6 +68,19 @@ public class BallRuntimeStatus : MonoBehaviour
         isInitialized = true;
     }
 
+    public void InitializeAsChild(int durability = 1)
+    {
+        Initialize();
+        if (!isInitialized)
+        {
+            return;
+        }
+
+        currentDurability = Mathf.Clamp(durability, 1, Mathf.Max(1, MaxDurability));
+        isDestroying = false;
+        Debug.Log($"[BallRuntimeStatus] {name} child durability initialized: {CurrentDurability}", this);
+    }
+
     public void ApplyWallHitDurabilityDamage()
     {
         if (EnsureInitialized())
