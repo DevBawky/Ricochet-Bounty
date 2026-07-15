@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
   m_Name: Test Chip Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
-  price: 10
+  price: 1
   rarity: 0
   ValueType: 0
-  Score: 10
+  Score: 5
   ballColor: {r: 1, g: 1, b: 1, a: 1}
   ballSprite: {fileID: 2668698483290028564, guid: cb658c73aa5d2e343a65d5788684eae8, type: 3}
   launchSpeed: 20

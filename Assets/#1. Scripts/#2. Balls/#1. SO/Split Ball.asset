@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
   m_Name: Split Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
-  price: 20
+  price: 4
   rarity: 1
   ValueType: 0
-  Score: 8
+  Score: 3
   ballColor: {r: 1, g: 1, b: 1, a: 1}
   ballSprite: {fileID: -1293985641387846497, guid: f1bf383efa150714bb236eb4defafbf8, type: 3}
   launchSpeed: 20

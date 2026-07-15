@@ -239,7 +239,7 @@ public class BattleGridObjectSpawner : MonoBehaviour
         return true;
     }
 
-    bool IsPositionOnFloor(Vector3 worldPosition)
+    public bool IsPositionOnFloor(Vector3 worldPosition)
     {
         if (floorTilemap == null)
         {

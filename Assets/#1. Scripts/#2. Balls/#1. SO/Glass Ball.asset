@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
   m_Name: Glass Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
-  price: 20
+  price: 4
   rarity: 1
   ValueType: 0
-  Score: 20
+  Score: 10
   ballColor: {r: 1, g: 1, b: 1, a: 1}
   ballSprite: {fileID: -4927755742674767396, guid: ab7a79f6955e64743a743f098bdd1fd7, type: 3}
   launchSpeed: 20

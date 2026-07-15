@@ -21,6 +21,17 @@ public class ShopBallUI : MonoBehaviour
         BindBuyButton();
     }
 
+    void OnEnable()
+    {
+        SubscribeToDeck();
+        RefreshBuyButton();
+    }
+
+    void OnDisable()
+    {
+        UnsubscribeFromDeck();
+    }
+
     public void SetPurchaseDependencies(GoldManager newGoldManager, PlayerBallDeck newPlayerBallDeck)
     {
         if (goldManager == null)
@@ -32,6 +43,9 @@ public class ShopBallUI : MonoBehaviour
         {
             playerBallDeck = newPlayerBallDeck;
         }
+
+        SubscribeToDeck();
+        RefreshBuyButton();
     }
 
     public void SetBallData(BallDataSO data)
@@ -59,7 +73,7 @@ public class ShopBallUI : MonoBehaviour
 
         if (buyButton != null)
         {
-            buyButton.interactable = true;
+            buyButton.interactable = !playerBallDeck?.IsAtCapacity ?? true;
         }
     }
 
@@ -89,6 +103,12 @@ public class ShopBallUI : MonoBehaviour
             return;
         }
 
+        if (playerBallDeck.IsAtCapacity)
+        {
+            Debug.Log($"[ShopBallUI] Purchase blocked. Owned ball limit reached: {PlayerBallDeck.MaxOwnedBallCount}.", this);
+            return;
+        }
+
         int price = currentBallData.Price;
         if (!goldManager.TrySpendGold(price))
         {
@@ -96,7 +116,12 @@ public class ShopBallUI : MonoBehaviour
             return;
         }
 
-        playerBallDeck.AddBallToDeck(currentBallData);
+        if (!playerBallDeck.TryAddBallToDeck(currentBallData))
+        {
+            goldManager.AddGold(price);
+            Debug.LogWarning("[ShopBallUI] Deck rejected the ball after payment. The purchase price was refunded.", this);
+            return;
+        }
         isPurchased = true;
 
         if (buyButton != null)
@@ -136,5 +161,33 @@ public class ShopBallUI : MonoBehaviour
 
         buyButton.onClick.RemoveListener(BuyCurrentBall);
         buyButton.onClick.AddListener(BuyCurrentBall);
+    }
+
+    void SubscribeToDeck()
+    {
+        if (playerBallDeck == null)
+        {
+            return;
+        }
+
+        playerBallDeck.OnDeckChanged.RemoveListener(RefreshBuyButton);
+        playerBallDeck.OnDeckChanged.AddListener(RefreshBuyButton);
+    }
+
+    void UnsubscribeFromDeck()
+    {
+        if (playerBallDeck != null)
+        {
+            playerBallDeck.OnDeckChanged.RemoveListener(RefreshBuyButton);
+        }
+    }
+
+    void RefreshBuyButton()
+    {
+        if (buyButton != null)
+        {
+            buyButton.interactable = currentBallData != null && !isPurchased &&
+                (playerBallDeck == null || !playerBallDeck.IsAtCapacity);
+        }
     }
 }

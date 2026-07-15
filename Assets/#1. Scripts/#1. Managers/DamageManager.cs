@@ -14,6 +14,7 @@ public class DamageManager : MonoBehaviour
 
     int currentChips;
     float currentMultiplier;
+    PlayerUpgradeManager upgradeManager;
 
     // Other scripts can subscribe to this event and refresh their own UI or logic.
     public UnityEvent OnDamageValueChanged
@@ -59,10 +60,11 @@ public class DamageManager : MonoBehaviour
             return;
         }
 
-        currentChips += amount;
+        int appliedAmount = ShouldDoubleScore() ? amount * 2 : amount;
+        currentChips += appliedAmount;
         OnDamageValueChanged.Invoke();
 
-        Debug.Log($"[DamageManager] Chips Added: +{amount} / Current Chips: {currentChips}", this);
+        Debug.Log($"[DamageManager] Chips Added: +{appliedAmount} / Current Chips: {currentChips}", this);
     }
 
     // Adds Multiplier. The final score is calculated later by Chips * Multiplier.
@@ -74,10 +76,11 @@ public class DamageManager : MonoBehaviour
             return;
         }
 
-        currentMultiplier += amount;
+        float appliedAmount = ShouldDoubleScore() ? amount * 2f : amount;
+        currentMultiplier += appliedAmount;
         OnDamageValueChanged.Invoke();
 
-        Debug.Log($"[DamageManager] Multiplier Added: +{amount} / Current Multiplier: {currentMultiplier}", this);
+        Debug.Log($"[DamageManager] Multiplier Added: +{appliedAmount} / Current Multiplier: {currentMultiplier}", this);
     }
 
     // Applies a BallDataSO value based on whether the ball gives Chips or Multiplier.
@@ -122,5 +125,21 @@ public class DamageManager : MonoBehaviour
         OnDamageValueChanged.Invoke();
 
         Debug.Log($"[DamageManager] Score Reset. Chips: {currentChips}, Multiplier: {currentMultiplier}", this);
+    }
+
+    bool ShouldDoubleScore()
+    {
+        if (upgradeManager == null)
+        {
+            upgradeManager = PlayerUpgradeManager.Instance;
+        }
+
+        if (upgradeManager == null)
+        {
+            upgradeManager = FindFirstObjectByType<PlayerUpgradeManager>(FindObjectsInactive.Include);
+        }
+
+        // Each public score-add operation reaches this method exactly once.
+        return upgradeManager != null && upgradeManager.ShouldDoubleScore();
     }
 }

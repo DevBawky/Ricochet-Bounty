@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class BallSpawner : MonoBehaviour
 {
@@ -83,18 +84,22 @@ public class BallSpawner : MonoBehaviour
             return;
         }
 
-        StartCoroutine(FireCurrentHandRoutine());
+        if (!TryGetMouseFloorPosition(out Vector2 firePosition))
+        {
+            Debug.Log("[BallSpawner] Fire ignored because the click was not on a Floor tile.", this);
+            return;
+        }
+
+        StartCoroutine(FireCurrentHandRoutine(firePosition));
     }
 
-    IEnumerator FireCurrentHandRoutine()
+    IEnumerator FireCurrentHandRoutine(Vector2 firePosition)
     {
         isFiring = true;
         stateManager.OnPlayerFireStarted();
 
         // 발사 중 currentCylinder가 바뀌지 않도록 스냅샷을 만들어 순차 발사합니다.
         List<BallDataSO> cylinderSnapshot = new List<BallDataSO>(deck.CurrentCylinder);
-        Vector2 firePosition = GetMouseWorldPosition();
-
         Debug.Log($"[BallSpawner] currentCylinder 발사 시작. count: {cylinderSnapshot.Count}, firePoint: {firePosition}", this);
 
         for (int i = 0; i < cylinderSnapshot.Count; i++)
@@ -258,6 +263,32 @@ public class BallSpawner : MonoBehaviour
         Vector3 mouseScreenPosition = Input.mousePosition;
         mouseScreenPosition.z = Mathf.Abs(mainCamera.transform.position.z);
         return mainCamera.ScreenToWorldPoint(mouseScreenPosition);
+    }
+
+    bool TryGetMouseFloorPosition(out Vector2 floorPosition)
+    {
+        floorPosition = Vector2.zero;
+
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return false;
+        }
+
+        BattleGridObjectSpawner gridObjectSpawner = FindFirstObjectByType<BattleGridObjectSpawner>();
+        if (gridObjectSpawner == null)
+        {
+            Debug.LogWarning("[BallSpawner] Active BattleGridObjectSpawner was not found. Floor cannot be validated.", this);
+            return false;
+        }
+
+        Vector2 mouseWorldPosition = GetMouseWorldPosition();
+        if (!gridObjectSpawner.IsPositionOnFloor(mouseWorldPosition))
+        {
+            return false;
+        }
+
+        floorPosition = mouseWorldPosition;
+        return true;
     }
 
     Vector2 GetRandomLaunchDirection()

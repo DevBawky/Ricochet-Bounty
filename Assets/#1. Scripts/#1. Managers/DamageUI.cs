@@ -1,3 +1,4 @@
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 
@@ -75,12 +76,12 @@ public class DamageUI : MonoBehaviour
 
         if (chipsText != null)
         {
-            chipsText.text = $"Chips : {damageManager.CurrentChips}";
+            chipsText.text = FormatScore(damageManager.CurrentChips);
         }
 
         if (multiplierText != null)
         {
-            multiplierText.text = $"Mult : x{damageManager.CurrentMultiplier}";
+            multiplierText.text = FormatScore(damageManager.CurrentMultiplier);
         }
     }
 
@@ -93,7 +94,7 @@ public class DamageUI : MonoBehaviour
             return;
         }
 
-        finalScoreText.text = $"Final Score : {finalScore}";
+        finalScoreText.text = FormatScore(finalScore);
     }
 
     // Clears the final score text at the start of play or when a new round begins.
@@ -103,5 +104,10 @@ public class DamageUI : MonoBehaviour
         {
             finalScoreText.text = string.Empty;
         }
+    }
+
+    static string FormatScore(float value)
+    {
+        return value.ToString("0.#", CultureInfo.InvariantCulture);
     }
 }

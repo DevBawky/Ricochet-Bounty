@@ -1,57 +1,36 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class PlayerBallDeck : MonoBehaviour
 {
+    public const int MaxOwnedBallCount = 15;
+    public const int MinimumOwnedBallCount = 5;
+
     [Header("Deck")]
     [SerializeField] List<BallDataSO> startingDeck = new List<BallDataSO>();
+
+    [Header("Owned Balls")]
+    [SerializeField] List<BallDataSO> ownedBalls = new List<BallDataSO>();
 
     [Header("Runtime")]
     [SerializeField] List<BallDataSO> drawPile = new List<BallDataSO>();
     [SerializeField] List<BallDataSO> discardPile = new List<BallDataSO>();
     [SerializeField] List<BallDataSO> currentCylinder = new List<BallDataSO>();
 
-    public IReadOnlyList<BallDataSO> CurrentHand
-    {
-        get
-        {
-            return currentCylinder;
-        }
-    }
+    [Header("Events")]
+    [SerializeField] UnityEvent onDeckChanged = new UnityEvent();
 
-    // 이번 단계의 용어는 currentCylinder입니다.
-    // 기존 코드와 인스펙터 필드(currentHand)는 유지하고, 같은 리스트를 currentCylinder처럼 사용할 수 있게 별칭을 제공합니다.
-    public IReadOnlyList<BallDataSO> CurrentCylinder
-    {
-        get
-        {
-            return currentCylinder;
-        }
-    }
-
-    public int DrawPileCount
-    {
-        get
-        {
-            return drawPile.Count;
-        }
-    }
-
-    public int DiscardPileCount
-    {
-        get
-        {
-            return discardPile.Count;
-        }
-    }
-
-    public int CurrentCylinderCount
-    {
-        get
-        {
-            return currentCylinder.Count;
-        }
-    }
+    public IReadOnlyList<BallDataSO> CurrentHand => currentCylinder;
+    public IReadOnlyList<BallDataSO> CurrentCylinder => currentCylinder;
+    public IReadOnlyList<BallDataSO> OwnedBalls => ownedBalls;
+    public UnityEvent OnDeckChanged => onDeckChanged;
+    public int DrawPileCount => drawPile.Count;
+    public int DiscardPileCount => discardPile.Count;
+    public int CurrentCylinderCount => currentCylinder.Count;
+    public int OwnedBallCount => ownedBalls.Count;
+    public bool IsAtCapacity => OwnedBallCount >= MaxOwnedBallCount;
+    public bool CanDeleteOwnedBall => OwnedBallCount > MinimumOwnedBallCount;
 
     void Awake()
     {
@@ -60,59 +39,59 @@ public class PlayerBallDeck : MonoBehaviour
 
     public void ResetDeck()
     {
-        // 전투 시작 시 startingDeck을 drawPile로 복사합니다.
-        // ScriptableObject 자체는 공유하고, 런타임 리스트의 순서와 위치만 변경합니다.
         drawPile.Clear();
         discardPile.Clear();
         currentCylinder.Clear();
+        ownedBalls.Clear();
 
         for (int i = 0; i < startingDeck.Count; i++)
         {
-            if (startingDeck[i] == null)
+            BallDataSO ballData = startingDeck[i];
+            if (ballData == null)
             {
-                Debug.LogWarning($"[PlayerBallDeck] startingDeck의 {i}번 칸이 비어 있습니다.", this);
+                Debug.LogWarning($"[PlayerBallDeck] Starting deck entry {i} is empty.", this);
                 continue;
             }
 
-            drawPile.Add(startingDeck[i]);
+            if (ownedBalls.Count >= MaxOwnedBallCount)
+            {
+                Debug.LogWarning($"[PlayerBallDeck] Starting deck exceeds the maximum of {MaxOwnedBallCount}. Extra balls were ignored.", this);
+                break;
+            }
+
+            ownedBalls.Add(ballData);
+            drawPile.Add(ballData);
         }
 
         Shuffle(drawPile);
-        Debug.Log($"[PlayerBallDeck] 덱 초기화 완료. drawPile: {drawPile.Count}, discardPile: {discardPile.Count}, currentCylinder: {currentCylinder.Count}", this);
+        OnDeckChanged.Invoke();
+        LogPileState("Reset complete");
     }
 
     public void DrawBalls(int count)
     {
         if (count <= 0)
         {
-            Debug.LogWarning($"[PlayerBallDeck] 뽑을 개수는 1 이상이어야 합니다. 입력값: {count}", this);
+            Debug.LogWarning($"[PlayerBallDeck] Draw count must be greater than 0. Count: {count}", this);
             return;
         }
 
         if (currentCylinder.Count > 0)
         {
-            Debug.LogWarning($"[PlayerBallDeck] currentCylinder에 탄환이 남아 있어 새로 뽑지 않습니다. currentCylinder: {currentCylinder.Count}", this);
-            LogPileState("Draw skipped");
+            Debug.LogWarning($"[PlayerBallDeck] Cannot draw while currentCylinder is not empty. Count: {currentCylinder.Count}", this);
             return;
         }
-
-        Debug.Log($"[PlayerBallDeck] 탄환 뽑기 시작. 요청 수: {count}", this);
 
         for (int i = 0; i < count; i++)
         {
             if (!EnsureDrawablePile())
             {
-                Debug.LogWarning("[PlayerBallDeck] 더 이상 뽑을 탄환이 없습니다.", this);
                 break;
             }
 
             BallDataSO drawnBall = drawPile[0];
             drawPile.RemoveAt(0);
             currentCylinder.Add(drawnBall);
-
-            string drawnName = drawnBall != null ? drawnBall.name : "NULL";
-            Debug.Log($"[PlayerBallDeck] 이번에 뽑힌 탄환: {drawnName}", this);
-            LogPileState("Draw one");
         }
 
         LogPileState("Draw complete");
@@ -120,23 +99,12 @@ public class PlayerBallDeck : MonoBehaviour
 
     public void DiscardCurrentHand()
     {
-        // 발사가 끝난 currentCylinder를 discardPile로 옮기고 currentCylinder를 비웁니다.
-        if (currentCylinder.Count <= 0)
-        {
-            Debug.Log("[PlayerBallDeck] discardPile로 옮길 currentCylinder 탄환이 없습니다.", this);
-            LogPileState("Discard skipped");
-            return;
-        }
-
         for (int i = 0; i < currentCylinder.Count; i++)
         {
-            if (currentCylinder[i] == null)
+            if (currentCylinder[i] != null)
             {
-                continue;
+                discardPile.Add(currentCylinder[i]);
             }
-
-            discardPile.Add(currentCylinder[i]);
-            Debug.Log($"[PlayerBallDeck] 발사 후 discardPile 이동: {currentCylinder[i].name}", this);
         }
 
         currentCylinder.Clear();
@@ -145,15 +113,66 @@ public class PlayerBallDeck : MonoBehaviour
 
     public void AddBallToDeck(BallDataSO ballData)
     {
+        TryAddBallToDeck(ballData);
+    }
+
+    public bool TryAddBallToDeck(BallDataSO ballData)
+    {
         if (ballData == null)
         {
             Debug.LogWarning("[PlayerBallDeck] Cannot add null BallDataSO to deck.", this);
-            return;
+            return false;
         }
 
+        if (IsAtCapacity)
+        {
+            Debug.Log($"[PlayerBallDeck] Cannot add {ballData.name}. Owned ball limit reached: {MaxOwnedBallCount}.", this);
+            return false;
+        }
+
+        ownedBalls.Add(ballData);
         discardPile.Add(ballData);
-        Debug.Log($"[PlayerBallDeck] Purchased ball added to discardPile: {ballData.name}", this);
+        OnDeckChanged.Invoke();
         LogPileState("Add purchased ball");
+        return true;
+    }
+
+    public bool IsOwnedBallAt(int index, BallDataSO expectedBallData)
+    {
+        return index >= 0 && index < ownedBalls.Count && ownedBalls[index] == expectedBallData;
+    }
+
+    public bool TryRemoveOwnedBallAt(int index, BallDataSO expectedBallData)
+    {
+        if (!CanDeleteOwnedBall)
+        {
+            Debug.Log($"[PlayerBallDeck] Cannot delete a ball while owning {MinimumOwnedBallCount} or fewer balls.", this);
+            return false;
+        }
+
+        if (!IsOwnedBallAt(index, expectedBallData))
+        {
+            return false;
+        }
+
+        ownedBalls.RemoveAt(index);
+        RemoveOneFromRuntimePiles(expectedBallData);
+        OnDeckChanged.Invoke();
+        Debug.Log($"[PlayerBallDeck] Removed owned ball at index {index}: {expectedBallData.name}", this);
+        return true;
+    }
+
+    public bool TryInsertOwnedBall(int index, BallDataSO ballData)
+    {
+        if (ballData == null || IsAtCapacity)
+        {
+            return false;
+        }
+
+        ownedBalls.Insert(Mathf.Clamp(index, 0, ownedBalls.Count), ballData);
+        discardPile.Add(ballData);
+        OnDeckChanged.Invoke();
+        return true;
     }
 
     bool EnsureDrawablePile()
@@ -165,18 +184,23 @@ public class PlayerBallDeck : MonoBehaviour
 
         if (discardPile.Count <= 0)
         {
-            Debug.Log("[PlayerBallDeck] drawPile이 비었지만 discardPile도 비어 있어 재사용할 탄환이 없습니다.", this);
             return false;
         }
 
-        // drawPile이 부족하면 discardPile을 섞어서 다시 drawPile로 사용합니다.
-        Debug.Log($"[PlayerBallDeck] drawPile 부족. discardPile을 섞어서 재사용합니다. 재사용 전 discardPile: {discardPile.Count}", this);
         drawPile.AddRange(discardPile);
         discardPile.Clear();
         Shuffle(drawPile);
-
-        LogPileState("Reshuffle discard into draw");
         return drawPile.Count > 0;
+    }
+
+    void RemoveOneFromRuntimePiles(BallDataSO ballData)
+    {
+        if (drawPile.Remove(ballData) || discardPile.Remove(ballData))
+        {
+            return;
+        }
+
+        currentCylinder.Remove(ballData);
     }
 
     void Shuffle(List<BallDataSO> targetPile)
@@ -192,6 +216,6 @@ public class PlayerBallDeck : MonoBehaviour
 
     void LogPileState(string context)
     {
-        Debug.Log($"[PlayerBallDeck] {context} | drawPile: {drawPile.Count}, discardPile: {discardPile.Count}, currentCylinder: {currentCylinder.Count}", this);
+        Debug.Log($"[PlayerBallDeck] {context} | owned: {ownedBalls.Count}, drawPile: {drawPile.Count}, discardPile: {discardPile.Count}, currentCylinder: {currentCylinder.Count}", this);
     }
 }

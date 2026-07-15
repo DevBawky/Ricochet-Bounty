@@ -544,6 +544,10 @@ PrefabInstance:
       propertyPath: m_sharedMaterial
       value: 
       objectReference: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+    - target: {fileID: 100429949100374561, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 311450550962868455, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -760,6 +764,10 @@ PrefabInstance:
       propertyPath: m_sharedMaterial
       value: 
       objectReference: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+    - target: {fileID: 1585897445469147807, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1626295503918822467, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_fontSize
       value: 41.9
@@ -840,6 +848,14 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2160006952820978631, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+    - target: {fileID: 2160006952820978631, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
     - target: {fileID: 2286049054814657171, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_fontAsset
       value: 
@@ -930,6 +946,10 @@ PrefabInstance:
       propertyPath: m_sharedMaterial
       value: 
       objectReference: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+    - target: {fileID: 3268463031423202100, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3596131194320382086, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_fontSize
       value: 25.65
@@ -1098,6 +1118,14 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4626250588753660711, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+    - target: {fileID: 4626250588753660711, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
     - target: {fileID: 4626853979474721086, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_fontSize
       value: 28
@@ -1794,6 +1822,18 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9131657514083803863, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_fontSize
+      value: 58.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 9131657514083803863, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+    - target: {fileID: 9131657514083803863, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
     - target: {fileID: 9200167484903237567, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -2393,9 +2433,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
   - {fileID: 11400000, guid: 1c1b079b017344568837a7695529b145, type: 2}
   - {fileID: 11400000, guid: 4fc753f78ca64011bcda465e40fbce2d, type: 2}
+  ownedBalls: []
   drawPile: []
   discardPile: []
   currentCylinder: []
+  onDeckChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &681354432
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2699,7 +2743,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e9d20a5f1134bb4aa1e35d0aab4f9c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoldManager
-  initialGold: 0
+  initialGold: 50
   onGoldChanged:
     m_PersistentCalls:
       m_Calls: []

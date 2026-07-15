@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
   m_Name: Stack Chips Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
-  price: 30
+  price: 8
   rarity: 2
   ValueType: 0
   Score: 1
@@ -36,7 +36,7 @@ MonoBehaviour:
     chipsPerStack: 1
     multiplierPerStack: 0.1
     targetStack: 3
-    chipsIncrease: 3
+    chipsIncrease: 10
     multiplierIncrease: 1
     baseChipsIncrease: 1
     chipsIncreasePerOverheat: 1

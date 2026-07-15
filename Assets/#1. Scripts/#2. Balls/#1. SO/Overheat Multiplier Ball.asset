@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
   m_Name: Overheat Multiplier Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
-  price: 40
+  price: 11
   rarity: 3
   ValueType: 0
   Score: 1

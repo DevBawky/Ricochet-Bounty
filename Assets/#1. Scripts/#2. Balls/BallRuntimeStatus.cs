@@ -1,16 +1,14 @@
 using UnityEngine;
 
-// BallRuntimeStatus는 공마다 달라지는 현재 내구도와 파괴 상태를 관리합니다.
-// BallDataSO 참조는 직접 들고 있지 않고, 항상 같은 오브젝트의 BallDataManager에서 읽습니다.
-// 이렇게 하면 공 프리팹에서 BallDataSO는 BallDataManager 한 곳에만 꽂으면 됩니다.
 [RequireComponent(typeof(BallDataManager))]
 public class BallRuntimeStatus : MonoBehaviour
 {
     [Header("Runtime State")]
-    [SerializeField] int currentDurability;
+    [SerializeField] float currentDurability;
     [SerializeField] bool isDestroying;
 
     BallDataManager ballDataManager;
+    PlayerUpgradeManager upgradeManager;
     bool isInitialized;
 
     BallDataSO BallData
@@ -22,17 +20,11 @@ public class BallRuntimeStatus : MonoBehaviour
                 ballDataManager = GetComponent<BallDataManager>();
             }
 
-            return ballDataManager.BallData;
+            return ballDataManager != null ? ballDataManager.BallData : null;
         }
     }
 
-    public int CurrentDurability
-    {
-        get
-        {
-            return currentDurability;
-        }
-    }
+    public int CurrentDurability => Mathf.CeilToInt(Mathf.Max(0f, currentDurability));
 
     public int MaxDurability
     {
@@ -44,17 +36,14 @@ public class BallRuntimeStatus : MonoBehaviour
                 return 0;
             }
 
-            return data.MaxDurability;
+            FindUpgradeManager();
+            return upgradeManager != null
+                ? upgradeManager.GetUpgradedMaxDurability(data.MaxDurability)
+                : Mathf.Max(1, data.MaxDurability);
         }
     }
 
-    public bool IsDestroying
-    {
-        get
-        {
-            return isDestroying;
-        }
-    }
+    public bool IsDestroying => isDestroying;
 
     void Awake()
     {
@@ -68,90 +57,62 @@ public class BallRuntimeStatus : MonoBehaviour
             ballDataManager = GetComponent<BallDataManager>();
         }
 
-        if (!ballDataManager.ValidateData())
+        if (ballDataManager == null || !ballDataManager.ValidateData())
         {
             return;
         }
 
-        currentDurability = Mathf.Max(1, ballDataManager.BallData.MaxDurability);
+        FindUpgradeManager();
+        currentDurability = MaxDurability;
         isDestroying = false;
         isInitialized = true;
     }
 
     public void ApplyWallHitDurabilityDamage()
     {
-        if (!EnsureInitialized())
+        if (EnsureInitialized())
         {
-            return;
+            TakeCollisionDurabilityDamage(BallData.WallHitDurabilityDamage);
         }
-
-        TakeDurabilityDamage(BallData.WallHitDurabilityDamage);
     }
 
     public void ApplyObjectHitDurabilityDamage()
     {
-        if (!EnsureInitialized())
+        if (EnsureInitialized())
         {
-            return;
+            TakeCollisionDurabilityDamage(BallData.ObjectHitDurabilityDamage);
         }
-
-        TakeDurabilityDamage(BallData.ObjectHitDurabilityDamage);
     }
 
     public void TakeDurabilityDamage(int amount)
     {
-        if (amount <= 0)
-        {
-            Debug.LogWarning($"[BallRuntimeStatus] 감소할 내구도는 1 이상이어야 합니다. 입력값: {amount}", this);
-            return;
-        }
-
-        if (isDestroying)
-        {
-            return;
-        }
-
-        currentDurability -= amount;
-        Debug.Log($"[BallRuntimeStatus] {name} 내구도 감소: -{amount} / 현재 내구도: {currentDurability}", this);
-
-        if (IsDead())
-        {
-            DestroyBall();
-        }
+        TakeDurabilityDamage((float)amount);
     }
 
     public void HealDurability(int amount)
     {
-        if (!EnsureInitialized())
+        if (!EnsureInitialized() || amount <= 0 || isDestroying)
         {
             return;
         }
 
-        if (amount <= 0)
-        {
-            Debug.LogWarning($"[BallRuntimeStatus] 회복할 내구도는 1 이상이어야 합니다. 입력값: {amount}", this);
-            return;
-        }
-
-        currentDurability = Mathf.Min(currentDurability + amount, BallData.MaxDurability);
-        Debug.Log($"[BallRuntimeStatus] {name} 내구도 회복: +{amount} / 현재 내구도: {currentDurability}", this);
+        currentDurability = Mathf.Min(currentDurability + amount, MaxDurability);
+        Debug.Log($"[BallRuntimeStatus] {name} durability healed: +{amount} / {currentDurability:0.##}/{MaxDurability}", this);
     }
 
     public bool IsDead()
     {
-        return currentDurability <= 0;
+        return currentDurability <= 0f;
     }
 
     public void DestroyBall()
     {
-        // DestroySelf 효과와 내구도 감소가 동시에 들어와도 파괴 처리는 한 번만 실행합니다.
         if (isDestroying)
         {
             return;
         }
 
         isDestroying = true;
-
         BallEffectController effectController = GetComponent<BallEffectController>();
         if (effectController != null)
         {
@@ -161,6 +122,30 @@ public class BallRuntimeStatus : MonoBehaviour
         Destroy(gameObject);
     }
 
+    void TakeCollisionDurabilityDamage(float baseDamage)
+    {
+        FindUpgradeManager();
+        float appliedDamage = upgradeManager != null
+            ? upgradeManager.GetReducedCollisionDamage(baseDamage)
+            : Mathf.Max(0f, baseDamage);
+        TakeDurabilityDamage(appliedDamage);
+    }
+
+    void TakeDurabilityDamage(float amount)
+    {
+        if (amount <= 0f || isDestroying)
+        {
+            return;
+        }
+
+        currentDurability -= amount;
+        Debug.Log($"[BallRuntimeStatus] {name} durability damage: -{amount:0.##} / {currentDurability:0.##}/{MaxDurability}", this);
+        if (IsDead())
+        {
+            DestroyBall();
+        }
+    }
+
     bool EnsureInitialized()
     {
         if (!isInitialized)
@@ -168,6 +153,19 @@ public class BallRuntimeStatus : MonoBehaviour
             Initialize();
         }
 
-        return BallData != null;
+        return isInitialized && BallData != null;
+    }
+
+    void FindUpgradeManager()
+    {
+        if (upgradeManager == null)
+        {
+            upgradeManager = PlayerUpgradeManager.Instance;
+        }
+
+        if (upgradeManager == null)
+        {
+            upgradeManager = FindFirstObjectByType<PlayerUpgradeManager>(FindObjectsInactive.Include);
+        }
     }
 }
