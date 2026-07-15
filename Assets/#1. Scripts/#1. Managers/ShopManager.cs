@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,14 +32,20 @@ public class ShopManager : MonoBehaviour
     [SerializeField] PlayerBallDeck playerBallDeck;
     [SerializeField] Button refreshButton;
 
-    [Header("Refresh")]
-    [SerializeField, Min(0)] int refreshCost;
+    [Header("Refresh Cost")]
+    [SerializeField, Min(0)] int firstRefreshCost = 1;
+    [SerializeField, Min(0)] int secondRefreshCost = 1;
+    [SerializeField] TMP_Text refreshCostText;
+
+    int currentRefreshCost;
+    int nextRefreshCost;
 
     void Awake()
     {
         FindMissingReferences();
         BindRefreshButton();
         ApplySlotDependencies();
+        ResetRefreshCostForShopVisit();
     }
 
     void OnEnable()
@@ -87,23 +94,104 @@ public class ShopManager : MonoBehaviour
     {
         FindMissingReferences();
 
-        if (refreshCost > 0)
+        if (!CanGenerateShopItems())
         {
-            if (goldManager == null)
-            {
-                Debug.LogWarning("[ShopManager] Cannot refresh with a cost because GoldManager is missing.", this);
-                return;
-            }
+            return;
+        }
 
-            if (!goldManager.TrySpendGold(refreshCost))
+        if (goldManager == null)
+        {
+            Debug.LogWarning("[ShopManager] GoldManager is missing. Cannot refresh shop.", this);
+            return;
+        }
+
+        int paidCost = currentRefreshCost;
+        if (!goldManager.TrySpendGold(paidCost))
+        {
+            Debug.Log($"[ShopManager] Refresh failed. Need: {paidCost}, Current Gold: {goldManager.CurrentGold}", this);
+            return;
+        }
+
+        GenerateShopItems();
+        AdvanceRefreshCost();
+        Debug.Log($"[ShopManager] Shop refreshed. Paid: {paidCost}, Next Cost: {currentRefreshCost}", this);
+    }
+
+    public void OnShopEntered()
+    {
+        ResetRefreshCostForShopVisit();
+        GenerateShopItems();
+    }
+
+    public void OnShopExited()
+    {
+        // Refresh Fibonacci state is reset on the next actual Shop entry.
+    }
+
+    public void RefreshCostUI()
+    {
+        if (refreshCostText != null)
+        {
+            refreshCostText.text = $"$ {currentRefreshCost}";
+        }
+    }
+
+    void ResetRefreshCostForShopVisit()
+    {
+        currentRefreshCost = Mathf.Max(0, firstRefreshCost);
+        nextRefreshCost = Mathf.Max(0, secondRefreshCost);
+        RefreshCostUI();
+    }
+
+    void AdvanceRefreshCost()
+    {
+        long followingCost = (long)currentRefreshCost + nextRefreshCost;
+        currentRefreshCost = nextRefreshCost;
+        nextRefreshCost = followingCost > int.MaxValue ? int.MaxValue : (int)followingCost;
+        RefreshCostUI();
+    }
+
+    bool CanGenerateShopItems()
+    {
+        if (shopSlots == null || shopSlots.Count <= 0)
+        {
+            Debug.LogWarning("[ShopManager] No ShopBallUI slots are connected.", this);
+            return false;
+        }
+
+        if (availableBalls == null || availableBalls.Count <= 0)
+        {
+            Debug.LogWarning("[ShopManager] No BallDataSO entries are registered in availableBalls.", this);
+            return false;
+        }
+
+        bool hasValidSlot = false;
+        for (int i = 0; i < shopSlots.Count; i++)
+        {
+            if (shopSlots[i] != null)
             {
-                Debug.Log($"[ShopManager] Refresh failed. Need: {refreshCost}, Current Gold: {goldManager.CurrentGold}", this);
-                return;
+                hasValidSlot = true;
+                break;
             }
         }
 
-        Debug.Log($"[ShopManager] Refresh shop. Cost: {refreshCost}", this);
-        GenerateShopItems();
+        bool hasValidBall = false;
+        for (int i = 0; i < availableBalls.Count; i++)
+        {
+            if (availableBalls[i] != null)
+            {
+                hasValidBall = true;
+                break;
+            }
+        }
+
+        if (!hasValidSlot || !hasValidBall)
+        {
+            Debug.LogWarning("[ShopManager] Shop refresh configuration has no valid slot or ball.", this);
+            return false;
+        }
+
+        return true;
     }
 
     BallDataSO PickWeightedRandomBall()
@@ -244,5 +332,16 @@ public class ShopManager : MonoBehaviour
         {
             playerBallDeck = FindFirstObjectByType<PlayerBallDeck>();
         }
+
+        if (refreshCostText == null && refreshButton != null)
+        {
+            refreshCostText = refreshButton.GetComponentInChildren<TMP_Text>(true);
+        }
+    }
+
+    void OnValidate()
+    {
+        firstRefreshCost = Mathf.Max(0, firstRefreshCost);
+        secondRefreshCost = Mathf.Max(0, secondRefreshCost);
     }
 }

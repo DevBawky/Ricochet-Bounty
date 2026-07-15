@@ -18,9 +18,7 @@ public class DeleteBallPanelUI : MonoBehaviour
     [Header("References")]
     [SerializeField] GoldManager goldManager;
     [SerializeField] PlayerBallDeck playerBallDeck;
-
-    [Header("Delete")]
-    [SerializeField, Min(0)] int deleteCost = 3;
+    [SerializeField] PlayerUpgradeManager playerRunData;
 
     readonly List<DeleteBallItemUI> spawnedItems = new List<DeleteBallItemUI>();
 
@@ -77,6 +75,7 @@ public class DeleteBallPanelUI : MonoBehaviour
         IReadOnlyList<BallDataSO> ownedBalls = playerBallDeck.OwnedBalls;
         int displayCount = Mathf.Min(ownedBalls.Count, PlayerBallDeck.MaxOwnedBallCount);
         bool canDelete = playerBallDeck.CanDeleteOwnedBall;
+        int deleteCost = playerRunData != null ? playerRunData.CurrentDeleteCost : 0;
         for (int i = 0; i < displayCount; i++)
         {
             int layoutIndex = i / BallsPerLayout;
@@ -96,7 +95,7 @@ public class DeleteBallPanelUI : MonoBehaviour
     public void TryDeleteBall(int ownedBallIndex, BallDataSO expectedBallData)
     {
         FindMissingReferences();
-        if (goldManager == null || playerBallDeck == null)
+        if (goldManager == null || playerBallDeck == null || playerRunData == null)
         {
             return;
         }
@@ -112,6 +111,7 @@ public class DeleteBallPanelUI : MonoBehaviour
             return;
         }
 
+        int deleteCost = playerRunData.CurrentDeleteCost;
         if (!goldManager.CanAfford(deleteCost))
         {
             return;
@@ -128,13 +128,17 @@ public class DeleteBallPanelUI : MonoBehaviour
             playerBallDeck.TryInsertOwnedBall(ownedBallIndex, expectedBallData);
             return;
         }
+
+        playerRunData.AdvanceDeleteCost();
+        RefreshBallList();
     }
 
     void RefreshCostText()
     {
         if (deleteCostText != null)
         {
-            deleteCostText.text = $"Cost : ${Mathf.Max(0, deleteCost)}";
+            int deleteCost = playerRunData != null ? playerRunData.CurrentDeleteCost : 0;
+            deleteCostText.text = $"Cost : ${deleteCost}";
         }
     }
 
@@ -204,6 +208,16 @@ public class DeleteBallPanelUI : MonoBehaviour
         if (playerBallDeck == null)
         {
             playerBallDeck = FindFirstObjectByType<PlayerBallDeck>();
+        }
+
+        if (playerRunData == null)
+        {
+            playerRunData = PlayerUpgradeManager.Instance;
+        }
+
+        if (playerRunData == null)
+        {
+            playerRunData = FindFirstObjectByType<PlayerUpgradeManager>(FindObjectsInactive.Include);
         }
     }
 }

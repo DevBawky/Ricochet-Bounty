@@ -106,7 +106,7 @@ public class StateManager : MonoBehaviour
                 FindMissingReferences();
                 if (shopManager != null)
                 {
-                    shopManager.GenerateShopItems();
+                    shopManager.RefreshCostUI();
                 }
             }
 
@@ -124,6 +124,11 @@ public class StateManager : MonoBehaviour
             roundManager.CompleteBattleLife();
         }
 
+        if (previousState == GameState.Shop && nextState != GameState.Shop && shopManager != null)
+        {
+            shopManager.OnShopExited();
+        }
+
         RefreshUIPanels();
         HandleBattleGridStateChange(previousState, nextState);
 
@@ -132,7 +137,7 @@ public class StateManager : MonoBehaviour
             FindMissingReferences();
             if (shopManager != null)
             {
-                shopManager.GenerateShopItems();
+                shopManager.OnShopEntered();
             }
         }
     }
@@ -140,6 +145,11 @@ public class StateManager : MonoBehaviour
     // MainMenu UI의 Play Game 버튼에서 호출합니다.
     public void OnClickPlayGame()
     {
+        if (PlayerUpgradeManager.Instance != null)
+        {
+            PlayerUpgradeManager.Instance.ResetRunData();
+        }
+
         if (roundManager != null)
         {
             roundManager.StartNewRun();
@@ -185,6 +195,11 @@ public class StateManager : MonoBehaviour
     {
         StopTurnCoroutines();
         ChangeBattleState(BattleState.None);
+
+        if (PlayerUpgradeManager.Instance != null)
+        {
+            PlayerUpgradeManager.Instance.ResetRunData();
+        }
 
         if (roundManager != null)
         {

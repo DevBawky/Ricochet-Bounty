@@ -21,9 +21,16 @@ public class PlayerUpgradeManager : MonoBehaviour
     [SerializeField, Range(0, MaxUpgradeLevel)] int ballDefenseLevel;
     [SerializeField, Range(0, MaxUpgradeLevel)] int scoreBoostLevel;
 
-    [Header("Upgrade Cost")]
-    [SerializeField, Min(0)] int baseUpgradeCost = 5;
-    [SerializeField, Min(0)] int upgradeCostPerLevel;
+    [Header("Upgrade Costs by Current Level")]
+    [SerializeField] int[] ballHpUpgradeCosts = new int[MaxUpgradeLevel];
+    [SerializeField] int[] ballDefenseUpgradeCosts = new int[MaxUpgradeLevel];
+    [SerializeField] int[] scoreBoostUpgradeCosts = new int[MaxUpgradeLevel];
+
+    [Header("Delete Ball Cost")]
+    [SerializeField, Min(0)] int initialDeleteCost = 3;
+    [SerializeField, Min(0)] int deleteCostIncrease = 1;
+
+    int currentDeleteCost;
 
     [Header("Player Panel - Upgrades Info")]
     [SerializeField] TMP_Text ballHpLevelText;
@@ -34,6 +41,7 @@ public class PlayerUpgradeManager : MonoBehaviour
     [SerializeField] UnityEvent onUpgradesChanged = new UnityEvent();
 
     public UnityEvent OnUpgradesChanged => onUpgradesChanged;
+    public int CurrentDeleteCost => currentDeleteCost;
 
     void Awake()
     {
@@ -45,6 +53,7 @@ public class PlayerUpgradeManager : MonoBehaviour
 
         Instance = this;
         ClampLevels();
+        ResetDeleteCost();
         FindMissingLevelTexts();
         RefreshPlayerPanel();
     }
@@ -83,9 +92,25 @@ public class PlayerUpgradeManager : MonoBehaviour
         return GetLevel(upgradeType) * PercentPerLevel;
     }
 
-    public int GetUpgradeCost(PlayerUpgradeType upgradeType)
+    public bool TryGetUpgradeCost(PlayerUpgradeType upgradeType, out int cost)
     {
-        return baseUpgradeCost + GetLevel(upgradeType) * upgradeCostPerLevel;
+        cost = 0;
+        int currentLevel = GetLevel(upgradeType);
+        if (currentLevel >= MaxUpgradeLevel)
+        {
+            return false;
+        }
+
+        int[] costs = GetUpgradeCosts(upgradeType);
+        if (costs == null || currentLevel < 0 || currentLevel >= costs.Length)
+        {
+            int length = costs != null ? costs.Length : 0;
+            Debug.LogWarning($"[PlayerUpgradeManager] {upgradeType} cost for level {currentLevel} is missing. Array Length: {length}", this);
+            return false;
+        }
+
+        cost = Mathf.Max(0, costs[currentLevel]);
+        return true;
     }
 
     public bool TryPurchaseUpgrade(PlayerUpgradeType upgradeType, GoldManager goldManager)
@@ -102,7 +127,11 @@ public class PlayerUpgradeManager : MonoBehaviour
             return false;
         }
 
-        int cost = GetUpgradeCost(upgradeType);
+        if (!TryGetUpgradeCost(upgradeType, out int cost))
+        {
+            return false;
+        }
+
         if (!goldManager.TrySpendGold(cost))
         {
             return false;
@@ -112,6 +141,22 @@ public class PlayerUpgradeManager : MonoBehaviour
         RefreshPlayerPanel();
         OnUpgradesChanged.Invoke();
         return true;
+    }
+
+    public void AdvanceDeleteCost()
+    {
+        long nextCost = (long)currentDeleteCost + Mathf.Max(0, deleteCostIncrease);
+        currentDeleteCost = nextCost > int.MaxValue ? int.MaxValue : (int)nextCost;
+    }
+
+    public void ResetRunData()
+    {
+        ballHpLevel = 0;
+        ballDefenseLevel = 0;
+        scoreBoostLevel = 0;
+        ResetDeleteCost();
+        RefreshPlayerPanel();
+        OnUpgradesChanged.Invoke();
     }
 
     public int GetUpgradedMaxDurability(int baseDurability)
@@ -161,6 +206,49 @@ public class PlayerUpgradeManager : MonoBehaviour
         ballHpLevel = Mathf.Clamp(ballHpLevel, 0, MaxUpgradeLevel);
         ballDefenseLevel = Mathf.Clamp(ballDefenseLevel, 0, MaxUpgradeLevel);
         scoreBoostLevel = Mathf.Clamp(scoreBoostLevel, 0, MaxUpgradeLevel);
+    }
+
+    void ResetDeleteCost()
+    {
+        currentDeleteCost = Mathf.Max(0, initialDeleteCost);
+    }
+
+    int[] GetUpgradeCosts(PlayerUpgradeType upgradeType)
+    {
+        switch (upgradeType)
+        {
+            case PlayerUpgradeType.BallHp:
+                return ballHpUpgradeCosts;
+            case PlayerUpgradeType.BallDefense:
+                return ballDefenseUpgradeCosts;
+            case PlayerUpgradeType.ScoreBoost:
+                return scoreBoostUpgradeCosts;
+            default:
+                return null;
+        }
+    }
+
+    void OnValidate()
+    {
+        ClampLevels();
+        initialDeleteCost = Mathf.Max(0, initialDeleteCost);
+        deleteCostIncrease = Mathf.Max(0, deleteCostIncrease);
+        ClampCosts(ballHpUpgradeCosts);
+        ClampCosts(ballDefenseUpgradeCosts);
+        ClampCosts(scoreBoostUpgradeCosts);
+    }
+
+    static void ClampCosts(int[] costs)
+    {
+        if (costs == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < costs.Length; i++)
+        {
+            costs[i] = Mathf.Max(0, costs[i]);
+        }
     }
 
     void FindMissingLevelTexts()

@@ -3619,8 +3619,41 @@ MonoBehaviour:
   ballHpLevel: 0
   ballDefenseLevel: 0
   scoreBoostLevel: 0
-  baseUpgradeCost: 5
-  upgradeCostPerLevel: 0
+  ballHpUpgradeCosts:
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  ballDefenseUpgradeCosts:
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  scoreBoostUpgradeCosts:
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  initialDeleteCost: 3
+  deleteCostIncrease: 1
   ballHpLevelText: {fileID: 4783262770816722815}
   ballDefenseLevelText: {fileID: 995615657581629625}
   scoreBoostLevelText: {fileID: 1779685750940854548}
@@ -3650,7 +3683,7 @@ MonoBehaviour:
   ballItemPrefab: {fileID: 2111454498612331282, guid: cbdc3763336df2a45b826a8c5c4ee06f, type: 3}
   goldManager: {fileID: 0}
   playerBallDeck: {fileID: 0}
-  deleteCost: 3
+  playerRunData: {fileID: 910000000000000101}
 --- !u!224 &6183784386465282453
 RectTransform:
   m_ObjectHideFlags: 0

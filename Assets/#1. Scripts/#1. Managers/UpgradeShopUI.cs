@@ -74,10 +74,15 @@ public class UpgradeShopUI : MonoBehaviour
             levelText.text = $"LV. {level}";
         }
 
-        bool canUpgrade = upgradeManager != null && level < PlayerUpgradeManager.MaxUpgradeLevel;
+        bool isBelowMaxLevel = upgradeManager != null && level < PlayerUpgradeManager.MaxUpgradeLevel;
+        int upgradeCost = 0;
+        bool hasConfiguredCost = isBelowMaxLevel && upgradeManager.TryGetUpgradeCost(upgradeType, out upgradeCost);
+        bool canUpgrade = isBelowMaxLevel && hasConfiguredCost;
         if (costText != null)
         {
-            costText.text = canUpgrade ? $"$ {upgradeManager.GetUpgradeCost(upgradeType)}" : "MAX";
+            costText.text = level >= PlayerUpgradeManager.MaxUpgradeLevel
+                ? "MAX"
+                : hasConfiguredCost ? $"$ {upgradeCost}" : "N/A";
         }
 
         if (purchaseButton != null)

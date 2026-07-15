@@ -301,7 +301,9 @@ MonoBehaviour:
   goldManager: {fileID: 910000003}
   playerBallDeck: {fileID: 648819987}
   refreshButton: {fileID: 316683140}
-  refreshCost: 0
+  firstRefreshCost: 1
+  secondRefreshCost: 1
+  refreshCostText: {fileID: 910000020}
 --- !u!224 &307654645 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5156258615143780781, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
@@ -683,6 +685,118 @@ PrefabInstance:
     - target: {fileID: 910000000000000001, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: deleteCostIncrease
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballHpUpgradeCosts.Array.data[1]'
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballHpUpgradeCosts.Array.data[2]'
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballHpUpgradeCosts.Array.data[3]'
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballHpUpgradeCosts.Array.data[4]'
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballHpUpgradeCosts.Array.data[5]'
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballHpUpgradeCosts.Array.data[6]'
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballHpUpgradeCosts.Array.data[7]'
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballHpUpgradeCosts.Array.data[8]'
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballHpUpgradeCosts.Array.data[9]'
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'scoreBoostUpgradeCosts.Array.data[1]'
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'scoreBoostUpgradeCosts.Array.data[2]'
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'scoreBoostUpgradeCosts.Array.data[3]'
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'scoreBoostUpgradeCosts.Array.data[4]'
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'scoreBoostUpgradeCosts.Array.data[5]'
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'scoreBoostUpgradeCosts.Array.data[6]'
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'scoreBoostUpgradeCosts.Array.data[7]'
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'scoreBoostUpgradeCosts.Array.data[8]'
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'scoreBoostUpgradeCosts.Array.data[9]'
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballDefenseUpgradeCosts.Array.data[1]'
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballDefenseUpgradeCosts.Array.data[2]'
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballDefenseUpgradeCosts.Array.data[3]'
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballDefenseUpgradeCosts.Array.data[4]'
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballDefenseUpgradeCosts.Array.data[5]'
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballDefenseUpgradeCosts.Array.data[6]'
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballDefenseUpgradeCosts.Array.data[7]'
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballDefenseUpgradeCosts.Array.data[8]'
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: 'ballDefenseUpgradeCosts.Array.data[9]'
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 914751953512124982, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
@@ -2747,6 +2861,17 @@ MonoBehaviour:
   onGoldChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &910000020 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 561380463297405401, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+  m_PrefabInstance: {fileID: 437536086}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &930209547 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3033743157436423122, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
