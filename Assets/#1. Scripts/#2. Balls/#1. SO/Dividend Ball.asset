@@ -22,16 +22,33 @@ MonoBehaviour:
   movementType: 0
   waveAmplitude: 0.5
   waveFrequency: 1
-  maxDurability: 5
+  maxDurability: 20
   wallHitDurabilityDamage: 1
   objectHitDurabilityDamage: 1
   spawnEffects:
   - effectType: 17
     triggerChance: 1
     cooldown: 0
-    maxTriggerCount: 1
+    maxTriggerCount: 5
     minValue: 1
     maxValue: 1
+    chipsPerStack: 1
+    multiplierPerStack: 0.1
+    targetStack: 3
+    chipsIncrease: 1
+    multiplierIncrease: 1
+    baseChipsIncrease: 1
+    chipsIncreasePerOverheat: 1
+    baseMultiplierIncrease: 1
+    multiplierIncreasePerOverheat: 0.2
+    selfDestroyStartOverheat: 5
+    selfDestroyChance: 0.15
+    rewardEffectType: 0
+    rewardValuePerStack: 1
+    rewardMinValue: 1
+    rewardMaxValue: 1
+    baseRewardValue: 1
+    rewardValuePerOverheat: 0.2
   objectHitEffects: []
   wallHitEffects: []
   destroyEffects: []

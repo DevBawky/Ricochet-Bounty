@@ -22,7 +22,7 @@ MonoBehaviour:
   movementType: 0
   waveAmplitude: 0.5
   waveFrequency: 1
-  maxDurability: 5
+  maxDurability: 20
   wallHitDurabilityDamage: 1
   objectHitDurabilityDamage: 1
   spawnEffects: []
