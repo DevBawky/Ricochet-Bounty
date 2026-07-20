@@ -139,6 +139,12 @@ public class StateManager : MonoBehaviour
             roundManager.CompleteBattleLife();
         }
 
+        if (previousState == GameState.Battle && nextState != GameState.Battle)
+        {
+            StopTurnCoroutines();
+            damageManager?.CancelPresentation();
+        }
+
         if (previousState == GameState.Shop && nextState != GameState.Shop && shopManager != null)
         {
             shopManager.OnShopExited();
@@ -352,6 +358,11 @@ public class StateManager : MonoBehaviour
         }
 
         Debug.Log("[StateManager] 전투를 시작합니다.", this);
+        damageManager?.CancelPresentation();
+        if (roundManager != null)
+        {
+            damageManager?.SetEnemyHealthImmediate(roundManager.CurrentEnemyHp, roundManager.MaximumEnemyHp);
+        }
         ChangeBattleState(BattleState.BattleStart);
         StartTurn();
     }
@@ -372,7 +383,13 @@ public class StateManager : MonoBehaviour
 
         if (damageManager != null)
         {
+            damageManager.CancelPresentation();
+            if (roundManager != null)
+            {
+                damageManager.SetEnemyHealthImmediate(roundManager.CurrentEnemyHp, roundManager.MaximumEnemyHp);
+            }
             damageManager.ResetScore();
+            damageUI?.ClearFinalScore();
         }
         else
         {
@@ -563,20 +580,24 @@ public class StateManager : MonoBehaviour
     IEnumerator ResolveTurnResultRoutine()
     {
         ChangeBattleState(BattleState.ResolvingTurn);
-        Debug.Log($"[StateManager] Ball이 0개입니다. {finalDamageDelay}초 뒤 최종 대미지를 계산합니다.", this);
-
-        yield return new WaitForSeconds(Mathf.Max(0f, finalDamageDelay));
-
         FindMissingReferences();
+
+        if (damageManager != null && shotRuntimeContext != null)
+        {
+            shotRuntimeContext.ApplyDividendBonus(damageManager);
+        }
+
+        while (damageManager != null && !damageManager.IsScorePresentationComplete)
+        {
+            yield return null;
+        }
+
+        Debug.Log($"[StateManager] 점수 전달과 텍스트 보간 완료. {finalDamageDelay}초 뒤 최종 대미지를 계산합니다.", this);
+        yield return new WaitForSeconds(Mathf.Max(0f, finalDamageDelay));
 
         int finalDamage = 0;
         if (damageManager != null)
         {
-            if (shotRuntimeContext != null)
-            {
-                shotRuntimeContext.ApplyDividendBonus(damageManager);
-            }
-
             finalDamage = damageManager.CalculateFinalScore();
         }
         else
@@ -587,14 +608,47 @@ public class StateManager : MonoBehaviour
         ShowFinalDamage(finalDamage);
         Debug.Log($"[StateManager] 최종 대미지 계산 완료: {finalDamage}", this);
 
+        while (damageUI != null && !damageUI.IsFinalDamageCountUpComplete)
+        {
+            yield return null;
+        }
+
+        if (damageUI != null && damageUI.FinalDamageParticleDelay > 0f)
+        {
+            yield return new WaitForSecondsRealtime(damageUI.FinalDamageParticleDelay);
+        }
+
         if (roundManager != null && roundManager.SelectedEnemyData != null)
         {
-            roundManager.ApplyDamageToCurrentEnemy(finalDamage);
+            bool deliveryStarted = damageManager != null && damageManager.BeginFinalDamageDelivery(
+                finalDamage,
+                roundManager.CurrentEnemyHp,
+                roundManager.MaximumEnemyHp,
+                damage =>
+                {
+                    roundManager.ApplyDamageToCurrentEnemyDeferred(damage);
+                    damageManager.SetEnemyHealthTarget(roundManager.CurrentEnemyHp, roundManager.MaximumEnemyHp);
+                });
+
+            if (!deliveryStarted)
+            {
+                roundManager.ApplyDamageToCurrentEnemyDeferred(finalDamage);
+                damageManager?.SetEnemyHealthImmediate(roundManager.CurrentEnemyHp, roundManager.MaximumEnemyHp);
+                roundManager.RefreshDeferredEnemyHealthBar();
+            }
+
+            while (deliveryStarted && damageManager != null && !damageManager.IsFinalDamagePresentationComplete)
+            {
+                yield return null;
+            }
+
+            bool enemyDefeated = roundManager.CurrentEnemyHp <= 0;
             ResetResolvedShot();
 
-            if (roundManager.CurrentEnemyHp <= 0)
+            if (enemyDefeated)
             {
                 resolveTurnCoroutine = null;
+                roundManager.ResolveDeferredEnemyDamage();
                 yield break;
             }
 
@@ -610,16 +664,40 @@ public class StateManager : MonoBehaviour
         }
         else if (enemyDataHolder != null)
         {
-            enemyDataHolder.TakeDamage(finalDamage);
-            ResetResolvedShot();
-            Debug.Log($"[StateManager] 적 생존 여부 확인. IsDead: {enemyDataHolder.IsDead}", this);
+            bool deliveryStarted = damageManager != null && damageManager.BeginFinalDamageDelivery(
+                finalDamage,
+                enemyDataHolder.CurrentHealth,
+                enemyDataHolder.MaximumHealth,
+                damage =>
+                {
+                    enemyDataHolder.TakeDamageDeferred(damage);
+                    damageManager.SetEnemyHealthTarget(enemyDataHolder.CurrentHealth, enemyDataHolder.MaximumHealth);
+                });
 
-            if (enemyDataHolder.IsDead)
+            if (!deliveryStarted)
+            {
+                enemyDataHolder.TakeDamageDeferred(finalDamage);
+                damageManager?.SetEnemyHealthImmediate(enemyDataHolder.CurrentHealth, enemyDataHolder.MaximumHealth);
+            }
+
+            while (deliveryStarted && damageManager != null && !damageManager.IsFinalDamagePresentationComplete)
+            {
+                yield return null;
+            }
+
+            bool enemyDefeated = enemyDataHolder.CurrentHealth <= 0;
+            ResetResolvedShot();
+            Debug.Log($"[StateManager] 적 생존 여부 확인. Defeated: {enemyDefeated}", this);
+
+            if (enemyDefeated)
             {
                 resolveTurnCoroutine = null;
+                enemyDataHolder.ResolveDeferredDamage();
                 EndBattle();
                 yield break;
             }
+
+            enemyDataHolder.ResolveDeferredDamage();
         }
         else
         {
@@ -655,6 +733,7 @@ public class StateManager : MonoBehaviour
     public void RestoreLoadedState(GameState savedGameState, BattleState savedBattleState)
     {
         StopTurnCoroutines();
+        damageManager?.CancelPresentation();
         ClearActiveBalls();
         currentState = savedGameState;
         currentBattleState = savedGameState == GameState.Battle
@@ -672,12 +751,15 @@ public class StateManager : MonoBehaviour
                     roundManager.MaximumEnemyHp,
                     roundManager.CurrentEnemyHp);
             }
+
+            damageManager?.SetEnemyHealthImmediate(roundManager.CurrentEnemyHp, roundManager.MaximumEnemyHp);
         }
     }
 
     public void ReturnToMainMenuAfterLoadFailure()
     {
         StopTurnCoroutines();
+        damageManager?.CancelPresentation();
         ClearActiveBalls();
         currentBattleState = BattleState.None;
         currentState = GameState.MainMenu;
@@ -691,18 +773,19 @@ public class StateManager : MonoBehaviour
 
     void ShowFinalDamage(int finalDamage)
     {
+        if (damageUI != null)
+        {
+            damageUI.BeginFinalDamageCountUp(finalDamage);
+            return;
+        }
+
         if (finalDamageText != null)
         {
-            finalDamageText.text = $"Final Damage : {finalDamage}";
+            finalDamageText.text = finalDamage.ToString();
         }
         else
         {
             Debug.LogWarning("[StateManager] finalDamageText가 연결되어 있지 않아 TMP_Text에 최종 대미지를 표시할 수 없습니다.", this);
-        }
-
-        if (damageUI != null)
-        {
-            damageUI.ShowFinalScore(finalDamage);
         }
     }
 

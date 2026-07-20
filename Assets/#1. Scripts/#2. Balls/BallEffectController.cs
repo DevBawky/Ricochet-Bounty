@@ -42,6 +42,7 @@ public class BallEffectController : MonoBehaviour
     BallRuntimeStatus runtimeStatus;
     Rigidbody2D ballRigidbody;
     bool isInitialized;
+    Vector3 currentEffectWorldPosition;
 
     BallDataSO BallData
     {
@@ -154,27 +155,31 @@ public class BallEffectController : MonoBehaviour
 
     public void TriggerSpawnEffects()
     {
+        currentEffectWorldPosition = transform.position;
         TriggerEffects(BallEffectTrigger.OnSpawn);
     }
 
-    public void TriggerObjectHitEffects()
+    public void TriggerObjectHitEffects(Vector3 hitPosition)
     {
+        currentEffectWorldPosition = hitPosition;
         RefreshMissingManagerReferences();
         if (isColonyChild && damageManager != null)
         {
-            damageManager.AddChips(1);
+            damageManager.AddChips(1, currentEffectWorldPosition);
         }
 
         TriggerEffects(BallEffectTrigger.OnObjectHit);
     }
 
-    public void TriggerWallHitEffects()
+    public void TriggerWallHitEffects(Vector3 hitPosition)
     {
+        currentEffectWorldPosition = hitPosition;
         TriggerEffects(BallEffectTrigger.OnWallHit);
     }
 
     public void TriggerDestroyEffects()
     {
+        currentEffectWorldPosition = transform.position;
         TriggerEffects(BallEffectTrigger.OnDestroy);
     }
 
@@ -549,7 +554,7 @@ public class BallEffectController : MonoBehaviour
 
         GetOrderedRange(effectData, out float minValue, out float maxValue);
         int amount = Mathf.RoundToInt(Random.Range(minValue, maxValue));
-        damageManager.AddChips(amount);
+        damageManager.AddChips(amount, currentEffectWorldPosition);
     }
 
     void AddRandomMultiplier(BallEffectData effectData)
@@ -562,7 +567,7 @@ public class BallEffectController : MonoBehaviour
 
         GetOrderedRange(effectData, out float minValue, out float maxValue);
         float amount = Random.Range(minValue, maxValue);
-        damageManager.AddMultiplier(amount);
+        damageManager.AddMultiplier(amount, currentEffectWorldPosition);
     }
 
     void ExecuteDestroySelf()
@@ -625,7 +630,7 @@ public class BallEffectController : MonoBehaviour
 
         int activeBallCount = ballRegistry.ActiveBallCount;
         int chips = activeBallCount >= 9 ? 4 : activeBallCount >= 6 ? 3 : 2;
-        damageManager.AddChips(chips);
+        damageManager.AddChips(chips, currentEffectWorldPosition);
 
         if (activeBallCount < 9)
         {
@@ -635,7 +640,7 @@ public class BallEffectController : MonoBehaviour
         highPopulationObjectHits++;
         if (highPopulationObjectHits % 3 == 0)
         {
-            damageManager.AddMultiplier(0.2f);
+            damageManager.AddMultiplier(0.2f, currentEffectWorldPosition);
         }
     }
 
@@ -650,7 +655,7 @@ public class BallEffectController : MonoBehaviour
         if (trigger == BallEffectTrigger.OnObjectHit)
         {
             int chips = Mathf.Clamp(gold / 5 + 1, 1, 5);
-            damageManager.AddChips(chips);
+            damageManager.AddChips(chips, currentEffectWorldPosition);
             return;
         }
 
@@ -662,7 +667,7 @@ public class BallEffectController : MonoBehaviour
         float multiplier = gold >= 30 ? 0.6f : gold >= 20 ? 0.4f : gold >= 10 ? 0.2f : 0f;
         if (multiplier > 0f)
         {
-            damageManager.AddMultiplier(multiplier);
+            damageManager.AddMultiplier(multiplier, currentEffectWorldPosition);
         }
     }
 
@@ -748,7 +753,7 @@ public class BallEffectController : MonoBehaviour
 
         if (grantedChips > 0)
         {
-            damageManager.AddChips(grantedChips);
+            damageManager.AddChips(grantedChips, currentEffectWorldPosition);
         }
 
         Debug.Log($"[StackCashOutChipsBallEffect] {name} cashed out. Final Stack: {stackCashOutChipsStack}, Chips Per Stack: {chipsPerStack}, Granted Chips: {grantedChips}", this);
@@ -781,7 +786,7 @@ public class BallEffectController : MonoBehaviour
 
         if (grantedMultiplier > 0f)
         {
-            damageManager.AddMultiplier(grantedMultiplier);
+            damageManager.AddMultiplier(grantedMultiplier, currentEffectWorldPosition);
         }
 
         Debug.Log($"[StackCashOutMultiplierBallEffect] {name} cashed out. Final Stack: {stackCashOutMultiplierStack}, Mult Per Stack: {multiplierPerStack}, Granted Mult: {grantedMultiplier}", this);
@@ -815,7 +820,7 @@ public class BallEffectController : MonoBehaviour
 
         if (amount > 0)
         {
-            damageManager.AddChips(amount);
+            damageManager.AddChips(amount, currentEffectWorldPosition);
         }
 
         Debug.Log($"[StackChipsBallEffect] {name} reached target Stack. Chips Granted: +{amount}, Stack Reset: {stackChipsStack}->0", this);
@@ -849,7 +854,7 @@ public class BallEffectController : MonoBehaviour
 
         if (amount > 0f)
         {
-            damageManager.AddMultiplier(amount);
+            damageManager.AddMultiplier(amount, currentEffectWorldPosition);
         }
 
         Debug.Log($"[StackMultiplierBallEffect] {name} reached target Stack. Mult Granted: +{amount}, Stack Reset: {stackMultiplierStack}->0", this);
@@ -875,7 +880,7 @@ public class BallEffectController : MonoBehaviour
         }
         else if (amount > 0f)
         {
-            damageManager.AddMultiplier(amount);
+            damageManager.AddMultiplier(amount, currentEffectWorldPosition);
         }
 
         int selfDestroyStartOverheat = Mathf.Max(1, effectData.selfDestroyStartOverheat);
@@ -913,7 +918,7 @@ public class BallEffectController : MonoBehaviour
         }
         else if (amount > 0)
         {
-            damageManager.AddChips(amount);
+            damageManager.AddChips(amount, currentEffectWorldPosition);
         }
 
         int selfDestroyStartOverheat = Mathf.Max(1, effectData.selfDestroyStartOverheat);
@@ -1060,7 +1065,7 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
-        damageManager.AddChips(amount);
+        damageManager.AddChips(amount, currentEffectWorldPosition);
     }
 
     void AddRewardMultiplier(float value, string context)
@@ -1077,7 +1082,7 @@ public class BallEffectController : MonoBehaviour
             return;
         }
 
-        damageManager.AddMultiplier(amount);
+        damageManager.AddMultiplier(amount, currentEffectWorldPosition);
     }
 
     void ExecuteRewardRandomScoreValue(float value, string context)

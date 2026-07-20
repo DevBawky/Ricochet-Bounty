@@ -55,7 +55,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -4137,6 +4137,7 @@ GameObject:
   - component: {fileID: 5994083881153050693}
   - component: {fileID: 910000000000000101}
   - component: {fileID: 910000000000000102}
+  - component: {fileID: 910000000000000103}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -4286,6 +4287,44 @@ MonoBehaviour:
   goldManager: {fileID: 0}
   playerBallDeck: {fileID: 0}
   playerRunData: {fileID: 910000000000000101}
+--- !u!114 &910000000000000103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2143039963330679603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5e9f4a20b7351d6c8a2b9f3e7d01452, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ScoreDeliveryUI
+  canvas: {fileID: 2002318270740816538}
+  travelRoot: {fileID: 6183784386465282453}
+  travelImagePrefab: {fileID: 410000000000000005, guid: a81c27d53ea68409fbd5ec261a034785, type: 3}
+  worldCamera: {fileID: 0}
+  damageUI: {fileID: 2097847398844359110}
+  chipsTarget: {fileID: 1112364655234021685}
+  multiplierTarget: {fileID: 2982224478168358609}
+  damageSource: {fileID: 214363143370879048}
+  enemyHpFillImage: {fileID: 7950896471968644315}
+  enemyHpText: {fileID: 0}
+  chipsImageTravelDuration: 0.6
+  multiplierImageTravelDuration: 0.7
+  damageImageTravelDuration: 0.8
+  minimumWaveAmplitude: 20
+  maximumWaveAmplitude: 70
+  minimumWaveFrequency: 0.75
+  maximumWaveFrequency: 2
+  randomizeStartPhase: 1
+  randomizeWaveDirection: 1
+  chipsImageColor: {r: 1, g: 0.82, b: 0.15, a: 1}
+  multiplierImageColor: {r: 0.35, g: 0.9, b: 1, a: 1}
+  damageImageColor: {r: 1, g: 0.25, b: 0.25, a: 1}
+  damagePerImage: 30
+  maximumDamageImageCount: 100
+  damageImageSpawnInterval: 0.03
+  enemyHpLerpDuration: 0.45
 --- !u!1 &2154179700685383707
 GameObject:
   m_ObjectHideFlags: 0
@@ -11899,6 +11938,9 @@ MonoBehaviour:
   multiplierText: {fileID: 7429383482691987278}
   finalScoreText: {fileID: 7887066946697989263}
   damageManager: {fileID: 0}
+  scoreTextLerpDuration: 0.35
+  finalDamageCountUpDuration: 0.5
+  finalDamageParticleDelay: 1
 --- !u!1 &6261887433823824776
 GameObject:
   m_ObjectHideFlags: 0

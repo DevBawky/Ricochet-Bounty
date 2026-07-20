@@ -554,6 +554,38 @@ public class RoundManager : MonoBehaviour
         }
     }
 
+    // Used by the damage-image presentation. It changes the real target HP for one image,
+    // but deliberately defers fill-bar refresh and defeat/result handling.
+    public void ApplyDamageToCurrentEnemyDeferred(int damage)
+    {
+        if (selectedEnemyData == null)
+        {
+            Debug.LogWarning("[RoundManager] 선택된 적 데이터가 없어 지연 대미지를 적용할 수 없습니다.", this);
+            return;
+        }
+
+        int safeDamage = Mathf.Max(0, damage);
+        currentEnemyHp = Mathf.Max(0, currentEnemyHp - safeDamage);
+        RefreshTargetHealthText();
+        Debug.Log($"[RoundManager] 대미지 이미지 도착: -{safeDamage}, 목표 HP: {currentEnemyHp}", this);
+    }
+
+    public void ResolveDeferredEnemyDamage()
+    {
+        if (selectedEnemyData != null && currentEnemyHp <= 0)
+        {
+            HandleCurrentEnemyDefeated();
+        }
+    }
+
+    public void RefreshDeferredEnemyHealthBar()
+    {
+        if (targetEnemyHpFillImage != null)
+        {
+            targetEnemyHpFillImage.fillAmount = GetCurrentEnemyHpRatio();
+        }
+    }
+
     // 적을 처치하지 못한 채 발사 1회가 끝났을 때 라이프를 1 차감합니다.
     public void OnShotEndedWithoutEnemyDefeated()
     {
@@ -836,22 +868,24 @@ public class RoundManager : MonoBehaviour
             targetEnemyNameText.text = selectedEnemyData != null ? selectedEnemyData.EnemyName : "Enemy";
         }
 
-        if (targetEnemyHpText != null)
-        {
-            if (selectedEnemyData == null)
-            {
-                targetEnemyHpText.text = "- / -";
-            }
-            else
-            {
-                targetEnemyHpText.text = $"{currentEnemyHp} / {maximumEnemyHp}";
-            }
-        }
+        RefreshTargetHealthText();
 
         if (targetEnemyHpFillImage != null)
         {
             targetEnemyHpFillImage.fillAmount = GetCurrentEnemyHpRatio();
         }
+    }
+
+    void RefreshTargetHealthText()
+    {
+        if (targetEnemyHpText == null)
+        {
+            return;
+        }
+
+        targetEnemyHpText.text = selectedEnemyData == null
+            ? "- / -"
+            : $"{currentEnemyHp} / {maximumEnemyHp}";
     }
 
     float GetCurrentStageProgress01()

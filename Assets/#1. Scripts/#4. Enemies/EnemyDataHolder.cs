@@ -29,6 +29,8 @@ public class EnemyDataHolder : MonoBehaviour
         }
     }
 
+    public int MaximumHealth => Mathf.Max(1, maximumHealth);
+
     public void Restore(EnemyData restoredEnemyData, int maximum, int current)
     {
         enemyData = restoredEnemyData;
@@ -87,6 +89,28 @@ public class EnemyDataHolder : MonoBehaviour
         }
 
         Debug.Log($"[EnemyDataHolder] TakeDamage 후 생존 확인. IsDead: {IsDead}", this);
+    }
+
+    public void TakeDamageDeferred(int damage)
+    {
+        if (IsDead || enemyData == null)
+        {
+            return;
+        }
+
+        currentHealth = Mathf.Max(0, currentHealth - Mathf.Max(0, damage));
+    }
+
+    public void ResolveDeferredDamage()
+    {
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+        else
+        {
+            UpdateHealthBar();
+        }
     }
 
     void Die()

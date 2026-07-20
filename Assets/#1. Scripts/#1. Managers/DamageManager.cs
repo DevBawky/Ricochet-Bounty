@@ -1,8 +1,8 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
-// Manages the accumulated Chips and Multiplier values.
-// This class does not know about UI. It only changes values and sends an event when they change.
+// Manages score targets and delays value application until its UI delivery image arrives.
 public class DamageManager : MonoBehaviour
 {
     [Header("Initial Values")]
@@ -11,12 +11,15 @@ public class DamageManager : MonoBehaviour
 
     [Header("Events")]
     [SerializeField] UnityEvent onDamageValueChanged = new UnityEvent();
+    [SerializeField] UnityEvent onScoreReset = new UnityEvent();
+
+    [Header("Presentation")]
+    [SerializeField] ScoreDeliveryUI scoreDeliveryUI;
 
     int currentChips;
     float currentMultiplier;
     PlayerUpgradeManager upgradeManager;
 
-    // Other scripts can subscribe to this event and refresh their own UI or logic.
     public UnityEvent OnDamageValueChanged
     {
         get
@@ -30,29 +33,42 @@ public class DamageManager : MonoBehaviour
         }
     }
 
-    public int CurrentChips
+    public UnityEvent OnScoreReset
     {
         get
         {
-            return currentChips;
+            if (onScoreReset == null)
+            {
+                onScoreReset = new UnityEvent();
+            }
+
+            return onScoreReset;
         }
     }
 
-    public float CurrentMultiplier
-    {
-        get
-        {
-            return currentMultiplier;
-        }
-    }
+    public int CurrentChips => currentChips;
+    public float CurrentMultiplier => currentMultiplier;
+    public bool IsScorePresentationComplete =>
+        scoreDeliveryUI == null || scoreDeliveryUI.IsScoreDeliveryComplete;
+    public bool IsFinalDamagePresentationComplete =>
+        scoreDeliveryUI == null || scoreDeliveryUI.IsDamageDeliveryComplete;
 
     void Awake()
     {
+        if (scoreDeliveryUI == null)
+        {
+            scoreDeliveryUI = FindFirstObjectByType<ScoreDeliveryUI>(FindObjectsInactive.Include);
+        }
+
         ResetScore();
     }
 
-    // Adds Chips. Zero or negative values are ignored because this manager only accumulates damage values.
     public void AddChips(int amount)
+    {
+        AddChips(amount, transform.position);
+    }
+
+    public void AddChips(int amount, Vector3 worldPosition)
     {
         if (amount <= 0)
         {
@@ -61,14 +77,21 @@ public class DamageManager : MonoBehaviour
         }
 
         int appliedAmount = ShouldDoubleScore() ? amount * 2 : amount;
-        currentChips += appliedAmount;
-        OnDamageValueChanged.Invoke();
+        if (scoreDeliveryUI != null &&
+            scoreDeliveryUI.TryQueueChips(appliedAmount, worldPosition, () => ApplyDeliveredChips(appliedAmount)))
+        {
+            return;
+        }
 
-        Debug.Log($"[DamageManager] Chips Added: +{appliedAmount} / Current Chips: {currentChips}", this);
+        ApplyDeliveredChips(appliedAmount);
     }
 
-    // Adds Multiplier. The final score is calculated later by Chips * Multiplier.
     public void AddMultiplier(float amount)
+    {
+        AddMultiplier(amount, transform.position);
+    }
+
+    public void AddMultiplier(float amount, Vector3 worldPosition)
     {
         if (amount <= 0f)
         {
@@ -77,14 +100,21 @@ public class DamageManager : MonoBehaviour
         }
 
         float appliedAmount = ShouldDoubleScore() ? amount * 2f : amount;
-        currentMultiplier += appliedAmount;
-        OnDamageValueChanged.Invoke();
+        if (scoreDeliveryUI != null &&
+            scoreDeliveryUI.TryQueueMultiplier(appliedAmount, worldPosition, () => ApplyDeliveredMultiplier(appliedAmount)))
+        {
+            return;
+        }
 
-        Debug.Log($"[DamageManager] Multiplier Added: +{appliedAmount} / Current Multiplier: {currentMultiplier}", this);
+        ApplyDeliveredMultiplier(appliedAmount);
     }
 
-    // Applies a BallDataSO value based on whether the ball gives Chips or Multiplier.
     public void ApplyBallData(BallDataSO data)
+    {
+        ApplyBallData(data, transform.position);
+    }
+
+    public void ApplyBallData(BallDataSO data, Vector3 worldPosition)
     {
         if (data == null)
         {
@@ -94,36 +124,29 @@ public class DamageManager : MonoBehaviour
 
         if (data.ValueType == DamageValueType.Chips)
         {
-            int chipsAmount = Mathf.RoundToInt(data.Score);
-            AddChips(chipsAmount);
+            AddChips(Mathf.RoundToInt(data.Score), worldPosition);
             return;
         }
 
         if (data.ValueType == DamageValueType.Multiplier)
         {
-            AddMultiplier(data.Score);
-            return;
+            AddMultiplier(data.Score, worldPosition);
         }
     }
 
-    // Calculates the final score after all balls have disappeared.
     public int CalculateFinalScore()
     {
-        float finalScoreFloat = currentChips * currentMultiplier;
-        int finalScore = Mathf.RoundToInt(finalScoreFloat);
-
+        int finalScore = Mathf.RoundToInt(currentChips * currentMultiplier);
         Debug.Log($"[DamageManager] Final Score Calculated. Chips: {currentChips}, Multiplier: {currentMultiplier}, Final Score: {finalScore}", this);
-
         return finalScore;
     }
 
-    // Restores the score values to their Inspector defaults.
     public void ResetScore()
     {
         currentChips = initialChips;
         currentMultiplier = initialMultiplier;
         OnDamageValueChanged.Invoke();
-
+        OnScoreReset.Invoke();
         Debug.Log($"[DamageManager] Score Reset. Chips: {currentChips}, Multiplier: {currentMultiplier}", this);
     }
 
@@ -132,7 +155,50 @@ public class DamageManager : MonoBehaviour
         currentChips = Mathf.Max(0, chips);
         currentMultiplier = Mathf.Max(0f, multiplier);
         OnDamageValueChanged.Invoke();
+        OnScoreReset.Invoke();
         Debug.Log($"[DamageManager] Score restored. Chips: {currentChips}, Multiplier: {currentMultiplier}", this);
+    }
+
+    public bool BeginFinalDamageDelivery(
+        int finalDamage,
+        int currentEnemyHealth,
+        int maximumEnemyHealth,
+        Action<int> applyDamage)
+    {
+        return scoreDeliveryUI != null && scoreDeliveryUI.BeginDamageDelivery(
+            finalDamage,
+            currentEnemyHealth,
+            maximumEnemyHealth,
+            applyDamage);
+    }
+
+    public void SetEnemyHealthTarget(int currentEnemyHealth, int maximumEnemyHealth)
+    {
+        scoreDeliveryUI?.SetEnemyHealthTarget(currentEnemyHealth, maximumEnemyHealth);
+    }
+
+    public void SetEnemyHealthImmediate(int currentEnemyHealth, int maximumEnemyHealth)
+    {
+        scoreDeliveryUI?.SetEnemyHealthImmediate(currentEnemyHealth, maximumEnemyHealth);
+    }
+
+    public void CancelPresentation()
+    {
+        scoreDeliveryUI?.CancelAllDeliveries();
+    }
+
+    void ApplyDeliveredChips(int amount)
+    {
+        currentChips += amount;
+        OnDamageValueChanged.Invoke();
+        Debug.Log($"[DamageManager] Chips delivered: +{amount} / Current Chips: {currentChips}", this);
+    }
+
+    void ApplyDeliveredMultiplier(float amount)
+    {
+        currentMultiplier += amount;
+        OnDamageValueChanged.Invoke();
+        Debug.Log($"[DamageManager] Multiplier delivered: +{amount} / Current Multiplier: {currentMultiplier}", this);
     }
 
     bool ShouldDoubleScore()
@@ -147,7 +213,6 @@ public class DamageManager : MonoBehaviour
             upgradeManager = FindFirstObjectByType<PlayerUpgradeManager>(FindObjectsInactive.Include);
         }
 
-        // Each public score-add operation reaches this method exactly once.
         return upgradeManager != null && upgradeManager.ShouldDoubleScore();
     }
 }

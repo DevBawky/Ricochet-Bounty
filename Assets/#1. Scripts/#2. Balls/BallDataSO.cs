@@ -56,6 +56,16 @@ public class BallDataSO : ScriptableObject
     [SerializeField, Tooltip("공이 범퍼나 점수 오브젝트 같은 상호작용 오브젝트에 부딪힐 때 감소할 내구도입니다.")]
     int objectHitDurabilityDamage = 1;
 
+    [Header("Visual Effect Prefabs")]
+    [SerializeField, Tooltip("GameObject spawned at the contact point when this ball hits a wall or score object.")]
+    GameObject collisionEffectPrefab;
+
+    [SerializeField, Tooltip("GameObject spawned at the ball position only when durability reaches zero or below.")]
+    GameObject durabilityDepletedEffectPrefab;
+
+    [SerializeField, Min(0f), Tooltip("Seconds before spawned visual effects are destroyed. Set to 0 when the prefab manages its own lifetime.")]
+    float visualEffectLifetime = 1f;
+
     [Header("Effects - Spawn")]
     [SerializeField, Tooltip("공이 생성되었을 때 발동할 효과 목록입니다.")]
     List<BallEffectData> spawnEffects = new List<BallEffectData>();
@@ -165,6 +175,30 @@ public class BallDataSO : ScriptableObject
         get
         {
             return objectHitDurabilityDamage;
+        }
+    }
+
+    public GameObject CollisionEffectPrefab
+    {
+        get
+        {
+            return collisionEffectPrefab;
+        }
+    }
+
+    public GameObject DurabilityDepletedEffectPrefab
+    {
+        get
+        {
+            return durabilityDepletedEffectPrefab;
+        }
+    }
+
+    public float VisualEffectLifetime
+    {
+        get
+        {
+            return Mathf.Max(0f, visualEffectLifetime);
         }
     }
 

@@ -40,4 +40,36 @@ public class BallDataManager : MonoBehaviour
         Debug.LogWarning($"[BallDataManager] {name}에 BallDataSO가 연결되어 있지 않습니다.", this);
         return false;
     }
+
+    public void SpawnCollisionEffect(Vector3 worldPosition)
+    {
+        SpawnEffect(
+            ballData != null ? ballData.CollisionEffectPrefab : null,
+            worldPosition,
+            ballData != null ? ballData.VisualEffectLifetime : 0f
+        );
+    }
+
+    public void SpawnDurabilityDepletedEffect(Vector3 worldPosition)
+    {
+        SpawnEffect(
+            ballData != null ? ballData.DurabilityDepletedEffectPrefab : null,
+            worldPosition,
+            ballData != null ? ballData.VisualEffectLifetime : 0f
+        );
+    }
+
+    static void SpawnEffect(GameObject effectPrefab, Vector3 worldPosition, float lifetime)
+    {
+        if (effectPrefab == null)
+        {
+            return;
+        }
+
+        GameObject effectInstance = Instantiate(effectPrefab, worldPosition, Quaternion.identity);
+        if (lifetime > 0f)
+        {
+            Destroy(effectInstance, lifetime);
+        }
+    }
 }

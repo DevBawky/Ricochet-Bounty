@@ -155,6 +155,11 @@ public class BallRuntimeStatus : MonoBehaviour
         Debug.Log($"[BallRuntimeStatus] {name} durability damage: -{amount:0.##} / {currentDurability:0.##}/{MaxDurability}", this);
         if (IsDead())
         {
+            if (ballDataManager != null)
+            {
+                ballDataManager.SpawnDurabilityDepletedEffect(transform.position);
+            }
+
             DestroyBall();
         }
     }

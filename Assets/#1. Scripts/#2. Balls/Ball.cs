@@ -206,7 +206,7 @@ public class Ball : MonoBehaviour
         }
 
         _collisionCount++;
-        ApplyWallHitSystems();
+        ApplyWallHitSystems(GetCollisionEffectPosition(collision));
         BounceFromWall(collision);
     }
 
@@ -291,7 +291,7 @@ public class Ball : MonoBehaviour
         SetVelocity(Vector2.Reflect(velocity, normal));
     }
 
-    void ApplyWallHitSystems()
+    void ApplyWallHitSystems(Vector3 hitPosition)
     {
         if (Mathf.Approximately(_lastWallHitSystemTime, Time.fixedTime))
         {
@@ -300,9 +300,14 @@ public class Ball : MonoBehaviour
 
         _lastWallHitSystemTime = Time.fixedTime;
 
+        if (_ballDataManager != null)
+        {
+            _ballDataManager.SpawnCollisionEffect(hitPosition);
+        }
+
         if (_effectController != null)
         {
-            _effectController.TriggerWallHitEffects();
+            _effectController.TriggerWallHitEffects(hitPosition);
         }
 
         // Resolve hit effects before durability can destroy the ball. This lets the final
@@ -311,6 +316,18 @@ public class Ball : MonoBehaviour
         {
             _runtimeStatus.ApplyWallHitDurabilityDamage();
         }
+    }
+
+    Vector3 GetCollisionEffectPosition(Collision2D collision)
+    {
+        Vector3 hitPosition = transform.position;
+        if (collision != null && collision.contactCount > 0)
+        {
+            hitPosition = collision.GetContact(0).point;
+            hitPosition.z = transform.position.z;
+        }
+
+        return hitPosition;
     }
 
     void RegisterWithBallRegistry()

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24f56ad20b0c9b94e9fc543d66cac919, type: 3}
   m_Name: Breeding Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
+  saveId: 
   price: 10
   rarity: 0
   ValueType: 0
@@ -25,6 +26,9 @@ MonoBehaviour:
   maxDurability: 20
   wallHitDurabilityDamage: 1
   objectHitDurabilityDamage: 1
+  collisionEffectPrefab: {fileID: 458151141792091023, guid: 5b0afb5be10457e418bfcbfedb64fe95, type: 3}
+  durabilityDepletedEffectPrefab: {fileID: 6665656103803064313, guid: 62c85918a49b15d4b9b15b49b8a65128, type: 3}
+  visualEffectLifetime: 1
   spawnEffects: []
   objectHitEffects: []
   wallHitEffects:

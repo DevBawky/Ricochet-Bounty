@@ -12,9 +12,6 @@ GameObject:
   - component: {fileID: 5537147412428915807}
   - component: {fileID: 9139929513477675687}
   - component: {fileID: 5591780179274691140}
-  - component: {fileID: 7583186540823970089}
-  - component: {fileID: 7054863265773876956}
-  - component: {fileID: 9204100128653726203}
   m_Layer: 8
   m_Name: Ball
   m_TagString: Ball
@@ -159,60 +156,3 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
---- !u!114 &7583186540823970089
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 721360846125223631}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c1cbf4d30450d37498e8ec192d11976b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ballData: {fileID: 0}
-  currentScoreType: 0
-  currentScoreValue: 0
---- !u!114 &7054863265773876956
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 721360846125223631}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ba9a3e7006852ff479e2a3da69f824d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  speed: 6
-  direction: {x: 1, y: 1}
-  minimumVelocityThreshold: 0.25
---- !u!114 &9204100128653726203
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 721360846125223631}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 721bac126ac1b864281f8c1a430de1e4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 15
-  damagePerBounce: 1
-  boomEffectPrefab: {fileID: 8059609718252065285, guid: 2ac7528468877b94c9aeafde0cd66b7b, type: 3}
-  sparkEffectPrefab: {fileID: 6405031645195923140, guid: 132240bb51911f140b5e741dd886b6b1, type: 3}
-  effectDuration: 0.5
-  initialEffectPoolSize: 6
-  onHealthChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  onTakeDamage:
-    m_PersistentCalls:
-      m_Calls: []
-  onDeath:
-    m_PersistentCalls:
-      m_Calls: []
