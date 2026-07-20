@@ -149,13 +149,57 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 861111811534982741, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 7482667652216324306, guid: 48e93eef0688c4a259cb0eddcd8661f7, type: 3}
+    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: enemyHpText
+      value: 
+      objectReference: {fileID: 930209547}
+    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: worldCamera
+      value: 
+      objectReference: {fileID: 519420031}
+    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: chipsImageColor.b
+      value: 0.30865064
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: chipsImageColor.g
+      value: 0.1490196
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: damageImageColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: damageImageColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: damageImageColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: multiplierImageColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: multiplierImageColor.g
+      value: 0.4830768
+      objectReference: {fileID: 0}
+    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: multiplierImageColor.r
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 910000000000001101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: roundManager
-      value:
+      value: 
       objectReference: {fileID: 616322115}
     - target: {fileID: 910000000000001101, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: stateManager
-      value:
+      value: 
       objectReference: {fileID: 500031832}
     - target: {fileID: 910000000000001102, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: goldManager
@@ -185,14 +229,6 @@ PrefabInstance:
       propertyPath: damageManager
       value: 
       objectReference: {fileID: 851381630}
-    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
-      propertyPath: worldCamera
-      value:
-      objectReference: {fileID: 519420031}
-    - target: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
-      propertyPath: enemyHpText
-      value:
-      objectReference: {fileID: 930209547}
     - target: {fileID: 2143039963330679603, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_Name
       value: Canvas
@@ -265,6 +301,10 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 500031832}
+    - target: {fileID: 4053965839315701026, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4455111670781208533, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -305,6 +345,10 @@ PrefabInstance:
       propertyPath: goldManager
       value: 
       objectReference: {fileID: 910000003}
+    - target: {fileID: 5512117131564302698, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 7482667652216324306, guid: 48e93eef0688c4a259cb0eddcd8661f7, type: 3}
     - target: {fileID: 6183784386465282453, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -471,7 +515,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &437536095 stripped
 GameObject:
@@ -494,17 +538,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07ec3ed3ee98a3e478d4a206656d6c54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DamageUI
---- !u!114 &437536098 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 910000000000000103, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
-  m_PrefabInstance: {fileID: 437536086}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5e9f4a20b7351d6c8a2b9f3e7d01452, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ScoreDeliveryUI
 --- !u!1 &500031831
 GameObject:
   m_ObjectHideFlags: 0
@@ -550,6 +583,8 @@ MonoBehaviour:
   roundSelectManager: {fileID: 0}
   eventManager: {fileID: 0}
   treasureManager: {fileID: 0}
+  killableHighlightController: {fileID: 0}
+  panelDissolveController: {fileID: 0}
   playerPanel: {fileID: 437536095}
   mainMenuPanel: {fileID: 437536096}
   roundSelectPanel: {fileID: 437536090}
@@ -1034,10 +1069,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBallDeck
   startingDeck:
-  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
-  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
-  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
-  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
+  - {fileID: 11400000, guid: 1c1b079b017344568837a7695529b145, type: 2}
+  - {fileID: 11400000, guid: 1a0496980acb43419577f8039774f485, type: 2}
+  - {fileID: 11400000, guid: 29b5f7c870814e8f9895f8a6f3287c11, type: 2}
+  - {fileID: 11400000, guid: 3db663d7df9e49a384a8d3658ff821a2, type: 2}
   - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
   ownedBalls: []
   drawPile: []
@@ -1083,7 +1118,7 @@ MonoBehaviour:
   onScoreReset:
     m_PersistentCalls:
       m_Calls: []
-  scoreDeliveryUI: {fileID: 437536098}
+  scoreDeliveryUI: {fileID: 0}
 --- !u!4 &851381631
 Transform:
   m_ObjectHideFlags: 0

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -29,6 +30,8 @@ public enum BattleState
 
 public class StateManager : MonoBehaviour
 {
+    public event Action<GameState, GameState> StateChanged;
+
     [Header("Game State")]
     [SerializeField] GameState currentState = GameState.MainMenu;
     [SerializeField] BattleState currentBattleState = BattleState.None;
@@ -45,6 +48,8 @@ public class StateManager : MonoBehaviour
     [SerializeField] RoundSelectManager roundSelectManager;
     [SerializeField] EventManager eventManager;
     [SerializeField] TreasureManager treasureManager;
+    [SerializeField] KillableDamageHighlightController killableHighlightController;
+    [SerializeField] CyberPanelDissolveController panelDissolveController;
 
     [Header("UI Panels")]
     [SerializeField] GameObject playerPanel;
@@ -132,6 +137,7 @@ public class StateManager : MonoBehaviour
         GameState previousState = currentState;
         Debug.Log($"[StateManager] GameState 변경: {currentState} -> {nextState}", this);
         currentState = nextState;
+        StateChanged?.Invoke(previousState, nextState);
 
         // Result UI가 활성화되기 전에 잔여 라이프를 정산용으로 보존하고 다음 전투 값을 복구합니다.
         if (previousState == GameState.Battle && nextState != GameState.Battle && roundManager != null)
@@ -426,6 +432,7 @@ public class StateManager : MonoBehaviour
         }
 
         RunSaveManager.Instance?.SaveCurrentRun("Before fire");
+        killableHighlightController?.BeginScoringSequence();
         FindMissingReferences();
         if (shotRuntimeContext != null)
         {
@@ -791,6 +798,12 @@ public class StateManager : MonoBehaviour
 
     void RefreshUIPanels()
     {
+        if (panelDissolveController != null)
+        {
+            panelDissolveController.TransitionTo(GetCurrentPrimaryPanel(), currentState != GameState.MainMenu);
+            return;
+        }
+
         // 상태 전환 시에는 먼저 모든 UI 패널을 끈 뒤, 현재 상태에 필요한 패널만 다시 켭니다.
         SetPanelActive(playerPanel, false);
         SetPanelActive(mainMenuPanel, false);
@@ -835,6 +848,23 @@ public class StateManager : MonoBehaviour
             case GameState.Clear:
                 SetPanelActive(clearPanel, true);
                 break;
+        }
+    }
+
+    GameObject GetCurrentPrimaryPanel()
+    {
+        switch (currentState)
+        {
+            case GameState.MainMenu: return mainMenuPanel;
+            case GameState.RoundSelect: return roundSelectPanel;
+            case GameState.Battle: return battlePanel;
+            case GameState.Event: return eventPanel;
+            case GameState.Treasure: return treasurePanel;
+            case GameState.Result: return resultPanel;
+            case GameState.Shop: return shopPanel;
+            case GameState.GameOver: return gameOverPanel;
+            case GameState.Clear: return clearPanel;
+            default: return null;
         }
     }
 
@@ -970,6 +1000,16 @@ public class StateManager : MonoBehaviour
         if (treasureManager == null)
         {
             treasureManager = FindFirstObjectByType<TreasureManager>(FindObjectsInactive.Include);
+        }
+
+        if (killableHighlightController == null)
+        {
+            killableHighlightController = FindFirstObjectByType<KillableDamageHighlightController>(FindObjectsInactive.Include);
+        }
+
+        if (panelDissolveController == null)
+        {
+            panelDissolveController = FindFirstObjectByType<CyberPanelDissolveController>(FindObjectsInactive.Include);
         }
 
         if (eventPanel == null && eventManager != null)

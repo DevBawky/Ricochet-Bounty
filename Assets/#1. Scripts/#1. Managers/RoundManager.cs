@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Action = System.Action;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -6,6 +7,8 @@ using UnityEngine.UI;
 
 public class RoundManager : MonoBehaviour
 {
+    public event Action EnemyHealthChanged;
+
     [Header("Progress")]
     [SerializeField] RoundProgress roundProgress = new RoundProgress();
     [SerializeField] StageData[] stageDataList;
@@ -268,6 +271,8 @@ public class RoundManager : MonoBehaviour
             currentEnemyHp = maximumEnemyHp;
         }
 
+        NotifyEnemyHealthChanged();
+
         RefreshRoundUI();
         RefreshTargetUI();
 
@@ -322,6 +327,7 @@ public class RoundManager : MonoBehaviour
         selectedBattleGridPrefab = battleGridPrefab;
         maximumEnemyHp = enemyData != null ? Mathf.Max(1, enemyMaximumHp) : 0;
         currentEnemyHp = enemyData != null ? Mathf.Clamp(enemyCurrentHp, 0, maximumEnemyHp) : 0;
+        NotifyEnemyHealthChanged();
         nonBattleWaveCompletionLocked = completionLocked;
         ClearSpawnedBattleGrid();
         RefreshRoundUI();
@@ -544,6 +550,7 @@ public class RoundManager : MonoBehaviour
 
         int safeDamage = Mathf.Max(0, damage);
         currentEnemyHp = Mathf.Max(0, currentEnemyHp - safeDamage);
+        NotifyEnemyHealthChanged();
         RefreshTargetUI();
 
         Debug.Log($"[RoundManager] 현재 적에게 대미지 적용: -{safeDamage}, 남은 HP: {currentEnemyHp}", this);
@@ -566,6 +573,7 @@ public class RoundManager : MonoBehaviour
 
         int safeDamage = Mathf.Max(0, damage);
         currentEnemyHp = Mathf.Max(0, currentEnemyHp - safeDamage);
+        NotifyEnemyHealthChanged();
         RefreshTargetHealthText();
         Debug.Log($"[RoundManager] 대미지 이미지 도착: -{safeDamage}, 목표 HP: {currentEnemyHp}", this);
     }
@@ -911,6 +919,12 @@ public class RoundManager : MonoBehaviour
         selectedBattleGridPrefab = null;
         maximumEnemyHp = 0;
         currentEnemyHp = 0;
+        NotifyEnemyHealthChanged();
+    }
+
+    void NotifyEnemyHealthChanged()
+    {
+        EnemyHealthChanged?.Invoke();
     }
 
     string GetSelectedEnemyName()

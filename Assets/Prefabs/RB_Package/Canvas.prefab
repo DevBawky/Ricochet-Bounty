@@ -4138,6 +4138,8 @@ GameObject:
   - component: {fileID: 910000000000000101}
   - component: {fileID: 910000000000000102}
   - component: {fileID: 910000000000000103}
+  - component: {fileID: 910000000000000104}
+  - component: {fileID: 910000000000000105}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -4325,6 +4327,51 @@ MonoBehaviour:
   maximumDamageImageCount: 100
   damageImageSpawnInterval: 0.03
   enemyHpLerpDuration: 0.45
+--- !u!114 &910000000000000104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2143039963330679603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1000000000000000000000000000012, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::KillableDamageHighlightController
+  damageManager: {fileID: 0}
+  roundManager: {fileID: 0}
+  stateManager: {fileID: 0}
+  chipsEffect: {fileID: 5512117131564302698}
+  multiplierEffect: {fileID: 861111811534982741}
+  chipsMaterialTemplate: {fileID: 2100000, guid: c1000000000000000000000000000002, type: 2}
+  multiplierMaterialTemplate: {fileID: 2100000, guid: c1000000000000000000000000000003, type: 2}
+  alphaFadeDuration: 0.5
+--- !u!114 &910000000000000105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2143039963330679603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1000000000000000000000000000013, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CyberPanelDissolveController
+  dissolveMaterialTemplate: {fileID: 2100000, guid: c1000000000000000000000000000004, type: 2}
+  playerPanel: {fileID: 2065759278826809209}
+  statePanels:
+  - {fileID: 3268463031423202100}
+  - {fileID: 8521836270591198086}
+  - {fileID: 4053965839315701026}
+  - {fileID: 8075201715620418648}
+  - {fileID: 7924971468322716623}
+  - {fileID: 5242583926193511706}
+  - {fileID: 8562953034291261752}
+  dissolveOutDuration: 0.22
+  dissolveInDuration: 0.3
+  useUnscaledTime: 1
 --- !u!1 &2154179700685383707
 GameObject:
   m_ObjectHideFlags: 0
@@ -8197,6 +8244,7 @@ GameObject:
   - component: {fileID: 6465420012335490700}
   - component: {fileID: 7633820863167758884}
   - component: {fileID: 861111811534982741}
+  - component: {fileID: 910000000000000201}
   m_Layer: 5
   m_Name: Effect_Multiplier
   m_TagString: Untagged
@@ -8243,7 +8291,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 2100000, guid: 0f924b26055817a438769014d3d46a53, type: 2}
+  m_Material: {fileID: 2100000, guid: c1000000000000000000000000000003, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -8261,6 +8309,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &910000000000000201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4266199496131266914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1000000000000000000000000000011, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CyberDissolveOptOut
 --- !u!1 &4381651769035332779
 GameObject:
   m_ObjectHideFlags: 0
@@ -9755,6 +9815,7 @@ GameObject:
   - component: {fileID: 1509139480803036330}
   - component: {fileID: 8000694258262944493}
   - component: {fileID: 5512117131564302698}
+  - component: {fileID: 910000000000000202}
   m_Layer: 5
   m_Name: Effect_Chips
   m_TagString: Untagged
@@ -9801,7 +9862,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 2100000, guid: 5f2aeb069845ee64f98f820def7cfbe5, type: 2}
+  m_Material: {fileID: 2100000, guid: c1000000000000000000000000000002, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -9819,6 +9880,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &910000000000000202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5382107683640915193}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1000000000000000000000000000011, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CyberDissolveOptOut
 --- !u!1 &5451364921817058958
 GameObject:
   m_ObjectHideFlags: 0

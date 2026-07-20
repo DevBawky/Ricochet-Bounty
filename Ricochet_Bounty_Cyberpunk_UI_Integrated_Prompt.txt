@@ -1,0 +1,364 @@
+Unity 프로젝트 Ricochet Bounty에 사이버펑크 UI 연출용 셰이더 3종과 관련 제어 로직을 구현하고, 현재 프로젝트의 실제 UI 및 화면 전환 구조에 적용해주세요.
+
+셰이더 파일만 생성하고 끝내지 말고 Material 생성, 런타임 제어 코드, 기존 프리팹과 씬 참조 연결, 검증까지 완료해주세요.
+
+============================================================
+1. 작업 전 조사
+============================================================
+
+먼저 다음 항목을 실제 프로젝트에서 확인한 뒤 기존 구조를 확장해주세요.
+
+- Unity 버전과 Render Pipeline
+- 기존 Shader 및 Material 구조
+- Canvas Render Mode와 Canvas Scaler
+- Mask, RectMask2D, CanvasGroup 사용 여부
+- 점수 이동 UI 프리팹과 생성/도착 처리 코드
+- Chips, Multiplier, Damage 이동 이미지 색상
+- Text | Adder, Text | Multiplier, Text | Total Damage, Enemy_HP_Value
+- DamageManager의 currentChips/currentMultiplier 및 최종 대미지 계산 규칙
+- RoundManager 또는 동등 시스템의 현재/최대 적 HP 관리 위치
+- Player Damage/Effect_Chips 및 Effect_Multiplier
+- StateManager.ChangeState와 GameState별 실제 패널 참조
+- MainMenu, Player Panel, Round Select, Battle, Result, Shop, Event, Treasure, GameOver, Clear
+- 각 패널 아래의 Image, RawImage, TextMeshProUGUI, Button, Slider 등 모든 Graphic
+
+기존 점수 이동, 대미지 전달, 적 HP, StateManager, GameState를 새 시스템으로 교체하지 말고 현재 코드를 확장해주세요.
+새 Canvas, UI 루트, 전역 Manager를 런타임에 임의로 생성하지 마세요.
+
+============================================================
+2. 공통 UI 셰이더 요구사항
+============================================================
+
+셰이더는 현재 Render Pipeline과 Unity UI에 맞는 HLSL UI 셰이더로 작성해주세요.
+
+모든 UI 셰이더는 다음을 지원해야 합니다.
+
+- UI Graphic의 Vertex Color와 Inspector Color
+- Sprite Texture RGB 및 Alpha
+- CanvasGroup Alpha
+- UI Mask Stencil
+- RectMask2D Clip Rect
+- ColorMask
+- UNITY_UI_ALPHACLIP
+- 투명 블렌딩
+- Sprite Atlas
+
+필요하지 않은 Render Pipeline 패키지를 새로 설치하지 마세요.
+
+============================================================
+3. 셰이더 1: 사이버 에너지 점수 이동 이미지
+============================================================
+
+기존 Chips, Multiplier, Damage 이동 이미지가 작은 사이버펑크 에너지 투사체처럼 보이게 하는 UI 셰이더를 구현해주세요.
+
+필수 표현:
+
+- UV 중심 기반 원형 에너지 코어
+- 밝고 부드러운 중심부
+- 네온 에너지 링
+- 시간에 따라 흐르거나 회전하는 노이즈
+- 불규칙한 전기 패턴과 Pulse
+- Scan Line
+- 외곽으로 갈수록 감소하는 Alpha
+- 투명한 바깥 영역
+- 이동 중에도 형태가 명확한 강한 중심부
+- 이미지 바깥쪽으로 번지는 발광 광륜
+- HDR 색상을 사용하여 Bloom이 켜진 경우 더 강하게 발광
+- Bloom이 없어도 광륜 자체가 보이도록 셰이더 내부 Glow 구현
+
+Inspector 조절 항목:
+
+- Core Color/Size/Intensity
+- Ring Color/Radius/Width/Intensity
+- Glow Width
+- Glow Intensity
+- Pulse Speed/Strength
+- Noise Scale/Strength/Speed
+- Electric Distortion
+- Scan Line Density/Speed/Strength
+- Edge Fade 또는 Edge Softness
+- Alpha
+
+같은 Material을 사용하더라도 기존 이동 코드에서 설정하는 Image Color를 곱해 Chips, Multiplier, Damage가 서로 다른 색상으로 보여야 합니다.
+
+기존 이동 시간 랜덤화, Sin 파동 경로, 충돌 위치 생성, 목적지 도착 시 실제 값 반영, 적 HP 보간 등 기존 동작은 보존해주세요.
+
+이 셰이더 Material을 실제 점수 이동 이미지 프리팹에 연결하여 다음 세 경로에 모두 적용해주세요.
+
+- Chips → Text | Adder
+- Multiplier → Text | Multiplier
+- Damage → Enemy_HP_Value
+
+============================================================
+4. 셰이더 2: 처치 가능 전기 과열 테두리
+============================================================
+
+Player Damage/Effect_Chips 및 Effect_Multiplier에 적용할 UI 전기 과열 테두리 셰이더를 구현해주세요.
+
+필수 표현:
+
+- 이미지 외곽을 따라 흐르는 전기
+- 빠르게 이동하는 밝은 전류 구간
+- 불규칙하게 끊기고 재연결되는 테두리
+- 네온 Glow
+- 과열 Pulse
+- Noise 기반 밝기 변화
+- 작은 Glitch와 Flicker
+- 중앙은 최대한 투명하게 유지
+
+Inspector 조절 항목:
+
+- Electric Color
+- Hot/Secondary Color
+- Border Width/Softness
+- Glow Intensity
+- Pulse Speed
+- Electric Speed/Strength
+- Noise Scale/Speed
+- Breakup Amount
+- Distortion Amount
+- Flicker Strength
+- Alpha
+
+독립 Material을 두 개 생성하고 다음 색상을 기본값으로 사용해주세요.
+
+- M_CyberElectricChips: 골드/옐로 전기색, 오렌지/레드 과열색
+- M_CyberElectricMultiplier: 시안/블루 전기색, 블루/바이올렛 과열색
+
+Effect_Chips와 Effect_Multiplier가 Material 값을 공유하여 서로 영향을 주지 않도록 각각 별도의 런타임 Material Instance를 최초 1회만 생성해주세요.
+상태 변경이나 값 갱신 때마다 Material을 새로 만들지 마세요.
+파괴 시 원래 Material을 복구하고 생성한 인스턴스를 정리해주세요.
+
+============================================================
+5. 처치 가능 판정 기준
+============================================================
+
+현재 예상 대미지는 기존 최종 대미지 계산과 같은 반올림 규칙을 사용해주세요.
+
+currentExpectedDamage = RoundToInt(currentChips * currentMultiplier)
+
+강조 효과는 현재 적 HP가 아니라 적의 최대 HP를 기준으로 판정해야 합니다.
+
+활성 조건:
+
+- StateManager.CurrentState == Battle
+- enemyCurrentHp > 0
+- enemyMaximumHp > 0
+- currentExpectedDamage >= enemyMaximumHp
+- 현재 점수로 이미 실제 대미지를 적용하기 시작한 상태가 아님
+
+동일한 대미지도 최대 체력의 적을 처치할 수 있으므로 >=를 사용해주세요.
+
+Chips 또는 Multiplier의 실제 값이 변경될 때마다 다시 판정해주세요.
+새 적 설정, 현재/최대 HP 변경, DamageManager Reset, GameState 변경 시에도 갱신해주세요.
+finalDamage가 확정되는 한 시점에서만 검사하지 마세요.
+
+이벤트 기반 갱신을 우선 사용하되 이벤트 누락으로 표시가 고착되지 않도록, 캐시된 Chips/Multiplier/현재 HP/최대 HP/State 값의 변경만 확인하는 가벼운 보조 검사를 사용할 수 있습니다.
+보조 검사에서 Find 또는 GetComponentsInChildren을 반복 호출하지 마세요.
+
+============================================================
+6. 강조 효과 Alpha 페이드
+============================================================
+
+Effect_Chips와 Effect_Multiplier는 즉시 나타나거나 사라지면 안 됩니다.
+
+SerializeField 설정:
+
+- Alpha Fade Duration: n초, 기본값 0.5초
+
+활성 조건을 처음 만족하면:
+
+1. 두 Effect GameObject를 활성화
+2. 두 런타임 Material Instance의 _Alpha를 0으로 설정
+3. Unscaled Time 기준 n초 동안 _Alpha를 0에서 1로 보간
+
+실제 대미지가 적에게 처음 적용되어 currentEnemyHp가 감소하면:
+
+1. 같은 점수에서 재활성화되지 않도록 잠금
+2. 현재 Alpha에서 0까지 n초 동안 보간
+3. Alpha가 0이 된 뒤 두 Effect GameObject를 비활성화
+
+새 점수 시퀀스 또는 DamageManager Reset에서는 대미지 적용 잠금을 해제해주세요.
+새 발사 시작 순간에는 이전 강조를 숨기되, 발사 후 새 Chips/Multiplier가 쌓여 조건을 만족하면 다시 페이드 인할 수 있어야 합니다.
+
+새 적, Battle 종료, Result, Shop, GameOver, Clear 또는 다른 State 이동 시에도 안전하게 페이드 아웃하거나 초기화해주세요.
+중복 Coroutine이 동시에 Alpha를 변경하지 않도록 기존 Coroutine을 취소하고 현재 Alpha에서 새 목표로 자연스럽게 전환해주세요.
+
+============================================================
+7. 셰이더 3: 패널 사이버 디졸브
+============================================================
+
+화면 패널 전환용 UI 사이버 디졸브 셰이더를 구현해주세요.
+
+필수 표현:
+
+- Digital Noise 기반 Dissolve
+- 가로/세로 Scan Line
+- 작은 디지털 Block 단위 분해
+- Glitch UV Offset
+- 네온 Edge
+- 불규칙 Flicker
+- Dissolve In/Out 모두 지원
+
+Dissolve Amount 규칙:
+
+- 0: 완전히 표시
+- 1: 완전히 사라짐
+
+Inspector 조절 항목:
+
+- Dissolve Amount
+- Noise Scale/Speed
+- Block Count 또는 Block Size
+- Scan Line Density/Speed
+- Glitch Strength
+- Edge Width/Color/Intensity
+- Flicker Strength
+- Direction Influence
+- Dissolve Softness
+
+============================================================
+8. TextMeshPro 색상 보존
+============================================================
+
+TextMeshPro SDF Atlas는 RGB가 검은색이고 거리 정보가 Alpha에 들어갈 수 있으므로 Atlas RGB를 텍스트 색상으로 곱하지 마세요.
+
+TMP 처리 시:
+
+- SDF Atlas Alpha로 글자 Coverage 계산
+- 원래 TMP Vertex Color와 Rich Text Color를 최종 RGB로 사용
+- 기존 Font Material Asset을 직접 수정하지 않음
+- 원본 폰트 텍스처를 런타임 디졸브 Material Instance에 연결
+- 디졸브 Edge만 기존 텍스트 색상 위에 더함
+
+일반 Image는 기존 Sprite RGB와 Vertex Color를 그대로 곱해주세요.
+
+============================================================
+9. 패널과 모든 자식 Graphic 적용
+============================================================
+
+디졸브는 패널 배경 하나에만 적용하지 말고 다음을 포함한 모든 자식 Graphic에 적용해주세요.
+
+- 루트 패널 Image
+- 모든 자식 Image/RawImage
+- TextMeshProUGUI
+- Button의 Image와 Text
+- Slider/Gauge Graphic
+- 기타 모든 Graphic
+
+패널 등록 또는 초기화 시 GetComponentsInChildren<Graphic>(true)를 한 번 호출해 캐시하고 매 프레임 검색하지 마세요.
+각 Graphic의 원래 Material, TMP Font Material, RaycastTarget을 저장해주세요.
+각 Graphic용 Material Instance는 등록 시 한 번만 생성하고 전환마다 새로 만들지 마세요.
+파괴 시 원본을 복구하고 인스턴스를 정리해주세요.
+
+다음 전용 배경 Material은 절대로 디졸브 Material로 교체하거나 수정하지 마세요.
+
+- Player/Avatar의 BG가 사용하는 M_Grid
+- Enemy의 BG가 사용하는 M_Enemy Grid
+
+이 두 Graphic은 Material 이름 또는 명시적인 Opt-Out 마커로 디졸브 캐시 대상에서 제외해주세요.
+Material Asset 자체의 프로퍼티도 변경하지 마세요.
+
+Effect_Chips와 Effect_Multiplier 역시 전기 테두리 Material을 유지하도록 디졸브 대상에서 제외해주세요.
+
+============================================================
+10. StateManager 화면 전환 연결
+============================================================
+
+기존 StateManager.ChangeState와 기존 패널 참조를 사용해주세요.
+새 State 시스템을 만들지 마세요.
+
+적용 대상:
+
+- MainMenu
+- Player Panel
+- Round Select
+- Battle
+- Result
+- Shop
+- Event
+- Treasure
+- GameOver
+- Clear
+
+프로젝트에 실제로 존재하지 않는 패널을 빈 오브젝트로 임의 생성하지 말고 Null-safe하게 처리해주세요.
+
+권장 순서:
+
+1. 새 State 요청
+2. 전환 중복 여부 확인
+3. 기존 패널 Raycast 차단
+4. 기존 패널과 자식 Graphic Dissolve Amount 0→1
+5. 완료 후 기존 패널 비활성화
+6. 다음 패널 활성화
+7. 다음 패널과 자식 Graphic Dissolve Amount를 1로 초기화
+8. Dissolve Amount 1→0
+9. 다음 패널 Raycast 복구
+
+SerializeField 설정:
+
+- Dissolve Out Duration
+- Dissolve In Duration
+- Use Unscaled Time
+- Block Raycasts During Transition
+
+전환 도중 복잡한 Queue를 만들지 말고 프로젝트 흐름에 맞게 중복 요청을 무시하거나 최신 요청으로 안전하게 교체해주세요.
+
+============================================================
+11. 프리팹 및 씬 실제 연결
+============================================================
+
+다음 연결을 실제 에셋에 반영해주세요.
+
+- 에너지 Material → 기존 UI Value Travel Image 프리팹의 Image
+- Chips 전기 Material → Player Damage/Effect_Chips
+- Multiplier 전기 Material → Player Damage/Effect_Multiplier
+- KillableDamageHighlightController → 기존 Canvas 루트
+- CyberPanelDissolveController → 기존 Canvas 루트
+- 실제 패널 배열과 Player Panel 참조
+- 전기 Effect Graphic에 디졸브 Opt-Out
+
+SerializeField는 가능한 한 프리팹/씬에 실제로 연결해주세요.
+씬 객체라 프리팹에서 직접 참조할 수 없는 Manager만 Awake에서 1회 안전하게 찾는 보조 경로를 허용합니다.
+
+설정은 반복 실행해도 컴포넌트나 Material이 중복 생성되지 않는 Editor 메뉴 도구로 제공해도 됩니다.
+
+============================================================
+12. 안전성과 성능
+============================================================
+
+- 기존 DamageManager 계산 규칙과 실제 대미지를 변경하지 않음
+- 기존 점수 이동 및 최종 대미지 전달 연출 보존
+- 매 프레임 Find/GetComponentsInChildren 금지
+- Material Asset 런타임 직접 수정 금지
+- Material Instance 누수 금지
+- 이벤트 중복 구독 금지
+- Coroutine 중복 실행 방지
+- Null Reference 방어
+- UI Mask, RectMask2D, CanvasGroup 정상 유지
+- Player BG와 Enemy BG Material 변경 금지
+- 런타임 새 Canvas/루트/Manager 생성 금지
+
+============================================================
+13. 최종 검증
+============================================================
+
+다음을 실제로 확인해주세요.
+
+1. Chips/Multiplier/Damage 이동 이미지가 에너지 투사체와 발광 광륜으로 표시되는가
+2. 이동 이미지별 기존 Image Color가 유지되는가
+3. currentExpectedDamage가 현재 HP만 넘고 최대 HP보다 작을 때 강조가 표시되지 않는가
+4. currentExpectedDamage >= enemyMaximumHp일 때만 두 강조가 표시되는가
+5. 표시 시 n초 동안 Alpha가 0→1로 증가하는가
+6. 실제 대미지 적용으로 HP가 감소하면 n초 동안 Alpha가 1→0으로 감소하는가
+7. 대미지 적용 중 같은 점수로 강조가 다시 켜지지 않는가
+8. 새 점수 시퀀스에서 다시 정상 판정되는가
+9. Chips는 골드/옐로, Multiplier는 시안/블루 계열인가
+10. TMP 텍스트가 검게 나오지 않고 원래 색상과 Rich Text Color를 유지하는가
+11. Player BG의 M_Grid와 Enemy BG의 M_Enemy Grid가 변경되지 않는가
+12. 모든 패널 자식 Graphic이 함께 디졸브되는가
+13. Mask, RectMask2D, CanvasGroup, Raycast가 정상인가
+14. State 전환 중 패널이 너무 일찍 비활성화되지 않는가
+15. Console에 C# 오류, Shader 오류, NullReference, Material Leak 경고가 없는가
+
+작업 완료 후 생성/수정한 Shader, Material, C# 파일, 프리팹 연결 위치, Inspector 조절 항목과 검증 결과를 요약해주세요.
