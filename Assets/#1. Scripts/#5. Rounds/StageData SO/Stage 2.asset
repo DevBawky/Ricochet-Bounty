@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 465191d13055fc7418f3fa8733a71d0b, type: 3}
   m_Name: Stage 2
   m_EditorClassIdentifier: Assembly-CSharp::StageData
-  enemyHealthByWave: e40c0000a00f00003011000088130000a816000010270000
+  enemyHealthByWave: e8030000e8030000e8030000e8030000e8030000e8030000
   enemyCandidates:
   - {fileID: 11400000, guid: de7ad5dc427b6104ab4d1aca6a5d4eb1, type: 2}
   - {fileID: 11400000, guid: 40f3cd1aad29d7e4097b7d868b1d76d9, type: 2}

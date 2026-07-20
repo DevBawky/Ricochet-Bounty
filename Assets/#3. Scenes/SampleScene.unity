@@ -189,6 +189,30 @@ PrefabInstance:
       propertyPath: m_Name
       value: Canvas
       objectReference: {fileID: 0}
+    - target: {fileID: 2330926714522532558, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2330926714522532558, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2330926714522532558, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2330926714522532558, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2330926714522532558, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2330926714522532558, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2384785376970810910, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: goldManager
       value: 
@@ -205,6 +229,30 @@ PrefabInstance:
       propertyPath: playerBallDeck
       value: 
       objectReference: {fileID: 648819987}
+    - target: {fileID: 3634779459670274184, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3634779459670274184, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3634779459670274184, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3634779459670274184, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3634779459670274184, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3634779459670274184, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3781880166940523939, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -221,6 +269,30 @@ PrefabInstance:
       propertyPath: playerBallDeck
       value: 
       objectReference: {fileID: 648819987}
+    - target: {fileID: 4904164733271111597, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4904164733271111597, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4904164733271111597, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4904164733271111597, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4904164733271111597, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4904164733271111597, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5322225124166387692, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
       propertyPath: goldManager
       value: 
@@ -333,6 +405,30 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 500031832}
+    - target: {fileID: 9006046255704806962, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9006046255704806962, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9006046255704806962, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9006046255704806962, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9006046255704806962, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9006046255704806962, guid: 981664e9a8140e6498416da7e65af77a, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -919,11 +1015,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBallDeck
   startingDeck:
-  - {fileID: 11400000, guid: 5ad82f3b933d4929b25c6fd4671bb00e, type: 2}
-  - {fileID: 11400000, guid: 5ad82f3b933d4929b25c6fd4671bb00e, type: 2}
-  - {fileID: 11400000, guid: 5ccb61b870624f37a212b43c2d00c948, type: 2}
-  - {fileID: 11400000, guid: d0b2085e84b7425385bc8312136c0387, type: 2}
-  - {fileID: 11400000, guid: 1c1b079b017344568837a7695529b145, type: 2}
+  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
+  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
+  - {fileID: 11400000, guid: a176ba4b7a3d7074f9b87333a84dcd0e, type: 2}
+  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
+  - {fileID: 11400000, guid: 17aac7767b53fd641ad70da2633e1b31, type: 2}
   ownedBalls: []
   drawPile: []
   discardPile: []
@@ -1061,7 +1157,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e9d20a5f1134bb4aa1e35d0aab4f9c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoldManager
-  initialGold: 50
+  initialGold: 10
   onGoldChanged:
     m_PersistentCalls:
       m_Calls: []
