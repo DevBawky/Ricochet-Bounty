@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Swarm Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   saveId: 
+  displayName: 군집 공
+  description: 오브젝트 충돌 시 활성 공 수에 따라 칩 2~4를 획득합니다. 활성 공이 9개 이상이면 오브젝트 3회 충돌마다 배수 0.2를 추가로 얻습니다.
   price: 10
   rarity: 0
   ValueType: 0

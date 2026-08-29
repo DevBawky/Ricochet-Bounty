@@ -323,7 +323,7 @@ public class PlayerUpgradeManager : MonoBehaviour
     {
         if (targetText != null)
         {
-            targetText.text = $"LV. {level}";
+            targetText.text = level.ToString();
         }
     }
 }

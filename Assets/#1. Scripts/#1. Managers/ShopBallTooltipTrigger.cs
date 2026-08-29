@@ -5,12 +5,21 @@ using UnityEngine.EventSystems;
 public class ShopBallTooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     ShopBallUI owner;
+    BallDataSO ballData;
     ShopBallTooltipUI tooltipUI;
     bool isHovered;
 
     public void Initialize(ShopBallUI shopBallUI)
     {
         owner = shopBallUI;
+        ballData = null;
+    }
+
+    public void Initialize(BallDataSO displayedBallData)
+    {
+        owner = null;
+        ballData = displayedBallData;
+        RefreshTooltip();
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -46,7 +55,8 @@ public class ShopBallTooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPoin
 
     void ShowTooltip()
     {
-        if (owner == null || owner.CurrentBallData == null)
+        BallDataSO displayedBallData = owner != null ? owner.CurrentBallData : ballData;
+        if (displayedBallData == null)
         {
             HideTooltip();
             return;
@@ -54,6 +64,6 @@ public class ShopBallTooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPoin
 
         Canvas canvas = GetComponentInParent<Canvas>();
         tooltipUI = ShopBallTooltipUI.GetOrCreate(canvas);
-        tooltipUI?.Show(owner.CurrentBallData, this);
+        tooltipUI?.Show(displayedBallData, this);
     }
 }

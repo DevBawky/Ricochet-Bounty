@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Dividend Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   saveId: 
+  displayName: 배당 공
+  description: 이번 발사에서 획득한 골드마다 참여한 배당 공 1개당 칩 4를 얻습니다. 최대 3개까지 적용되며, 골드당 배수 0.2도 추가됩니다.
   price: 10
   rarity: 0
   ValueType: 0

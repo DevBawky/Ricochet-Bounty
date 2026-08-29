@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Golden Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   saveId: 
+  displayName: 황금 공
+  description: 벽 또는 오브젝트에 충돌할 때마다 50% 확률로 골드 1을 획득합니다. 공 하나당 최대 2골드까지 획득할 수 있습니다.
   price: 4
   rarity: 1
   ValueType: 0

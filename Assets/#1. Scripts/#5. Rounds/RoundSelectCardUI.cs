@@ -61,7 +61,7 @@ public class RoundSelectCardUI : MonoBehaviour
 
         if (stageDescriptionText != null)
         {
-            stageDescriptionText.text = settings.Description;
+            stageDescriptionText.text = DescriptionTextFormatter.AddSentenceLineBreaks(settings.Description);
         }
 
         if (selectButtonText != null)

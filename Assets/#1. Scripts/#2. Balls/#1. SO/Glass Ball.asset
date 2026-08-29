@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Glass Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   saveId: 
+  displayName: 유리 공
+  description: 기본 칩이 10인 강력한 공입니다. 벽 또는 오브젝트에 충돌할 때마다 12% 확률로 즉시 파괴됩니다.
   price: 4
   rarity: 1
   ValueType: 0

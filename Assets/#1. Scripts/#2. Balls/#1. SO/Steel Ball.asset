@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Steel Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   saveId: 
+  displayName: 강철 공
+  description: 벽 또는 오브젝트에 충돌할 때마다 35% 확률로 내구도 1을 회복합니다.
   price: 4
   rarity: 1
   ValueType: 0

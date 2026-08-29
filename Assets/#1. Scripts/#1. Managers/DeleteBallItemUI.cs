@@ -10,11 +10,18 @@ public class DeleteBallItemUI : MonoBehaviour
 
     DeleteBallPanelUI owner;
     BallDataSO displayedBallData;
+    ShopBallTooltipTrigger tooltipTrigger;
     int ownedBallIndex = -1;
 
     void Awake()
     {
         BindDeleteButton();
+        BindTooltipTrigger();
+    }
+
+    void OnDisable()
+    {
+        tooltipTrigger?.HideTooltip();
     }
 
     public void SetBallData(BallDataSO ballData, int deckIndex, int deleteCost, bool canDelete, DeleteBallPanelUI panelOwner)
@@ -41,6 +48,8 @@ public class DeleteBallItemUI : MonoBehaviour
         }
 
         BindDeleteButton();
+        BindTooltipTrigger();
+        tooltipTrigger?.Initialize(displayedBallData);
     }
 
     public void DeleteDisplayedBall()
@@ -62,5 +71,14 @@ public class DeleteBallItemUI : MonoBehaviour
 
         deleteButton.onClick.RemoveListener(DeleteDisplayedBall);
         deleteButton.onClick.AddListener(DeleteDisplayedBall);
+    }
+
+    void BindTooltipTrigger()
+    {
+        tooltipTrigger = GetComponent<ShopBallTooltipTrigger>();
+        if (tooltipTrigger == null)
+        {
+            tooltipTrigger = gameObject.AddComponent<ShopBallTooltipTrigger>();
+        }
     }
 }

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Test Multiplier Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   saveId: 
+  displayName: 기본 배수 공
+  description: 오브젝트에 충돌할 때마다 배수 0.2를 획득하는 기본 공입니다.
   price: 1
   rarity: 0
   ValueType: 1

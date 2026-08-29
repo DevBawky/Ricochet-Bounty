@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Compound Bounty Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   saveId: 
+  displayName: 복리 현상금 공
+  description: 오브젝트 충돌 시 보유 골드에 따라 칩 1~5를 획득합니다. 파괴될 때 보유 골드가 10/20/30 이상이면 배수 0.2/0.4/0.6을 획득합니다.
   price: 10
   rarity: 0
   ValueType: 0

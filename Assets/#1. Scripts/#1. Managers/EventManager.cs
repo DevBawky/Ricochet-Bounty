@@ -72,7 +72,7 @@ public class EventManager : MonoBehaviour
 
         if (currentEvent == null)
         {
-            SetEventText("Event", "No valid event is configured.", "Unavailable", "Unavailable");
+            SetEventText("이벤트", "설정된 유효한 이벤트가 없습니다.", "선택 불가", "선택 불가");
             SetOptionButtons(false);
             if (closeButton != null)
             {
@@ -151,7 +151,7 @@ public class EventManager : MonoBehaviour
 
         if (currentEvent == null)
         {
-            SetEventText("Event", data != null ? data.displayedDescription : string.Empty, "Unavailable", "Unavailable");
+            SetEventText("이벤트", data != null ? data.displayedDescription : string.Empty, "선택 불가", "선택 불가");
         }
         else
         {
@@ -186,7 +186,7 @@ public class EventManager : MonoBehaviour
         bool success = Random.value < 0.5f;
         if (!success)
         {
-            return "The key did not fit. Nothing happened.";
+            return "열쇠가 맞지 않았습니다. 아무 일도 일어나지 않았습니다.";
         }
 
         int reward = Random.Range(MinimumGoldReward, MaximumGoldReward + 1);
@@ -195,14 +195,14 @@ public class EventManager : MonoBehaviour
             goldManager.AddGold(reward);
         }
 
-        return $"The chest opened. You received {reward} Gold.";
+        return $"상자가 열렸습니다. 골드 {reward}개를 획득했습니다.";
     }
 
     string ResolveBroker(bool addBalls)
     {
         if (playerBallDeck == null)
         {
-            return "The broker could not find your deck.";
+            return "중개인이 공 덱을 찾지 못했습니다.";
         }
 
         if (addBalls)
@@ -219,7 +219,7 @@ public class EventManager : MonoBehaviour
                 addedCount++;
             }
 
-            return $"The broker added {addedCount} random ball(s) to your deck.";
+            return $"중개인이 무작위 공 {addedCount}개를 덱에 추가했습니다.";
         }
 
         int removedCount = 0;
@@ -233,7 +233,7 @@ public class EventManager : MonoBehaviour
             }
         }
 
-        return $"The broker removed {removedCount} random ball(s) from your deck.";
+        return $"중개인이 무작위 공 {removedCount}개를 덱에서 제거했습니다.";
     }
 
     BallDataSO PickRandomBall()

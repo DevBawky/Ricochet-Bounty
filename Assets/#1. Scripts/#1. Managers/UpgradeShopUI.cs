@@ -14,11 +14,33 @@ public class UpgradeShopUI : MonoBehaviour
 
     PlayerUpgradeManager upgradeManager;
     GoldManager goldManager;
+    UpgradeShopTooltipTrigger tooltipTrigger;
+
+    public string TooltipTitle
+    {
+        get
+        {
+            switch (upgradeType)
+            {
+                case PlayerUpgradeType.BallHp:
+                    return "내구도";
+                case PlayerUpgradeType.BallDefense:
+                    return "충돌 피해 감소";
+                case PlayerUpgradeType.ScoreBoost:
+                    return "점수 증폭";
+                default:
+                    return "강화";
+            }
+        }
+    }
+
+    public string TooltipDescription => BuildTooltipDescription();
 
     void Awake()
     {
         FindMissingReferences();
         BindPurchaseButton();
+        BindTooltipTrigger();
     }
 
     void OnEnable()
@@ -41,6 +63,8 @@ public class UpgradeShopUI : MonoBehaviour
         {
             upgradeManager.OnUpgradesChanged.RemoveListener(Refresh);
         }
+
+        tooltipTrigger?.HideTooltip();
     }
 
     public void PurchaseUpgrade()
@@ -65,13 +89,13 @@ public class UpgradeShopUI : MonoBehaviour
         if (valueText != null)
         {
             valueText.text = level < PlayerUpgradeManager.MaxUpgradeLevel
-                ? $"{currentPercent}% -> {currentPercent + PlayerUpgradeManager.PercentPerLevel}%"
+                ? $"{currentPercent}% → {currentPercent + PlayerUpgradeManager.PercentPerLevel}%"
                 : $"{currentPercent}%";
         }
 
         if (levelText != null)
         {
-            levelText.text = $"LV. {level}";
+            levelText.text = $"레벨 {level}";
         }
 
         bool isBelowMaxLevel = upgradeManager != null && level < PlayerUpgradeManager.MaxUpgradeLevel;
@@ -81,8 +105,8 @@ public class UpgradeShopUI : MonoBehaviour
         if (costText != null)
         {
             costText.text = level >= PlayerUpgradeManager.MaxUpgradeLevel
-                ? "MAX"
-                : hasConfiguredCost ? $"$ {upgradeCost}" : "N/A";
+                ? "최대"
+                : hasConfiguredCost ? $"$ {upgradeCost}" : "없음";
         }
 
         if (purchaseButton != null)
@@ -92,8 +116,10 @@ public class UpgradeShopUI : MonoBehaviour
 
         if (purchaseButtonText != null && !canUpgrade)
         {
-            purchaseButtonText.text = "MAX";
+            purchaseButtonText.text = "최대";
         }
+
+        tooltipTrigger?.RefreshTooltip();
     }
 
     void BindPurchaseButton()
@@ -105,6 +131,68 @@ public class UpgradeShopUI : MonoBehaviour
 
         purchaseButton.onClick.RemoveListener(PurchaseUpgrade);
         purchaseButton.onClick.AddListener(PurchaseUpgrade);
+    }
+
+    void BindTooltipTrigger()
+    {
+        tooltipTrigger = GetComponent<UpgradeShopTooltipTrigger>();
+        if (tooltipTrigger == null)
+        {
+            tooltipTrigger = gameObject.AddComponent<UpgradeShopTooltipTrigger>();
+        }
+
+        tooltipTrigger.Initialize(this);
+    }
+
+    string BuildTooltipDescription()
+    {
+        FindMissingReferences();
+        int level = upgradeManager != null ? upgradeManager.GetLevel(upgradeType) : 0;
+        int currentPercent = level * PlayerUpgradeManager.PercentPerLevel;
+        int nextPercent = Mathf.Min(
+            PlayerUpgradeManager.MaxUpgradeLevel * PlayerUpgradeManager.PercentPerLevel,
+            currentPercent + PlayerUpgradeManager.PercentPerLevel);
+        bool isMaxLevel = level >= PlayerUpgradeManager.MaxUpgradeLevel;
+
+        switch (upgradeType)
+        {
+            case PlayerUpgradeType.BallHp:
+                return BuildProgressDescription(
+                    "모든 공의 최대 내구도가 증가합니다.",
+                    $"현재 보너스: +{currentPercent}%",
+                    $"다음 레벨: +{nextPercent}%",
+                    isMaxLevel);
+
+            case PlayerUpgradeType.BallDefense:
+                float currentDamageTaken = 100f / (1f + currentPercent / 100f);
+                float nextDamageTaken = 100f / (1f + nextPercent / 100f);
+                return BuildProgressDescription(
+                    "벽과 오브젝트 충돌로 받는 내구도 피해가 감소합니다.",
+                    $"현재 받는 피해: {currentDamageTaken:0.#}%",
+                    $"다음 레벨: {nextDamageTaken:0.#}%",
+                    isMaxLevel);
+
+            case PlayerUpgradeType.ScoreBoost:
+                return BuildProgressDescription(
+                    "칩 또는 배수를 얻을 때마다 두 배로 획득할 확률이 생깁니다.",
+                    $"현재 확률: {currentPercent}%",
+                    $"다음 레벨: {nextPercent}%",
+                    isMaxLevel);
+
+            default:
+                return string.Empty;
+        }
+    }
+
+    static string BuildProgressDescription(
+        string effectDescription,
+        string currentValue,
+        string nextValue,
+        bool isMaxLevel)
+    {
+        return isMaxLevel
+            ? $"{effectDescription}\n{currentValue} (최대)"
+            : $"{effectDescription}\n{currentValue}\n{nextValue}";
     }
 
     void FindMissingReferences()

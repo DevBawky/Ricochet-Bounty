@@ -8,16 +8,16 @@ public class BallEffectController : MonoBehaviour
 {
     const string BallLayerName = "Ball";
 
-    [Header("References")]
+    [Header("참조")]
     [SerializeField] DamageManager damageManager;
     [SerializeField] GoldManager goldManager;
     [SerializeField] BallRegistry ballRegistry;
     [SerializeField] ShotRuntimeContext shotRuntimeContext;
 
-    [Header("Options")]
+    [Header("옵션")]
     [SerializeField] bool triggerSpawnEffectsOnEnable = true;
 
-    [Header("Runtime State")]
+    [Header("런타임 상태")]
     [SerializeField] List<BallEffectRuntimeState> runtimeStates = new List<BallEffectRuntimeState>();
     [SerializeField] bool canSplit = true;
     [SerializeField] int stackCashOutChipsStack;

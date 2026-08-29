@@ -13,10 +13,25 @@ public class WaveTypeSettings
 
     public WaveType WaveType => waveType;
     public Sprite Icon => icon;
-    public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? waveType.ToString() : displayName;
+    public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? GetLocalizedDisplayName() : displayName;
     public string Description => description;
     public Color PanelColor => panelColor;
     public float Weight => Mathf.Max(0f, weight);
+
+    string GetLocalizedDisplayName()
+    {
+        switch (waveType)
+        {
+            case WaveType.Event:
+                return "이벤트";
+            case WaveType.Treasure:
+                return "보물";
+            case WaveType.Boss:
+                return "보스";
+            default:
+                return "전투";
+        }
+    }
 }
 
 public class RoundSelectManager : MonoBehaviour
@@ -228,8 +243,23 @@ public class RoundSelectManager : MonoBehaviour
 
     WaveTypeSettings CreateFallbackSettings(WaveType waveType)
     {
-        string json = $"{{\"waveType\":{(int)waveType},\"displayName\":\"{waveType}\",\"description\":\"{GetDefaultDescription(waveType)}\",\"panelColor\":{{\"r\":1,\"g\":1,\"b\":1,\"a\":1}},\"weight\":1}}";
+        string json = $"{{\"waveType\":{(int)waveType},\"displayName\":\"{GetDefaultDisplayName(waveType)}\",\"description\":\"{GetDefaultDescription(waveType)}\",\"panelColor\":{{\"r\":1,\"g\":1,\"b\":1,\"a\":1}},\"weight\":1}}";
         return JsonUtility.FromJson<WaveTypeSettings>(json);
+    }
+
+    string GetDefaultDisplayName(WaveType waveType)
+    {
+        switch (waveType)
+        {
+            case WaveType.Event:
+                return "이벤트";
+            case WaveType.Treasure:
+                return "보물";
+            case WaveType.Boss:
+                return "보스";
+            default:
+                return "전투";
+        }
     }
 
     string GetDefaultDescription(WaveType waveType)
@@ -237,13 +267,13 @@ public class RoundSelectManager : MonoBehaviour
         switch (waveType)
         {
             case WaveType.Event:
-                return "Encounter a random event and choose an option.";
+                return "무작위 이벤트를 만나 선택지를 고릅니다.";
             case WaveType.Treasure:
-                return "Open a treasure chest and discover a random ball.";
+                return "보물 상자를 열어 무작위 공을 발견합니다.";
             case WaveType.Boss:
-                return "Face the stage boss and survive the final battle.";
+                return "스테이지 보스와 맞서 마지막 전투에서 살아남습니다.";
             default:
-                return "Enter a battle and defeat the enemy.";
+                return "전투에 진입해 적을 쓰러뜨립니다.";
         }
     }
 

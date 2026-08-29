@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(BallDataManager))]
 public class BallRuntimeStatus : MonoBehaviour
 {
-    [Header("Runtime State")]
+    [Header("런타임 상태")]
     [SerializeField] float currentDurability;
     [SerializeField] bool isDestroying;
 

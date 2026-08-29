@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Split Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   saveId: 
+  displayName: 분열 공
+  description: 벽에 충돌하면 35% 확률로 공 3개를 추가로 생성합니다. 발사당 한 번만 발동하며, 분열로 생성된 공은 다시 분열하지 않습니다.
   price: 4
   rarity: 1
   ValueType: 0

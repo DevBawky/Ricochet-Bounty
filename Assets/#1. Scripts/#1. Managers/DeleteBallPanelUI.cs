@@ -138,7 +138,7 @@ public class DeleteBallPanelUI : MonoBehaviour
         if (deleteCostText != null)
         {
             int deleteCost = playerRunData != null ? playerRunData.CurrentDeleteCost : 0;
-            deleteCostText.text = $"Cost : ${deleteCost}";
+            deleteCostText.text = $"비용 : ${deleteCost}";
         }
     }
 

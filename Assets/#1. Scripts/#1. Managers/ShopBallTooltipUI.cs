@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,7 +20,7 @@ public class ShopBallTooltipUI : MonoBehaviour
     TMP_Text ballNameText;
     TMP_Text ballDescriptionText;
     StateManager stateManager;
-    ShopBallTooltipTrigger currentSource;
+    Component currentSource;
     bool isVisible;
 
     public static ShopBallTooltipUI GetOrCreate(Canvas preferredCanvas)
@@ -88,6 +89,17 @@ public class ShopBallTooltipUI : MonoBehaviour
             return;
         }
 
+        Show(ballData.DisplayName, ballData.Description, source);
+    }
+
+    public void Show(string title, string description, Component source)
+    {
+        if (source == null)
+        {
+            Hide(null);
+            return;
+        }
+
         Initialize(canvas != null ? canvas : source.GetComponentInParent<Canvas>());
         BindStateManager();
 
@@ -100,12 +112,12 @@ public class ShopBallTooltipUI : MonoBehaviour
         currentSource = source;
         if (ballNameText != null)
         {
-            ballNameText.text = ballData.DisplayName;
+            ballNameText.text = title ?? string.Empty;
         }
 
         if (ballDescriptionText != null)
         {
-            ballDescriptionText.text = ballData.Description;
+            ballDescriptionText.text = DescriptionTextFormatter.AddSentenceLineBreaks(description);
         }
 
         tooltipObject.SetActive(true);
@@ -115,7 +127,7 @@ public class ShopBallTooltipUI : MonoBehaviour
         UpdatePosition(Input.mousePosition);
     }
 
-    public void Hide(ShopBallTooltipTrigger source)
+    public void Hide(Component source)
     {
         if (source != null && currentSource != source)
         {
@@ -278,5 +290,19 @@ public class ShopBallTooltipUI : MonoBehaviour
         }
 
         return null;
+    }
+}
+
+public static class DescriptionTextFormatter
+{
+    static readonly Regex SentenceBoundary = new Regex(
+        @"(?<=[.!?。！？])[ \t]+(?=\S)",
+        RegexOptions.Compiled);
+
+    public static string AddSentenceLineBreaks(string text)
+    {
+        return string.IsNullOrEmpty(text)
+            ? text ?? string.Empty
+            : SentenceBoundary.Replace(text, "\n");
     }
 }

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Combo Cash Out Multiplier Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   saveId: 
+  displayName: 콤보 배수 정산 공
+  description: 벽 또는 오브젝트에 충돌할 때마다 스택을 1 얻고, 파괴될 때 스택당 배수 0.1을 획득합니다.
   price: 8
   rarity: 2
   ValueType: 0

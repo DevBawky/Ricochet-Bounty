@@ -2,24 +2,24 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
-    [Header("Launch")]
+    [Header("발사")]
     [SerializeField] float _launchForce = 10f;
 
-    [Header("Speed")]
-    [SerializeField, Tooltip("Minimum speed kept after the ball has been launched.")]
+    [Header("속도")]
+    [SerializeField, Tooltip("공이 발사된 뒤 유지할 최소 속도입니다.")]
     float _minMoveSpeed = 6f;
     [SerializeField] float _maxMoveSpeed = 24f;
     [SerializeField] bool _logMinimumSpeedCorrection;
 
-    [Header("Stuck Recovery")]
-    [SerializeField, Min(0.1f), Tooltip("How often actual movement is checked for a stuck ball.")]
+    [Header("끼임 복구")]
+    [SerializeField, Min(0.1f), Tooltip("공이 끼었는지 실제 이동 거리를 확인하는 주기입니다.")]
     float _stuckCheckInterval = 0.5f;
-    [SerializeField, Min(0.01f), Tooltip("A ball travelling less than this distance during the check interval is considered stuck.")]
+    [SerializeField, Min(0.01f), Tooltip("확인 주기 동안 이 거리보다 적게 이동하면 공이 끼인 것으로 판단합니다.")]
     float _stuckMinimumTravelDistance = 0.2f;
-    [SerializeField, Min(0f), Tooltip("Small position nudge used before relaunching a stuck ball.")]
+    [SerializeField, Min(0f), Tooltip("끼인 공을 다시 발사하기 전에 위치를 살짝 이동할 거리입니다.")]
     float _stuckEscapeDistance = 0.15f;
 
-    [Header("No Collision Destroy")]
+    [Header("무충돌 파괴")]
     [SerializeField] float _noCollisionDestroyDelay = 5f;
 
     Rigidbody2D _rigidbody;

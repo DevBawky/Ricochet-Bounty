@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Overheat Multiplier Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   saveId: 
+  displayName: 과열 배수 공
+  description: 벽 또는 오브젝트에 충돌할 때마다 과열이 1 증가하고, 배수 획득량이 0.2씩 늘어납니다. 과열 5부터 충돌할 때마다 15% 확률로 파괴됩니다.
   price: 11
   rarity: 3
   ValueType: 0

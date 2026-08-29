@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Stack Multiplier Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallDataSO
   saveId: 
+  displayName: 스택 배수 공
+  description: 오브젝트에 3회 충돌할 때마다 배수 1을 획득하고 스택이 초기화됩니다.
   price: 8
   rarity: 2
   ValueType: 0

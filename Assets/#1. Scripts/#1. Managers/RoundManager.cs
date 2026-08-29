@@ -673,12 +673,12 @@ public class RoundManager : MonoBehaviour
 
         if (stageText != null)
         {
-            stageText.text = $"Stage {displayStage} / {roundProgress.MaxStageCount}";
+            stageText.text = $"스테이지 {displayStage} / {roundProgress.MaxStageCount}";
         }
 
         if (waveText != null)
         {
-            waveText.text = $"Wave {displayWave} / {roundProgress.WaveCountPerStage}";
+            waveText.text = $"웨이브 {displayWave} / {roundProgress.WaveCountPerStage}";
         }
 
         if (bossProgressBarImage != null)
@@ -873,7 +873,7 @@ public class RoundManager : MonoBehaviour
 
         if (targetEnemyNameText != null)
         {
-            targetEnemyNameText.text = selectedEnemyData != null ? selectedEnemyData.EnemyName : "Enemy";
+            targetEnemyNameText.text = selectedEnemyData != null ? selectedEnemyData.EnemyName : "적";
         }
 
         RefreshTargetHealthText();
@@ -929,12 +929,12 @@ public class RoundManager : MonoBehaviour
 
     string GetSelectedEnemyName()
     {
-        return selectedEnemyData != null ? selectedEnemyData.EnemyName : "None";
+        return selectedEnemyData != null ? selectedEnemyData.EnemyName : "없음";
     }
 
     string GetSelectedGridName()
     {
-        return selectedBattleGridPrefab != null ? selectedBattleGridPrefab.name : "None";
+        return selectedBattleGridPrefab != null ? selectedBattleGridPrefab.name : "없음";
     }
 
     void FindMissingReferences()
