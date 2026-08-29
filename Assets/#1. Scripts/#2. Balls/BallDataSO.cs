@@ -13,6 +13,12 @@ public class BallDataSO : ScriptableObject
     string saveId;
 
     [Header("Shop")]
+    [SerializeField, Tooltip("Name displayed in shop tooltips. If empty, the asset name is used.")]
+    string displayName;
+
+    [SerializeField, TextArea(2, 5), Tooltip("Description displayed in shop tooltips. If empty, a summary is generated from this ball's stats.")]
+    string description;
+
     [SerializeField, Tooltip("Shop purchase price.")]
     int price = 10;
 
@@ -175,6 +181,27 @@ public class BallDataSO : ScriptableObject
         get
         {
             return objectHitDurabilityDamage;
+        }
+    }
+
+    public string DisplayName
+    {
+        get
+        {
+            return string.IsNullOrWhiteSpace(displayName) ? name : displayName.Trim();
+        }
+    }
+
+    public string Description
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                return description.Trim();
+            }
+
+            return $"{rarity} · {ValueType}\nBase {Score:0.##} · Durability {MaxDurability}";
         }
     }
 

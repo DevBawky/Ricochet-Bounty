@@ -15,6 +15,7 @@ public class ShopBallUI : MonoBehaviour
 
     BallDataSO currentBallData;
     bool isPurchased;
+    ShopBallTooltipTrigger tooltipTrigger;
 
     public BallDataSO CurrentBallData => currentBallData;
     public bool IsPurchased => isPurchased;
@@ -22,6 +23,7 @@ public class ShopBallUI : MonoBehaviour
     void Awake()
     {
         BindBuyButton();
+        BindTooltipTrigger();
     }
 
     void OnEnable()
@@ -33,6 +35,7 @@ public class ShopBallUI : MonoBehaviour
     void OnDisable()
     {
         UnsubscribeFromDeck();
+        tooltipTrigger?.HideTooltip();
     }
 
     public void SetPurchaseDependencies(GoldManager newGoldManager, PlayerBallDeck newPlayerBallDeck)
@@ -59,6 +62,7 @@ public class ShopBallUI : MonoBehaviour
         if (data == null)
         {
             ApplyEmptyState();
+            tooltipTrigger?.RefreshTooltip();
             return;
         }
 
@@ -78,6 +82,8 @@ public class ShopBallUI : MonoBehaviour
         {
             buyButton.interactable = !playerBallDeck?.IsAtCapacity ?? true;
         }
+
+        tooltipTrigger?.RefreshTooltip();
     }
 
     public void RestoreState(BallDataSO data, bool purchased)
@@ -171,6 +177,22 @@ public class ShopBallUI : MonoBehaviour
 
         buyButton.onClick.RemoveListener(BuyCurrentBall);
         buyButton.onClick.AddListener(BuyCurrentBall);
+    }
+
+    void BindTooltipTrigger()
+    {
+        if (ballImage == null)
+        {
+            return;
+        }
+
+        tooltipTrigger = ballImage.GetComponent<ShopBallTooltipTrigger>();
+        if (tooltipTrigger == null)
+        {
+            tooltipTrigger = ballImage.gameObject.AddComponent<ShopBallTooltipTrigger>();
+        }
+
+        tooltipTrigger.Initialize(this);
     }
 
     void SubscribeToDeck()
