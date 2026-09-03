@@ -95,7 +95,7 @@ public class UpgradeShopUI : MonoBehaviour
 
         if (levelText != null)
         {
-            levelText.text = $"레벨 {level}";
+            levelText.text = level.ToString();
         }
 
         bool isBelowMaxLevel = upgradeManager != null && level < PlayerUpgradeManager.MaxUpgradeLevel;

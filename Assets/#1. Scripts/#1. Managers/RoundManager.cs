@@ -628,7 +628,7 @@ public class RoundManager : MonoBehaviour
 
             if (stateManager != null)
             {
-                stateManager.ChangeState(GameState.Clear);
+                stateManager.OnGameCleared();
             }
 
             Debug.Log("[RoundManager] 마지막 스테이지 보스를 클리어했습니다. Clear 상태로 전환합니다.", this);

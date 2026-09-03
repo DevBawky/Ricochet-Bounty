@@ -338,6 +338,11 @@ public class StateManager : MonoBehaviour
         ChangeState(GameState.Result);
     }
 
+    public void OnGameCleared()
+    {
+        EnterRunEndState(GameState.Clear);
+    }
+
     public void OnNonBattleWaveCleared()
     {
         StopTurnCoroutines();
@@ -348,9 +353,7 @@ public class StateManager : MonoBehaviour
     // 플레이어의 라이프가 모두 소모되었을 때 호출합니다.
     public void OnPlayerDefeated()
     {
-        StopTurnCoroutines();
-        ChangeBattleState(BattleState.BattleEnd);
-        ChangeState(GameState.GameOver);
+        EnterRunEndState(GameState.GameOver);
     }
 
     public void StartBattle()
@@ -798,9 +801,13 @@ public class StateManager : MonoBehaviour
 
     void RefreshUIPanels()
     {
+        bool showPlayerPanel = currentState != GameState.MainMenu &&
+            currentState != GameState.GameOver &&
+            currentState != GameState.Clear;
+
         if (panelDissolveController != null)
         {
-            panelDissolveController.TransitionTo(GetCurrentPrimaryPanel(), currentState != GameState.MainMenu);
+            panelDissolveController.TransitionTo(GetCurrentPrimaryPanel(), showPlayerPanel);
             return;
         }
 
@@ -816,8 +823,8 @@ public class StateManager : MonoBehaviour
         SetPanelActive(gameOverPanel, false);
         SetPanelActive(clearPanel, false);
 
-        // Player Panel은 MainMenu를 제외한 모든 상태에서 항상 표시합니다.
-        SetPanelActive(playerPanel, currentState != GameState.MainMenu);
+        // 종료 화면과 MainMenu에서는 Player Panel을 숨깁니다.
+        SetPanelActive(playerPanel, showPlayerPanel);
 
         switch (currentState)
         {
@@ -907,6 +914,26 @@ public class StateManager : MonoBehaviour
 
         Debug.Log($"[StateManager] BattleState 변경: {currentBattleState} -> {nextState}", this);
         currentBattleState = nextState;
+    }
+
+    void EnterRunEndState(GameState endState)
+    {
+        if (endState != GameState.GameOver && endState != GameState.Clear)
+        {
+            Debug.LogError($"[StateManager] {endState} is not a valid run end state.", this);
+            return;
+        }
+
+        if (currentState == GameState.GameOver || currentState == GameState.Clear)
+        {
+            Debug.LogWarning($"[StateManager] Duplicate run end request was ignored. Current state: {currentState}", this);
+            return;
+        }
+
+        StopTurnCoroutines();
+        ChangeBattleState(BattleState.BattleEnd);
+        ChangeState(endState);
+        RunSaveManager.Instance?.DeleteSaveFiles();
     }
 
     void StopTurnCoroutines()
