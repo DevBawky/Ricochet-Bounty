@@ -6,8 +6,6 @@ using UnityEngine;
 [RequireComponent(typeof(BallDataManager))]
 public class BallEffectController : MonoBehaviour
 {
-    const string BallLayerName = "Ball";
-
     [Header("참조")]
     [SerializeField] DamageManager damageManager;
     [SerializeField] GoldManager goldManager;
@@ -43,6 +41,9 @@ public class BallEffectController : MonoBehaviour
     Rigidbody2D ballRigidbody;
     bool isInitialized;
     Vector3 currentEffectWorldPosition;
+    bool roleDefaultsCaptured;
+    bool defaultCanSplit;
+    bool defaultIsColonyChild;
 
     BallDataSO BallData
     {
@@ -59,6 +60,7 @@ public class BallEffectController : MonoBehaviour
 
     void Awake()
     {
+        CaptureRoleDefaults();
         Initialize();
     }
 
@@ -151,6 +153,19 @@ public class BallEffectController : MonoBehaviour
     {
         isColonyChild = true;
         canSplit = false;
+    }
+
+    public void PrepareForPoolSpawn(bool isSplitBall, bool colonyChild)
+    {
+        CaptureRoleDefaults();
+        Initialize();
+        canSplit = defaultCanSplit && !isSplitBall;
+        isColonyChild = defaultIsColonyChild || colonyChild;
+
+        if (isColonyChild)
+        {
+            canSplit = false;
+        }
     }
 
     public void TriggerSpawnEffects()
@@ -363,6 +378,20 @@ public class BallEffectController : MonoBehaviour
         float startAngle = Random.Range(0f, 360f);
         float spawnOffset = GetSplitSpawnOffset();
 
+        BallPoolHandle poolHandle = GetComponent<BallPoolHandle>();
+        BallPool ballPool = poolHandle != null ? poolHandle.Owner : null;
+        if (ballPool == null)
+        {
+            BallSpawner spawner = FindFirstObjectByType<BallSpawner>();
+            ballPool = spawner != null ? spawner.Pool : null;
+        }
+
+        if (ballPool == null)
+        {
+            Debug.LogWarning("[BallEffectController] BallPool was not found. Split creation was skipped.", this);
+            return;
+        }
+
         isCreatingSplitBall = true;
 
         try
@@ -373,40 +402,17 @@ public class BallEffectController : MonoBehaviour
                 Vector2 direction = RotateDirection(baseDirection, angle);
                 Vector3 spawnPosition = transform.position + (Vector3)(direction * spawnOffset);
 
-                GameObject splitBall = Instantiate(gameObject, spawnPosition, Quaternion.identity);
-                splitBall.name = $"{gameObject.name} Split";
-                ApplyOriginalIdentity(splitBall);
-
-                BallRuntimeStatus splitRuntimeStatus = splitBall.GetComponent<BallRuntimeStatus>();
-                if (splitRuntimeStatus != null)
+                GameObject splitBall = ballPool.GetSplit(
+                    gameObject,
+                    spawnPosition,
+                    direction,
+                    speed,
+                    createColonyChildren);
+                if (splitBall == null)
                 {
-                    if (createColonyChildren)
-                    {
-                        splitRuntimeStatus.InitializeAsChild(1);
-                    }
-                    else
-                    {
-                        splitRuntimeStatus.Initialize();
-                    }
+                    continue;
                 }
 
-                BallEffectController splitEffectController = splitBall.GetComponent<BallEffectController>();
-                if (splitEffectController != null)
-                {
-                    splitEffectController.DisableSplit();
-                    if (createColonyChildren)
-                    {
-                        splitEffectController.ConfigureAsColonyChild();
-                    }
-                    splitEffectController.Initialize();
-                }
-
-                Ball splitBallMovement = splitBall.GetComponent<Ball>();
-                if (splitBallMovement != null)
-                {
-                    // 원본의 물리/파괴 플래그를 그대로 쓰지 않고 새 공처럼 재초기화합니다.
-                    splitBallMovement.InitializeAsSplitBall(direction, speed);
-                }
             }
         }
         finally
@@ -415,48 +421,6 @@ public class BallEffectController : MonoBehaviour
         }
 
         Debug.Log($"[BallEffectController] {name} 공이 {splitCount}개로 분열했습니다.", this);
-    }
-
-    void ApplyOriginalIdentity(GameObject splitBall)
-    {
-        // Instantiate(gameObject)는 원본 공의 컴포넌트, 태그, 레이어를 복제합니다.
-        // 그래도 자식 콜라이더 구조가 있을 수 있으므로 태그/레이어를 한 번 더 맞춰줍니다.
-        int ballLayer = GetBallLayerOrFallback(gameObject.layer);
-        splitBall.tag = gameObject.tag;
-        splitBall.layer = ballLayer;
-
-        Transform originalRoot = transform;
-        Transform splitRoot = splitBall.transform;
-        int childCount = Mathf.Min(originalRoot.childCount, splitRoot.childCount);
-
-        for (int i = 0; i < childCount; i++)
-        {
-            CopyTransformIdentity(originalRoot.GetChild(i), splitRoot.GetChild(i), ballLayer);
-        }
-    }
-
-    void CopyTransformIdentity(Transform original, Transform copied, int ballLayer)
-    {
-        copied.gameObject.tag = original.gameObject.tag;
-        copied.gameObject.layer = ballLayer;
-
-        int childCount = Mathf.Min(original.childCount, copied.childCount);
-        for (int i = 0; i < childCount; i++)
-        {
-            CopyTransformIdentity(original.GetChild(i), copied.GetChild(i), ballLayer);
-        }
-    }
-
-    int GetBallLayerOrFallback(int fallbackLayer)
-    {
-        int ballLayer = LayerMask.NameToLayer(BallLayerName);
-        if (ballLayer == -1)
-        {
-            Debug.LogWarning($"[BallEffectController] '{BallLayerName}' 레이어가 없어 분열 공의 레이어를 원본 레이어로 유지합니다.", this);
-            return fallbackLayer;
-        }
-
-        return ballLayer;
     }
 
     int GetSplitCount(BallEffectData effectData)
@@ -577,6 +541,12 @@ public class BallEffectController : MonoBehaviour
         if (runtimeStatus != null)
         {
             runtimeStatus.DestroyBall();
+            return;
+        }
+
+        BallPoolHandle poolHandle = GetComponent<BallPoolHandle>();
+        if (poolHandle != null && poolHandle.Release())
+        {
             return;
         }
 
@@ -1163,6 +1133,18 @@ public class BallEffectController : MonoBehaviour
         AddRuntimeStates(BallData.ObjectHitEffects, BallEffectTrigger.OnObjectHit);
         AddRuntimeStates(BallData.WallHitEffects, BallEffectTrigger.OnWallHit);
         AddRuntimeStates(BallData.DestroyEffects, BallEffectTrigger.OnDestroy);
+    }
+
+    void CaptureRoleDefaults()
+    {
+        if (roleDefaultsCaptured)
+        {
+            return;
+        }
+
+        defaultCanSplit = canSplit;
+        defaultIsColonyChild = isColonyChild;
+        roleDefaultsCaptured = true;
     }
 
     void RefreshMissingManagerReferences()

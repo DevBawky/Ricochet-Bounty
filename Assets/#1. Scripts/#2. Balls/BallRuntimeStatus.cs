@@ -132,6 +132,12 @@ public class BallRuntimeStatus : MonoBehaviour
             effectController.TriggerDestroyEffects();
         }
 
+        BallPoolHandle poolHandle = GetComponent<BallPoolHandle>();
+        if (poolHandle != null && poolHandle.Release())
+        {
+            return;
+        }
+
         Destroy(gameObject);
     }
 

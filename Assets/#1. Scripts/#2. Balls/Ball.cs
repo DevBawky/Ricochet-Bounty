@@ -74,6 +74,46 @@ public class Ball : MonoBehaviour
         ResetWaveMovement(_lastMoveDirection);
     }
 
+    public void PrepareForPoolSpawn()
+    {
+        CacheComponents();
+        ConfigureRigidbody();
+        EnableColliders();
+
+        if (_rigidbody != null)
+        {
+            _rigidbody.linearVelocity = Vector2.zero;
+            _rigidbody.angularVelocity = 0f;
+        }
+
+        _lastVelocity = Vector2.zero;
+        _lastMoveDirection = Vector2.right;
+        _lastWallHitSystemTime = -999f;
+        _collisionCount = 0;
+        _hasExternalLaunch = false;
+        _isDestroyingByNoCollision = false;
+        ResetWaveMovement(_lastMoveDirection);
+        ResetNoCollisionDestroyTimer();
+        ResetStuckCheck();
+    }
+
+    public void PrepareForPoolRelease()
+    {
+        CacheComponents();
+        if (_rigidbody != null)
+        {
+            _rigidbody.linearVelocity = Vector2.zero;
+            _rigidbody.angularVelocity = 0f;
+            _rigidbody.Sleep();
+            _rigidbody.simulated = false;
+        }
+
+        _lastVelocity = Vector2.zero;
+        _hasExternalLaunch = false;
+        _isDestroyingByNoCollision = false;
+        ResetWaveMovement(Vector2.right);
+    }
+
     void Start()
     {
         RegisterWithBallRegistry();
@@ -271,6 +311,12 @@ public class Ball : MonoBehaviour
         if (_runtimeStatus != null)
         {
             _runtimeStatus.DestroyBall();
+            return;
+        }
+
+        BallPoolHandle poolHandle = GetComponent<BallPoolHandle>();
+        if (poolHandle != null && poolHandle.Release())
+        {
             return;
         }
 

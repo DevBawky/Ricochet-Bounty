@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.UI;
 
 public class ScoreDeliveryUI : MonoBehaviour
@@ -81,6 +82,7 @@ public class ScoreDeliveryUI : MonoBehaviour
     bool damageSpawnComplete = true;
     bool warnedAboutMissingReferences;
     Coroutine damageSpawnCoroutine;
+    ObjectPool<UIValueTravelImage> travelImagePool;
 
     public int PendingScoreImageCount => pendingScoreImageCount;
     public int PendingChipsImageCount => pendingChipsImageCount;
@@ -95,6 +97,7 @@ public class ScoreDeliveryUI : MonoBehaviour
     void Awake()
     {
         ValidateSettings();
+        EnsureTravelImagePool();
     }
 
     void Update()
@@ -105,6 +108,12 @@ public class ScoreDeliveryUI : MonoBehaviour
     void OnDisable()
     {
         CancelAllDeliveries();
+    }
+
+    void OnDestroy()
+    {
+        travelImagePool?.Clear();
+        travelImagePool = null;
     }
 
     void OnValidate()
@@ -350,7 +359,8 @@ public class ScoreDeliveryUI : MonoBehaviour
         Color color,
         Action onArrived)
     {
-        UIValueTravelImage image = Instantiate(travelImagePrefab, travelRoot, false);
+        EnsureTravelImagePool();
+        UIValueTravelImage image = travelImagePool != null ? travelImagePool.Get() : null;
         if (image == null)
         {
             return false;
@@ -432,9 +442,16 @@ public class ScoreDeliveryUI : MonoBehaviour
             }
         }
 
-        if (arrived && record.Generation == generation)
+        try
         {
-            record.Arrived?.Invoke();
+            if (arrived && record.Generation == generation)
+            {
+                record.Arrived?.Invoke();
+            }
+        }
+        finally
+        {
+            ReleaseImage(image);
         }
     }
 
@@ -536,6 +553,76 @@ public class ScoreDeliveryUI : MonoBehaviour
     bool CanCreateImage()
     {
         return canvas != null && travelRoot != null && travelImagePrefab != null;
+    }
+
+    void EnsureTravelImagePool()
+    {
+        if (travelImagePool != null || travelImagePrefab == null || travelRoot == null)
+        {
+            return;
+        }
+
+        travelImagePool = new ObjectPool<UIValueTravelImage>(
+            CreateTravelImage,
+            OnGetTravelImage,
+            OnReleaseTravelImage,
+            OnDestroyTravelImage,
+            true,
+            8,
+            Mathf.Max(128, maximumDamageImageCount));
+    }
+
+    UIValueTravelImage CreateTravelImage()
+    {
+        UIValueTravelImage image = Instantiate(travelImagePrefab, travelRoot, false);
+        image.gameObject.SetActive(false);
+        return image;
+    }
+
+    void OnGetTravelImage(UIValueTravelImage image)
+    {
+        if (image != null)
+        {
+            image.transform.SetParent(travelRoot, false);
+        }
+    }
+
+    void OnReleaseTravelImage(UIValueTravelImage image)
+    {
+        if (image == null)
+        {
+            return;
+        }
+
+        image.gameObject.SetActive(false);
+        image.transform.SetParent(travelRoot, false);
+    }
+
+    void OnDestroyTravelImage(UIValueTravelImage image)
+    {
+        if (image != null)
+        {
+            Destroy(image.gameObject);
+        }
+    }
+
+    void ReleaseImage(UIValueTravelImage image)
+    {
+        if (image == null)
+        {
+            return;
+        }
+
+        if (travelImagePool != null && !image.IsBeingDestroyed)
+        {
+            travelImagePool.Release(image);
+            return;
+        }
+
+        if (!image.IsBeingDestroyed)
+        {
+            Destroy(image.gameObject);
+        }
     }
 
     void WarnMissingReferences(string context)

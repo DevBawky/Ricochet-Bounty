@@ -26,6 +26,7 @@ public class UIValueTravelImage : MonoBehaviour
     public float WaveFrequency => waveFrequency;
     public float StartPhase => startPhase;
     public float WaveDirection => waveDirection;
+    internal bool IsBeingDestroyed { get; private set; }
 
     public void Initialize(
         Vector2 start,
@@ -54,6 +55,7 @@ public class UIValueTravelImage : MonoBehaviour
         elapsedTime = 0f;
         hasFinished = false;
         isRunning = true;
+        IsBeingDestroyed = false;
 
         rectTransform.anchoredPosition = startPosition;
         image.color = color;
@@ -103,6 +105,7 @@ public class UIValueTravelImage : MonoBehaviour
 
     void OnDestroy()
     {
+        IsBeingDestroyed = true;
         if (isRunning && !hasFinished)
         {
             Finish(false);
@@ -121,10 +124,5 @@ public class UIValueTravelImage : MonoBehaviour
         Action<UIValueTravelImage, bool> callback = finishedCallback;
         finishedCallback = null;
         callback?.Invoke(this, arrived);
-
-        if (gameObject != null)
-        {
-            Destroy(gameObject);
-        }
     }
 }

@@ -964,6 +964,12 @@ public class StateManager : MonoBehaviour
         {
             if (balls[i] != null)
             {
+                BallPoolHandle poolHandle = balls[i].GetComponent<BallPoolHandle>();
+                if (poolHandle != null && poolHandle.Release())
+                {
+                    continue;
+                }
+
                 balls[i].gameObject.SetActive(false);
                 Destroy(balls[i].gameObject);
             }

@@ -7,6 +7,8 @@ public class BallDataManager : MonoBehaviour
 {
     [SerializeField] BallDataSO ballData;
 
+    WorldEffectPool worldEffectPool;
+
     public BallDataSO BallData
     {
         get
@@ -41,6 +43,11 @@ public class BallDataManager : MonoBehaviour
         return false;
     }
 
+    internal void SetWorldEffectPool(WorldEffectPool newWorldEffectPool)
+    {
+        worldEffectPool = newWorldEffectPool;
+    }
+
     public void SpawnCollisionEffect(Vector3 worldPosition)
     {
         SpawnEffect(
@@ -59,17 +66,51 @@ public class BallDataManager : MonoBehaviour
         );
     }
 
-    static void SpawnEffect(GameObject effectPrefab, Vector3 worldPosition, float lifetime)
+    void SpawnEffect(GameObject effectPrefab, Vector3 worldPosition, float lifetime)
     {
         if (effectPrefab == null)
         {
             return;
         }
 
+        ResolveWorldEffectPool();
+        if (worldEffectPool != null)
+        {
+            worldEffectPool.Play(effectPrefab, worldPosition, lifetime);
+            return;
+        }
+
+        // A scene-placed/non-pooled ball can still use the existing public API safely.
         GameObject effectInstance = Instantiate(effectPrefab, worldPosition, Quaternion.identity);
         if (lifetime > 0f)
         {
             Destroy(effectInstance, lifetime);
+        }
+    }
+
+    void ResolveWorldEffectPool()
+    {
+        if (worldEffectPool != null)
+        {
+            return;
+        }
+
+        BallPoolHandle poolHandle = GetComponent<BallPoolHandle>();
+        if (poolHandle != null && poolHandle.Owner != null)
+        {
+            BallSpawner spawner = FindFirstObjectByType<BallSpawner>();
+            if (spawner != null)
+            {
+                worldEffectPool = spawner.EffectPool;
+            }
+
+            return;
+        }
+
+        BallSpawner fallbackSpawner = FindFirstObjectByType<BallSpawner>();
+        if (fallbackSpawner != null)
+        {
+            worldEffectPool = fallbackSpawner.EffectPool;
         }
     }
 }

@@ -19,11 +19,25 @@ public class BallSpawner : MonoBehaviour
 
     Camera mainCamera;
     bool isFiring;
+    BallPool ballPool;
+    WorldEffectPool worldEffectPool;
+
+    internal BallPool Pool => ballPool;
+    internal WorldEffectPool EffectPool => worldEffectPool;
 
     void Awake()
     {
         mainCamera = Camera.main;
         FindMissingReferences();
+        EnsurePools();
+    }
+
+    void OnDestroy()
+    {
+        ballPool?.Dispose();
+        worldEffectPool?.Dispose();
+        ballPool = null;
+        worldEffectPool = null;
     }
 
     void Start()
@@ -131,96 +145,21 @@ public class BallSpawner : MonoBehaviour
             return;
         }
 
-        GameObject spawnedBall;
-        BallEffectController.SuppressSpawnEffectsOnEnable = true;
-        try
-        {
-            spawnedBall = Instantiate(ballPrefab, firePosition, Quaternion.identity);
-        }
-        finally
-        {
-            BallEffectController.SuppressSpawnEffectsOnEnable = false;
-        }
-
-        spawnedBall.name = $"{ballData.name} Ball";
-
-        BallDataManager dataManager = spawnedBall.GetComponent<BallDataManager>();
-        if (dataManager != null)
-        {
-            dataManager.SetBallData(ballData);
-        }
-        else
-        {
-            Debug.LogWarning("[BallSpawner] ballPrefab에 BallDataManager가 없어 BallDataSO를 주입할 수 없습니다.", spawnedBall);
-        }
-
-        ApplyBallVisual(spawnedBall, ballData);
-
-        BallRuntimeStatus runtimeStatus = spawnedBall.GetComponent<BallRuntimeStatus>();
-        if (runtimeStatus != null)
-        {
-            runtimeStatus.Initialize();
-        }
-        else
-        {
-            Debug.LogWarning("[BallSpawner] ballPrefab에 BallRuntimeStatus가 없습니다.", spawnedBall);
-        }
-
-        BallEffectController effectController = spawnedBall.GetComponent<BallEffectController>();
-        if (effectController != null)
-        {
-            effectController.Initialize();
-            effectController.TriggerSpawnEffects();
-        }
-        else
-        {
-            Debug.LogWarning("[BallSpawner] ballPrefab에 BallEffectController가 없습니다.", spawnedBall);
-        }
-
         Vector2 direction = GetRandomLaunchDirection();
         float launchSpeed = Mathf.Max(0f, ballData.LaunchSpeed);
 
-        Ball ball = spawnedBall.GetComponent<Ball>();
-        if (ball != null)
+        EnsurePools();
+        GameObject spawnedBall = ballPool != null
+            ? ballPool.GetPrimary(ballData, firePosition, direction, launchSpeed)
+            : null;
+
+        if (spawnedBall == null)
         {
-            ball.Launch(direction, launchSpeed);
-        }
-        else
-        {
-            Rigidbody2D rigidbody2D = spawnedBall.GetComponent<Rigidbody2D>();
-            if (rigidbody2D != null)
-            {
-                rigidbody2D.linearVelocity = direction * launchSpeed;
-            }
-            else
-            {
-                Debug.LogWarning("[BallSpawner] ballPrefab에 Ball 또는 Rigidbody2D가 없어 속도를 설정할 수 없습니다.", spawnedBall);
-            }
+            Debug.LogWarning("[BallSpawner] BallPool에서 공을 가져오지 못했습니다.", this);
+            return;
         }
 
         Debug.Log($"[BallSpawner] 탄환 발사: {ballData.name}, speed: {launchSpeed}, direction: {direction}", spawnedBall);
-    }
-
-    void ApplyBallVisual(GameObject spawnedBall, BallDataSO ballData)
-    {
-        // SpriteRenderer가 루트가 아닌 자식에 붙어 있을 수도 있으므로 자식까지 검색합니다.
-        SpriteRenderer spriteRenderer = spawnedBall.GetComponentInChildren<SpriteRenderer>();
-        if (spriteRenderer == null)
-        {
-            Debug.LogWarning("[BallSpawner] 생성된 탄환에서 SpriteRenderer를 찾을 수 없어 색상/스프라이트를 적용하지 못했습니다.", spawnedBall);
-            return;
-        }
-
-        spriteRenderer.color = ballData.BallColor;
-
-        if (ballData.BallSprite != null)
-        {
-            spriteRenderer.sprite = ballData.BallSprite;
-            Debug.Log($"[BallSpawner] 탄환 비주얼 적용: color {ballData.BallColor}, sprite {ballData.BallSprite.name}", spawnedBall);
-            return;
-        }
-
-        Debug.Log($"[BallSpawner] 탄환 색상만 적용: color {ballData.BallColor}. 스프라이트는 프리팹 기본값을 사용합니다.", spawnedBall);
     }
 
     bool ValidateFireReady()
@@ -313,6 +252,24 @@ public class BallSpawner : MonoBehaviour
         if (stateManager == null)
         {
             stateManager = FindFirstObjectByType<StateManager>();
+        }
+    }
+
+    void LateUpdate()
+    {
+        ballPool?.FlushReleases();
+    }
+
+    void EnsurePools()
+    {
+        if (worldEffectPool == null)
+        {
+            worldEffectPool = new WorldEffectPool(this, transform);
+        }
+
+        if (ballPool == null && ballPrefab != null)
+        {
+            ballPool = new BallPool(ballPrefab, transform, worldEffectPool);
         }
     }
 }
